@@ -68,3 +68,15 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+
+# Plan
+// 1. Représenter une matrice avec certaines valeurs dedans
+// 2. Changer la valeur des cases en fonction d'un event
+// 3. Instancier les valeurs en fonction d'une matrice
+// 4. Alterner les "tours"
+// 5. Selectionner un élément quand c'est son tour
+// 6. Bouger l'élément avec un second click
+// 7. Attendre les deux séléctions, appliquer le mouvement uniquement au click du bouton
+// 8. Implémenter systeme de vies futuremove -> matrice taille du plateau contenant vie et player resultant, parcourir la matrice au moment de applymoves pour voir où il y a des éléments
+9. Gérer plusieurs unités par joueur
