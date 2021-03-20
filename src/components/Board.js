@@ -5,7 +5,7 @@ class Board extends Component {
   constructor(props){
     super(props)
     this.state = {
-      board: Array(11).fill(Array(16).fill(null)),
+      board: Array(21).fill(Array(32).fill(null)),
     }
   }
 
@@ -25,6 +25,15 @@ class Board extends Component {
     return [unitContained, unitNumber]
   }
 
+  _containsFlag(col, row){
+    const flag1 = this.props.flags[0]
+    const flag2 = this.props.flags[1]
+    const containsFlag = []
+    containsFlag[0] = (flag1.x === col && flag1.y === row )
+    containsFlag[1] = (flag2.x === col && flag2.y === row )
+    return containsFlag
+  }
+
   renderSquare(col,row) {
     const unitsp1 = this.props.units[0]
     const unitsp2 = this.props.units[1]
@@ -32,12 +41,12 @@ class Board extends Component {
     const containsUnits2 = this._containsUnits(unitsp2, col, row)
     const containsUnits = containsUnits1[0] ? containsUnits1 : containsUnits2[0] ? containsUnits2 : null
     const containsPlayer = containsUnits1[0] ? this.props.players[0] : containsUnits2[0] ? this.props.players[1] : null
+    const containsFlag = this._containsFlag(col,row)
     const isReachable = this.props.units.map((player, player_index) => (
       player.map((unit, unit_index) => (
         this._isReachable(col, row, unit.x, unit.y, unit.speed)
       ))
     ))
-    console.log(col, row, isReachable)
     return (
       <Square
         key={`${col} ${row}`}
@@ -54,6 +63,7 @@ class Board extends Component {
         isReachable={isReachable}
         selectedUnit={this.props.selectedUnit}
         _setSelectedUnit={this.props._setSelectedUnit}
+        containsFlag={containsFlag}
       />
     )
   }

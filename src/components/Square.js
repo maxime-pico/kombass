@@ -31,17 +31,20 @@ class Square extends Component {
   render() {
     const unit = this.props.unit
     const player = this.props.player
+    const containsFlag = this.props.containsFlag
+    const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
     return (
       <div
-        className={`square${player ? ' active' : ''}${this.state.selected && player ? ' selected' : ''}${(this.props.isReachable[0].find(e => e) || this.props.isReachable[1].find(e => e)) ? ' reachable' : ''}`}
+        className={`square${player ? ' active' : ''}${this.state.selected && player ? ' selected' : ''}${(this.props.isReachable[0].find(e => e) || this.props.isReachable[1].find(e => e)) ? ' reachable' : ''}${bgcol ? ' contains-flag' : ''}`}
         onClick={() => this._clickedSquare(this.props.turn)}
-        style={{backgroundColor: unit && player.color}}
+        style={{backgroundColor: `${unit ? player.color : ''}`}}
       >
         {
           unit ?
-            `Life: ${unit[0].life} Speed: ${unit[0].speed}` :
-            `(${this.props.col}, ${this.props.row})`
+            `${unit[0].life} ${unit[0].speed}` :
+            ''
         }
+        { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null}
       </div>
     )
   }

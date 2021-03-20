@@ -80,3 +80,14 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 // 7. Attendre les deux séléctions, appliquer le mouvement uniquement au click du bouton
 // 8. Implémenter systeme de vies futuremove -> matrice taille du plateau contenant vie et player resultant, parcourir la matrice au moment de applymoves pour voir où il y a des éléments
 9. Gérer plusieurs unités par joueur
+
+# regles
+* 3 unités par type max
+* Zone de danger en fonction du type d'unités
+* zone de non droit pour le joueur autour du drapeau
+* placement seulement sur la troisieme colonne
+
+0 1 2 3 4
+5 6 7 8 9
+10
+0 1 2 
