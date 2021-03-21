@@ -9,8 +9,12 @@ class Board extends Component {
     }
   }
 
-  _isReachable(col, row, x, y, speed){
-    return x && (Math.abs(x - col) + Math.abs(y - row) <= speed)
+  _isReachable(col, row){
+    const unit = this.props.units[this.props.selectedUnit.playerNumber]?.[this.props.selectedUnit.unitNumber]
+    const x = unit ? unit.x : false
+    const y = unit ? unit.y : false
+    const speed = unit ? unit.speed : -1
+    return unit ? (Math.abs(x - col) + Math.abs(y - row) <= speed) : false
   }
 
   _containsUnits(units, col, row){
@@ -34,6 +38,11 @@ class Board extends Component {
     return containsFlag
   }
 
+  _isSelected(col, row, selectedUnit){
+    const unit = this.props.units[selectedUnit.playerNumber]?.[selectedUnit.unitNumber]
+    return unit && unit.x === col && unit.y === row
+  }
+
   renderSquare(col,row) {
     const unitsp1 = this.props.units[0]
     const unitsp2 = this.props.units[1]
@@ -42,11 +51,7 @@ class Board extends Component {
     const containsUnits = containsUnits1[0] ? containsUnits1 : containsUnits2[0] ? containsUnits2 : null
     const containsPlayer = containsUnits1[0] ? this.props.players[0] : containsUnits2[0] ? this.props.players[1] : null
     const containsFlag = this._containsFlag(col,row)
-    const isReachable = this.props.units.map((player, player_index) => (
-      player.map((unit, unit_index) => (
-        this._isReachable(col, row, unit.x, unit.y, unit.speed)
-      ))
-    ))
+    const isReachable = this._isReachable(col, row)
     return (
       <Square
         key={`${col} ${row}`}
@@ -61,8 +66,8 @@ class Board extends Component {
         step={this.props.step}
         _changePosition={this.props._changePosition}
         isReachable={isReachable}
+        selected={this._isSelected(col, row, this.props.selectedUnit)}
         selectedUnit={this.props.selectedUnit}
-        _setSelectedUnit={this.props._setSelectedUnit}
         containsFlag={containsFlag}
       />
     )

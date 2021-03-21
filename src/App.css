@@ -27,7 +27,7 @@
   height: 2rem;
   width: 2rem;
   border: 1px solid black;
-  font-size: 0.8rem;
+  font-size: 0.7rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -66,4 +66,15 @@ border: 3px solid green;
 
 .infobar{
   margin: 2rem 3rem;
+}
+
+button.inactive{
+  background-color: rgb(239, 239, 239);
+  color: grey;
+  border: 1px solid grey;
+}
+
+button.active{
+  background-color: lightgray;
+  color: black;
 }

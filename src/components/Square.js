@@ -4,23 +4,14 @@ class Square extends Component {
   constructor(props){
     super(props);
     this.state = {
-      selected: false,
+      selected: this.props.selected,
     }
   }
 
   _clickedSquare(turn){
-    const playerNumber = this.props.turn % 2
-    if (this.props.step === 0 || this.props.step === 2){
-      if (this.props.player === this.props.players[playerNumber]){
-        this.props._changeStep(this.props.step)
-        this.setState({
-          selected: true,
-        })
-        this.props._setSelectedUnit(playerNumber, this.props.unit[1])
-      }
-    }
-    if (this.props.step === 1 || this.props.step === 3){
-      if (this.props.isReachable[playerNumber][this.props.selectedUnit.unitNumber]){
+    const playerNumber = this.props.step < 5 ? 0 : 1
+    if (this.props.step !== 10){
+      if (this.props.isReachable){
         this.props._changeStep(this.props.step)
         this.props._changePosition(playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
         this.props._nextTurn(turn)
@@ -33,15 +24,17 @@ class Square extends Component {
     const player = this.props.player
     const containsFlag = this.props.containsFlag
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
+    const isReachable = this.props.isReachable
     return (
       <div
-        className={`square${player ? ' active' : ''}${this.state.selected && player ? ' selected' : ''}${(this.props.isReachable[0].find(e => e) || this.props.isReachable[1].find(e => e)) ? ' reachable' : ''}${bgcol ? ' contains-flag' : ''}`}
+        className={`square${player ? ' active' : ''}${this.props.selected && player ? ' selected' : ''}${ isReachable ? ' reachable' : ''}${bgcol ? ' contains-flag' : ''}`}
         onClick={() => this._clickedSquare(this.props.turn)}
         style={{backgroundColor: `${unit ? player.color : ''}`}}
       >
         {
-          unit ?
-            `${unit[0].life} ${unit[0].speed}` :
+          unit ? (
+            `${unit[0].life} ${unit[0].speed} ${unit[0].hasFlag ? 'F' : ''}`
+          ):
             ''
         }
         { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null}

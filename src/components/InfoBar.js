@@ -8,10 +8,10 @@ class InfoBar extends Component {
   }
 
   render(){
-    const currentPlayer = this.props.step < 4 ? this.props.players[this.props.turn % 2] : ''
+    const currentPlayer = this.props.step < 4 ? this.props.players[0] : this.props.step < 10 ? this.props.players[1] : ''
     return (
       <div>
-        <div>Turn: {this.props.turn}</div>
+        <div>Step: {this.props.step}</div>
         <div> {currentPlayer.name} {STEP[this.props.step]}</div>
       </div>
     )
