@@ -1,4 +1,5 @@
 import React, { Component } from 'react'
+import Unit from './Unit'
 
 class Square extends Component {
   constructor(props){
@@ -11,8 +12,8 @@ class Square extends Component {
   _clickedSquare(turn){
     const playerNumber = this.props.step < 5 ? 0 : 1
     if (this.props.step !== 10){
-      if (this.props.isReachable){
-        this.props._changeStep(this.props.step)
+      if (this.props.isReachable && !this.props.isForbidden){
+        this.props._changeStep(this.props.step, turn, playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
         this.props._changePosition(playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
         this.props._nextTurn(turn)
       }
@@ -21,23 +22,24 @@ class Square extends Component {
 
   render() {
     const unit = this.props.unit
-    const player = this.props.player
+    const playerIndex = this.props.playerIndex
+    const player = this.props.players[playerIndex]
     const containsFlag = this.props.containsFlag
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
     const isReachable = this.props.isReachable
+    const isForbidden = this.props.isForbidden
+    const isInDanger = this.props.isInDanger[0] ? this.props.players[0].color : this.props.isInDanger[1] ? this.props.players[1].color : false
+    const isFlagZone = this.props.isFlagZone
     return (
       <div
-        className={`square${player ? ' active' : ''}${this.props.selected && player ? ' selected' : ''}${ isReachable ? ' reachable' : ''}${bgcol ? ' contains-flag' : ''}`}
+        className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}`}
         onClick={() => this._clickedSquare(this.props.turn)}
-        style={{backgroundColor: `${unit ? player.color : ''}`}}
       >
-        {
-          unit ? (
-            `${unit[0].life} ${unit[0].speed} ${unit[0].hasFlag ? 'F' : ''}`
-          ):
-            ''
-        }
-        { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null}
+        <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
+          { unit ? <Unit unit={unit} playerIndex={playerIndex} /> : '' }
+          { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null}
+          { isInDanger && !unit ?  <div className='danger' style={{backgroundColor: isInDanger}}></div> : null }
+        </div>
       </div>
     )
   }

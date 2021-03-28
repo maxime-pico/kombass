@@ -25,36 +25,36 @@ class App extends Component {
       units: [
         [
           {
-            strengh: 1, speed: 3, x: 2, y: 3, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 2, y: 3, life: 1, hasFlag: false,
           },
           {
-            strengh: 3, speed: 1, x: 2, y: 7, life: 3, hasFlag: false,
+            strength: 1, speed: 3, x: 2, y: 7, life: 1, hasFlag: false,
           },
           {
-            strengh: 3, speed: 1, x: 2, y: 10, life: 3, hasFlag: false,
+            strength: 1, speed: 3, x: 2, y: 18, life: 1, hasFlag: false,
           },
           {
-            strengh: 3, speed: 1, x: 2, y: 14, life: 3, hasFlag: false,
+            strength: 2, speed: 2, x: 2, y: 14, life: 2, hasFlag: false,
           },
           {
-            strengh: 3, speed: 1, x: 2, y: 18, life: 3, hasFlag: false,
+            strength: 3, speed: 1, x: 4, y: 10, life: 3, hasFlag: false,
           },
         ],
         [
           {
-            strengh: 2, speed: 2, x: 29, y: 3, life: 2, hasFlag: false,
+            strength: 1, speed: 3, x: 23, y: 3, life: 1, hasFlag: false,
           },
           {
-            strengh: 2, speed: 2, x: 29, y: 7, life: 2, hasFlag: false,
+            strength: 1, speed: 3, x: 23, y: 7, life: 1, hasFlag: false,
           },
           {
-            strengh: 2, speed: 2, x: 29, y: 11, life: 2, hasFlag: false,
+            strength: 1, speed: 3, x: 23, y: 17, life: 1, hasFlag: false,
           },
           {
-            strengh: 2, speed: 2, x: 29, y: 14, life: 2, hasFlag: false,
+            strength: 2, speed: 2, x: 23, y: 14, life: 2, hasFlag: false,
           },
           {
-            strengh: 2, speed: 2, x: 29, y: 17, life: 2, hasFlag: false,
+            strength: 3, speed: 1, x: 21, y: 10, life: 3, hasFlag: false,
           },
         ]
       ],
@@ -62,17 +62,18 @@ class App extends Component {
         playerNumber: 0,
         unitNumber: 0,
       },
-      futureMove: Array(21).fill(Array(32).fill(null)),
-      futureUnits: Array(2).fill(Array(5).fill({})),
+      futureUnits: Array(2).fill(Array(5).fill(null)),
       movedUnits: Array(2).fill(Array(5).fill(false)),
       flags: [
         {
-          x: 1,
+          x: 0,
           y: 10,
+          inZone: true,
         },
         {
-          x: 31,
+          x: 25,
           y: 10,
+          inZone: true,
         },
       ]
     }
@@ -84,10 +85,14 @@ class App extends Component {
   }
 
   _changeStep(step){
-    const nextStep = (step + 1) % 11
+    var nextStep = (step + 1) % 11
     if (nextStep !== 10 ){
-      if (nextStep < 5 ){this._setSelectedUnit(0,(nextStep % 5))}
-      else {this._setSelectedUnit(1,(nextStep % 5))}
+      if (nextStep < 5 ){
+        this._setSelectedUnit(0,(nextStep % 5), nextStep)
+      }
+      else {
+        this._setSelectedUnit(1,(nextStep % 5), nextStep)
+      }
     }
     else{
       let selectedUnit = { playerNumber: -1, unitNumber: -1 }
@@ -100,7 +105,7 @@ class App extends Component {
     })
   }
 
-  _setSelectedUnit(playerNumber, unitNumber){
+  _setSelectedUnit(playerNumber, unitNumber, step){
     this.setState({
       selectedUnit: {
         playerNumber: playerNumber,
@@ -130,53 +135,56 @@ class App extends Component {
   }
   
   _changePosition(playerNumber, unitNumber, x, y){
+    //if playerNumber = 0 -> just add to futureUnits and moves
+    //if playerNumber = 1 -> check more
     const life = this.state.units[playerNumber][unitNumber].life
+    const strength = this.state.units[playerNumber][unitNumber].strength
+    let currentPlayerUnit = this.state.units[playerNumber][unitNumber]
     let futureUnits = [...this.state.futureUnits]
     let futurePlayerUnits = [...futureUnits[playerNumber]]
     let futurePlayerUnit = futurePlayerUnits[unitNumber]
     let opponentNumber = (playerNumber + 1) % 2
     let futureOpponentUnits = [...futureUnits[opponentNumber]]
-    const futureMove = [...this.state.futureMove]
+    let embuscade = false
+    let embuscadeBack = false
+    let damageTaken = 0
+    let inFlagZone = false
+    let flags = this.state.flags
 
-
-    if(futureMove[y][x]){
-      let futureOpponentUnit = [...futureOpponentUnits[futureMove[y][x].unitNumber]]
-      if(futureMove[y][x].life < life){
-        console.log('case 1')
-        futurePlayerUnit = {...futurePlayerUnit, x: x, y: y, life: (life-futureMove[y][x].life)}
-        this._movedUnit(playerNumber, unitNumber)
-        futureOpponentUnit = {...futureOpponentUnit, x: x, y: y, life: 0}
-      } else {
-        if(futureMove[y][x].life === life){
-          console.log('case 2')
-          futurePlayerUnit = {...futurePlayerUnit, x: x, y: y, life: 0}
-        } else{
-          console.log('case 3')
-          futureOpponentUnit = { x: x, y: y, life: (this.state.units[opponentNumber][unitNumber].life - life)}
+    if (playerNumber === 1){
+      futureOpponentUnits.forEach((opponentUnit, unit_index) => {
+        if (opponentUnit.life > 0){
+          let a = opponentUnit.x
+          let b = opponentUnit.y
+          let opponentStrength = opponentUnit.strength
+          embuscade = (Math.abs(x - a) + Math.abs(y - b) <= opponentStrength)
+          embuscadeBack = (Math.abs(x - a) + Math.abs(y - b) <= strength)
+          flags.forEach((flag, flag_index) => {
+            inFlagZone = inFlagZone || (Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3) || (Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3)
+          })
+          if (!inFlagZone){
+            if (embuscade){
+              console.log('EMBUSCADE!!')
+              damageTaken = damageTaken + opponentStrength
+            }
+            if (embuscadeBack){
+              console.log('EMBUSCADE BACK!!')
+              let futureOpponentUnit = futureOpponentUnits[unit_index]
+              futureOpponentUnit = { ...futureOpponentUnit, x: a, y: b, life: (this.state.units[opponentNumber][unit_index].life - strength)}
+              futureOpponentUnits[unit_index] = futureOpponentUnit
+            }
+          }
         }
-      }
-      futureOpponentUnits[futureMove[y][x].unitNumber] = futureOpponentUnit
-    } else {
-      console.log('case 0')
-      let futureMoveRow = [...futureMove[y]]
-      let futureMoveElement = futureMoveRow[x]
-      futureMoveElement = {
-        playerNumber: playerNumber,
-        unitNumber: unitNumber,
-        life: life,
-      }
-      futureMoveRow[x] = futureMoveElement
-      futureMove[y] = futureMoveRow
-
-      if (this.state.flags[opponentNumber].x === x && this.state.flags[opponentNumber].y === y){
-        futurePlayerUnit = { ...futurePlayerUnit, x: x, y: y, life: life, hasFlag: true }
-      }
-      else{ 
-        futurePlayerUnit = { ...futurePlayerUnit, x: x, y: y, life: life }
-      }
-      this._movedUnit(playerNumber, unitNumber)
-      
+      })
     }
+
+    futurePlayerUnit = { ...currentPlayerUnit, x: x, y: y, life: (life - damageTaken) }
+
+    if (this.state.flags[opponentNumber].x === x && this.state.flags[opponentNumber].y === y && this.state.flags[opponentNumber].inZone && ((life-damageTaken)>0)){
+      futurePlayerUnit = {...futurePlayerUnit, hasFlag: true}
+    }
+    
+    this._movedUnit(playerNumber, unitNumber)  
 
     let futureUnitsArray = [null, null]
     futurePlayerUnits[unitNumber] = futurePlayerUnit
@@ -184,7 +192,6 @@ class App extends Component {
     futureUnitsArray[playerNumber] = futurePlayerUnits
 
     this.setState({
-      futureMove: [...futureMove],
       futureUnits: futureUnitsArray,
     })
   }
@@ -192,50 +199,39 @@ class App extends Component {
   _applyMoves(){
     if (this.state.step === 10){
       let units = [...this.state.units]
-      let unitsP1 = [...units[0]]
-      let unitsP2 = [...units[1]]
       const flags = this.state.flags
 
-      unitsP1.forEach((element, index) => {
-        if (this._hasItMoved(0, index)) {
-          element.x = this.state.futureUnits[0][index].x
-          element.y = this.state.futureUnits[0][index].y
-          element.life = this.state.futureUnits[0][index].life
-          element.hasFlag = this.state.futureUnits[0][index].hasFlag
-          if (element.hasFlag) {
-            let flag = flags[1]
-            flag = {x: -1, y: -1}
-            flags[1] = flag
+      units.forEach((playerUnits, playerIndex) => {
+        playerUnits.forEach((element, index) => {
+          let hadFlag = element.hasFlag
+          let flag = flags[(playerIndex+1)%2]
+          if (hadFlag && this.state.futureUnits[playerIndex][index].life < 1) {
+            flag = { ...flags[(playerIndex+1)%2], inZone: true }
+            flags[(playerIndex+1)%2] = flag
             this.setState({
               flags: flags
             })
           }
-        }
-      });
-      
-      unitsP2.forEach((element, index) => {
-        if (this._hasItMoved(1, index)) {
-          element.x = this.state.futureUnits[1][index].x
-          element.y = this.state.futureUnits[1][index].y
-          element.life = this.state.futureUnits[1][index].life
-          element.hasFlag = this.state.futureUnits[1][index].hasFlag
-          if (element.hasFlag) {
-            let flag = flags[0]
-            flag = {x: -1, y: -1}
-            flags[0] = flag
-            this.setState({
-              flags: flags
-            })
+          if (this._hasItMoved(playerIndex, index)) {
+            element.x = this.state.futureUnits[playerIndex][index].x
+            element.y = this.state.futureUnits[playerIndex][index].y
+            element.life = this.state.futureUnits[playerIndex][index].life
+            element.strength = this.state.futureUnits[playerIndex][index].strength
+            element.hasFlag = this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
+            if (element.hasFlag) {
+              flag = { ...flags[(playerIndex+1)%2], inZone: false }
+              flags[(playerIndex+1)%2] = flag
+              this.setState({
+                flags: flags
+              })
+            }
           }
-        }
-      });
-
-      units = [unitsP1, unitsP2]
+        });
+      })
       
       this.setState({
         units: units,
-        futureMove: Array(21).fill(Array(32).fill(null)),
-        futurePlayers: Array(2).fill(Array(5).fill({})),
+        futureUnits: Array(2).fill(Array(5).fill({})),
         movedUnits: Array(2).fill(Array(5).fill(false)),
       })
 
@@ -244,7 +240,11 @@ class App extends Component {
   }
 
   render(){
-    console.log(this.state.units)
+
+    if((this.state.selectedUnit.playerNumber !== -1) && this.state.units[this.state.selectedUnit.playerNumber][this.state.selectedUnit.unitNumber].life < 1){
+      this._changeStep(this.state.step)
+    }
+
     return (
       <div className="App">
         <header className="infobar">
@@ -254,6 +254,7 @@ class App extends Component {
           <Board
             players={this.state.players}
             units={this.state.units}
+            futureUnits={this.state.futureUnits}
             _nextTurn={this._nextTurn}
             turn={this.state.turn}
             step={this.state.step}

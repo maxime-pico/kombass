@@ -1,3 +1,7 @@
+#root{
+  background-color: black;
+}
+
 .App {
   text-align: left;
   display: flex;
@@ -13,14 +17,19 @@
 }
 
 .board {
-  width: 64rem;
+  border: 2rem solid white;
+  width: 56rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
+  background-color: #fff7af;
 }
 
 .panel {
   display: flex;
+  height: 5rem;
+  align-self: center;
+  margin-left: 2rem;
 }
 
 .square {
@@ -43,11 +52,34 @@
 }
 
 .square.selected{
-border: 3px solid green;
+  background-color: green;
 }
 
-.square.reachable{
-  background-color: orange;
+.square.flag-zone{
+  background-color: lightgray;
+}
+
+.square-inside{
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.square-inside.reachable{
+  background-color: rgba(75, 228, 55, 0.3);
+}
+
+
+.square.forbidden{
+  background: repeating-linear-gradient(
+    45deg,
+    #cecece,
+    #cecece 5px,
+    #949494 5px,
+    #949494 10px
+  );
 }
 
 .square.contains-flag{
@@ -55,6 +87,7 @@ border: 3px solid green;
   opacity: 0.5;
   padding: 0.2rem;
 }
+
 
 .flag{
   width: 100%;
@@ -64,7 +97,44 @@ border: 3px solid green;
   align-items: center;
 }
 
+.danger{
+  width: 50%;
+  height: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.3;
+}
+
+.unit{
+  margin-top: -1rem;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.unit-sprite{
+  flex-grow: 0.7;
+  width: 180%;
+}
+
+.unit-info{
+  flex-shrink: 1;
+  font-size: 0.8em;
+  width: 100%;
+  text-align: center;
+  margin-top: -0.6rem;
+  background-color: white;
+  color: black;
+  font-weight: 800;
+  border: 1px solid black;
+}
+
 .infobar{
+  background-color: white;
   margin: 2rem 3rem;
 }
 
