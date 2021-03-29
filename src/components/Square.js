@@ -1,5 +1,6 @@
 import React, { Component } from 'react'
 import Unit from './Unit'
+import Flag from './Flag'
 
 class Square extends Component {
   constructor(props){
@@ -23,7 +24,6 @@ class Square extends Component {
   render() {
     const unit = this.props.unit
     const playerIndex = this.props.playerIndex
-    const player = this.props.players[playerIndex]
     const containsFlag = this.props.containsFlag
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
     const isReachable = this.props.isReachable
@@ -37,7 +37,8 @@ class Square extends Component {
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
           { unit ? <Unit unit={unit} playerIndex={playerIndex} /> : '' }
-          { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null}
+          <Flag containsFlag={containsFlag}/>
+          {/* { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null} */}
           { isInDanger && !unit ?  <div className='danger' style={{backgroundColor: isInDanger}}></div> : null }
         </div>
       </div>

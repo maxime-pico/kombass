@@ -61,7 +61,7 @@ class Board extends Component {
       this.props.units.forEach((player, player_index) => {
         player.forEach((unit, unit_index) => {
           if(!this.props.units[playerNumber][unitNumber].hasFlag){
-            if (ownFlag && (ownFlag.x !== -1) && !(Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3)){
+            if (ownFlag && (ownFlag.x !== -1) && !(Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3) && unit.life > 0){
                 isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
             }
           }

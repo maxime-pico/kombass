@@ -8,6 +8,8 @@
   flex-direction: column;
   justify-content: flex-start;
   margin-left: 4rem;
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: bold;
 }
 
 .main {
@@ -35,7 +37,7 @@
 .square {
   height: 2rem;
   width: 2rem;
-  border: 1px solid black;
+  border: 1px solid rgb(10, 10, 10);
   font-size: 0.7rem;
   display: flex;
   justify-content: center;
@@ -52,11 +54,17 @@
 }
 
 .square.selected{
-  background-color: green;
+  background-color: white;
 }
 
 .square.flag-zone{
-  background-color: lightgray;
+  background: repeating-linear-gradient(
+    45deg,
+    #a2e08f,
+    #a2e08f 5px,
+    #7bc565 5px,
+    #7bc565 10px
+  );
 }
 
 .square-inside{
@@ -84,7 +92,6 @@
 
 .square.contains-flag{
   color: white;
-  opacity: 0.5;
   padding: 0.2rem;
 }
 
@@ -97,13 +104,34 @@
   align-items: center;
 }
 
+.flag-image{
+  display: relative;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  margin-bottom: 1rem;
+  z-index: 2;
+}
+
+.flag-image.with-player{
+  position: relative;
+  top: -3.8rem;
+  left: 0.5rem;
+  width: 150%;
+  margin-bottom: 0;
+  z-index: -1;
+  height:3rem;
+}
+
 .danger{
-  width: 50%;
-  height: 50%;
+  width: 0.9rem;
+  height: 0.9rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  opacity: 0.3;
+  opacity: 0.7;
+  border-radius: 4rem;
 }
 
 .unit{
@@ -114,6 +142,16 @@
   justify-content: center;
   align-items: center;
   z-index: 10;
+  height: 3rem;
+}
+
+.unit.has-flag{
+  margin-top: 1.7rem;
+}
+
+.mirror{
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
 }
 
 .unit-sprite{
@@ -136,7 +174,13 @@
 .infobar{
   background-color: white;
   margin: 2rem 3rem;
+  width: 50rem;
 }
+
+.info-container{
+  margin: 1rem;
+}
+
 
 button.inactive{
   background-color: rgb(239, 239, 239);
