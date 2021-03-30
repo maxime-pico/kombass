@@ -4,7 +4,7 @@ import React, { Component } from 'react'
 import InfoBar from './components/InfoBar'
 import Game from './components/Game'
 import UnitSelection from './components/UnitSelection'
-
+import {UNITS} from './utilities/dict'
 
 class App extends Component {
   constructor(props){
@@ -68,7 +68,25 @@ class App extends Component {
     this._changeStep = this._changeStep.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
     this._startGame = this._startGame.bind(this);
+    this._circleUnit = this._circleUnit.bind(this);
 
+  }
+
+  _circleUnit(playerIndex, unitIndex, currentType, direction){
+    let units = this.state.units
+    let currentPlayerUnits = [...units[playerIndex]]
+    let currentPlayerUnit = currentPlayerUnits[unitIndex]
+    let newIndex = currentType === 0 && direction === -1 ? 2 : (currentType + direction) % 3
+    currentPlayerUnit = { ...currentPlayerUnit,
+        strength: UNITS[newIndex].strength,
+        speed: UNITS[newIndex].speed,
+        life: UNITS[newIndex].life,
+      }
+    currentPlayerUnits[unitIndex] = currentPlayerUnit
+    units[playerIndex] = currentPlayerUnits
+    this.setState({
+      units: units
+    })
   }
 
   _setSelectedUnit(playerNumber, unitNumber, step){
@@ -125,6 +143,7 @@ class App extends Component {
             step={this.state.step}
             _startGame={this._startGame}
             units={this.state.units}
+            _circleUnit={this._circleUnit}
           /> :
           <Game
             units={this.state.units}

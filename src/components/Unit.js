@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import {SPRITES} from '../utilities/dict'
+import {UNITS} from '../utilities/dict'
 import Flag from './Flag'
 
 class Unit extends Component {
@@ -12,7 +12,7 @@ class Unit extends Component {
     const unit = this.props.unit
     const playerIndex = this.props.playerIndex
     const hasFlag = unit.hasFlag
-    const unitSprite = SPRITES[playerIndex][unit.strength-1]
+    const unitSprite = UNITS[unit.strength-1].svg[playerIndex]
     let containsFlag = [false, false]
     containsFlag[(playerIndex+1)%2] = hasFlag
     return (

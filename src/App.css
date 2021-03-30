@@ -31,11 +31,46 @@
   align-items: center;
   width: 80%;
   height: 10rem;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
 }
 
 .taskForceSelector-unit{
   width: 3rem;
   margin-right:1.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.triangle{
+  width: 0; 
+  height: 0;
+  border-color: black;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+}
+
+.triangle.up{
+  border-bottom: 1rem solid;
+}
+
+.triangle.down{
+  border-top: 1rem solid;
+}
+
+.error{
+  color: red;
+  font-size: 1.2em;
+  margin: 1rem 0;
+  min-height: 1.5em;
+}
+
+.unit-box{
+  background-color: white;
+  width: 100%;
 }
 
 .main {

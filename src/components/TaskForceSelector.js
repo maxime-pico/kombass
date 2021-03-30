@@ -1,5 +1,5 @@
 import React, { Component } from 'react'
-import Unit from './Unit'
+import UnitSelector from './UnitSelector'
 
 class TaskForceSelector extends Component {
   constructor(props){
@@ -9,12 +9,11 @@ class TaskForceSelector extends Component {
 
   render(){
     const units = this.props.units
-    console.log(units)
     return (
       <div className="taskForceSelector-container">
         {
           units.map((unit, unit_index) => {
-            return <div className="taskForceSelector-unit"> <Unit key={unit_index} unit={unit} playerIndex={this.props.player} /> </div>
+            return  <UnitSelector key={unit_index} unit={unit} unitIndex={unit_index} playerIndex={this.props.player} _circleUnit={this.props._circleUnit}/>
           })
         }
       </div>
