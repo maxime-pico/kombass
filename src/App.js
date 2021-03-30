@@ -3,6 +3,7 @@ import './App.css';
 import React, { Component } from 'react'
 import InfoBar from './components/InfoBar'
 import Game from './components/Game'
+import UnitSelection from './components/UnitSelection'
 
 
 class App extends Component {
@@ -10,7 +11,7 @@ class App extends Component {
     super(props)
     this.state = {
       turn: 0,
-      step: 0,
+      step: -1,
       players:[
         {
           name: 'P1',
@@ -66,6 +67,7 @@ class App extends Component {
     this._nextTurn = this._nextTurn.bind(this);
     this._changeStep = this._changeStep.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
+    this._startGame = this._startGame.bind(this);
 
   }
 
@@ -75,6 +77,12 @@ class App extends Component {
         playerNumber: playerNumber,
         unitNumber: unitNumber,
       }
+    })
+  }
+
+  _startGame(){
+    this.setState({
+      step: 0,
     })
   }
 
@@ -112,16 +120,23 @@ class App extends Component {
         <header className="infobar">
           <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} />
         </header>
-        <Game
-          units={this.state.units}
-          turn={this.state.turn}
-          step={this.state.step}
-          players={this.state.players}
-          _changeStep={this._changeStep}
-          _nextTurn={this._nextTurn}
-          selectedUnit={this.state.selectedUnit}
-          _setSelectedUnit={this._setSelectedUnit}
-        />
+        { this.state.step === -1 ?
+          <UnitSelection
+            step={this.state.step}
+            _startGame={this._startGame}
+            units={this.state.units}
+          /> :
+          <Game
+            units={this.state.units}
+            turn={this.state.turn}
+            step={this.state.step}
+            players={this.state.players}
+            _changeStep={this._changeStep}
+            _nextTurn={this._nextTurn}
+            selectedUnit={this.state.selectedUnit}
+            _setSelectedUnit={this._setSelectedUnit}
+          />
+        }
       </div>
     );
   }

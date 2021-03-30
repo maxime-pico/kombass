@@ -1,5 +1,7 @@
 #root{
   background-color: black;
+  display: flex;
+  width: 100%;
 }
 
 .App {
@@ -10,6 +12,30 @@
   margin-left: 4rem;
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
+}
+
+.unitSelection-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  margin: 3rem;
+  padding: 2rem;
+}
+
+.taskForceSelector-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 80%;
+  height: 10rem;
+}
+
+.taskForceSelector-unit{
+  width: 3rem;
+  margin-right:1.5rem;
 }
 
 .main {
@@ -25,6 +51,7 @@
   flex-direction: row;
   flex-wrap: wrap;
   background-color: #fff7af;
+  margin-bottom: 2rem;
 }
 
 .panel {

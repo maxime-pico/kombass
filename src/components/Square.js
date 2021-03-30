@@ -36,7 +36,7 @@ class Square extends Component {
         onClick={() => this._clickedSquare(this.props.turn)}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
-          { unit ? <Unit unit={unit} playerIndex={playerIndex} /> : '' }
+          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} /> : '' }
           <Flag containsFlag={containsFlag}/>
           {/* { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null} */}
           { isInDanger && !unit ?  <div className='danger' style={{backgroundColor: isInDanger}}></div> : null }

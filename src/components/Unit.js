@@ -9,7 +9,7 @@ class Unit extends Component {
   }
 
   render(){
-    const unit = this.props.unit[0]
+    const unit = this.props.unit
     const playerIndex = this.props.playerIndex
     const hasFlag = unit.hasFlag
     const unitSprite = SPRITES[playerIndex][unit.strength-1]
