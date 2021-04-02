@@ -10,25 +10,10 @@ class Game extends Component {
     this.state = {
       units: this.props.units,
       futureUnits: Array(2).fill(Array(5).fill(null)),
-      movedUnits: Array(2).fill(Array(5).fill(false)),
     }
 
     this._changePosition = this._changePosition.bind(this);
     this._applyMoves = this._applyMoves.bind(this);
-  }
-
-  _hasItMoved(player, unit){
-    return this.state.movedUnits[player][unit]
-  }
-
-  _movedUnit(player, unit){
-    const movedUnits = [...this.state.movedUnits]
-    let playerUnits = [...movedUnits[player]]
-    playerUnits[unit] = true
-    movedUnits[player] = playerUnits
-    this.setState({
-      movedUnits: movedUnits,
-    })
   }
   
   _changePosition(playerNumber, unitNumber, x, y){
@@ -50,7 +35,7 @@ class Game extends Component {
 
     if (playerNumber === 1){
       futureOpponentUnits.forEach((opponentUnit, unit_index) => {
-        if (opponentUnit.life > 0){
+        if (this.props.units[opponentNumber][unit_index].life > 0){
           let a = opponentUnit.x
           let b = opponentUnit.y
           let opponentStrength = opponentUnit.strength
@@ -67,7 +52,7 @@ class Game extends Component {
             if (embuscadeBack){
               console.log('EMBUSCADE BACK!!')
               let futureOpponentUnit = futureOpponentUnits[unit_index]
-              futureOpponentUnit = { ...futureOpponentUnit, x: a, y: b, life: (this.props.units[opponentNumber][unit_index].life - strength)}
+              futureOpponentUnit = { ...futureOpponentUnit, x: a, y: b, life: (opponentUnit.life - strength)}
               futureOpponentUnits[unit_index] = futureOpponentUnit
             }
           }
@@ -81,7 +66,6 @@ class Game extends Component {
       futurePlayerUnit = {...futurePlayerUnit, hasFlag: true}
     }
     
-    this._movedUnit(playerNumber, unitNumber)  
 
     let futureUnitsArray = [null, null]
     futurePlayerUnits[unitNumber] = futurePlayerUnit
@@ -94,6 +78,7 @@ class Game extends Component {
   }
 
   _applyMoves(){
+    console.log(this.state.futureUnits)
     if (this.props.step === 10){
       let units = [...this.props.units]
       const flags = this.props.flags
@@ -107,17 +92,15 @@ class Game extends Component {
             flags[(playerIndex+1)%2] = flag
             this.props._updateFlags(flags)
           }
-          if (this._hasItMoved(playerIndex, index)) {
-            element.x = this.state.futureUnits[playerIndex][index].x
-            element.y = this.state.futureUnits[playerIndex][index].y
-            element.life = this.state.futureUnits[playerIndex][index].life
-            element.strength = this.state.futureUnits[playerIndex][index].strength
-            element.hasFlag = this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
-            if (element.hasFlag) {
-              flag = { ...flags[(playerIndex+1)%2], inZone: false }
-              flags[(playerIndex+1)%2] = flag
-              this.props._updateFlags(flags)
-            }
+          element.x = this.state.futureUnits[playerIndex][index].x
+          element.y = this.state.futureUnits[playerIndex][index].y
+          element.life = this.state.futureUnits[playerIndex][index].life
+          element.strength = this.state.futureUnits[playerIndex][index].strength
+          element.hasFlag = this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
+          if (element.hasFlag) {
+            flag = { ...flags[(playerIndex+1)%2], inZone: false }
+            flags[(playerIndex+1)%2] = flag
+            this.props._updateFlags(flags)
           }
         });
       })
@@ -125,7 +108,6 @@ class Game extends Component {
       this.setState({
         units: units,
         futureUnits: Array(2).fill(Array(5).fill({})),
-        movedUnits: Array(2).fill(Array(5).fill(false)),
       })
 
       this.props._changeStep(this.props.step)

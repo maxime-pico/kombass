@@ -32,7 +32,8 @@
   text-align: left;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
+  justify-content: center;
+  align-items: center;
   margin: auto;
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
