@@ -1,7 +1,8 @@
 // import logo from './logo.svg';
 import './App.css';
 import React, { Component } from 'react'
-import InfoBar from './components/InfoBar'
+// import InfoBar from './components/InfoBar'
+import IntroScreen from './components/IntroScreen'
 import Game from './components/Game'
 import UnitSelection from './components/UnitSelection'
 import UnitPlacement from './components/UnitPlacement'
@@ -12,7 +13,7 @@ class App extends Component {
     super(props)
     this.state = {
       turn: 0,
-      step: -2,
+      step: -3,
       player: 0,
       players:[
         {
@@ -79,6 +80,7 @@ class App extends Component {
       ]
     }
 
+    this._selectUnits = this._selectUnits.bind(this);
     this._nextTurn = this._nextTurn.bind(this);
     this._changeStep = this._changeStep.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
@@ -104,6 +106,12 @@ class App extends Component {
     units[playerIndex] = currentPlayerUnits
     this.setState({
       units: units
+    })
+  }
+
+  _selectUnits(){
+    this.setState({
+      step: -2,
     })
   }
 
@@ -200,9 +208,13 @@ class App extends Component {
     return (
       <div className="App">
         <header className="infobar">
-          <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} />
+          {/* <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} /> */}
         </header>
-        { this.state.step === -2 ?
+        { this.state.step === -3 ?
+          <IntroScreen
+            _selectUnits={this._selectUnits}
+          /> :
+          this.state.step === -2 ?
           <UnitSelection
             step={this.state.step}
             _placeUnits={this._placeUnits}
@@ -214,7 +226,6 @@ class App extends Component {
             units={this.state.units}
             placedUnits={this.state.placedUnits}
             flags={this.state.flags}
-            _startGame={this._startGame}
             selectedUnit={this.state.selectedUnit}
             _setSelectedUnit={this._setSelectedUnit}
             player={this.state.player}

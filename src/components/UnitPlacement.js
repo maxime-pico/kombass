@@ -16,21 +16,22 @@ class UnitPlacement extends Component {
     const player = this.props.player
     const selectedUnit = this.props.selectedUnit.unitNumber
     return (
-      <div className="unitSelection-container">
-        <div> Place your units!</div>
-        <div className="unitPlacement-container">
-          {
-            this.props.placedUnits[player].map((placedUnit, unit_index) => {
-              return !placedUnit &&
-                <UnitToPlace
-                  key={unit_index}
-                  playerIndex={player}unit={units[player][unit_index]}
-                  selected={selectedUnit === unit_index}
-                />
-            })
-          }
+      <div className="justify-center">
+        <div className="unitSelection-container">
+          <div> Place your units!</div>
+          <div className="unitPlacement-container">
+            {
+              this.props.placedUnits[player].map((placedUnit, unit_index) => {
+                return !placedUnit &&
+                  <UnitToPlace
+                    key={unit_index}
+                    playerIndex={player}unit={units[player][unit_index]}
+                    selected={selectedUnit === unit_index}
+                  />
+              })
+            }
+          </div>
         </div>
-        <div> <button onClick={() => {this.props._startGame()}} > START</button> </div>
         <Board
           placement={true}
           units={units}

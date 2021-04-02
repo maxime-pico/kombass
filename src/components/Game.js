@@ -139,20 +139,22 @@ class Game extends Component {
     }
 
     return (
-      <div className="main">
-        <Board
-          players={this.props.players}
-          units={this.props.units}
-          futureUnits={this.state.futureUnits}
-          _nextTurn={this.props._nextTurn}
-          turn={this.props.turn}
-          step={this.props.step}
-          _changeStep={this.props._changeStep}
-          _changePosition={this._changePosition}
-          selectedUnit={this.props.selectedUnit}
-          _setSelectedUnit={this.props._setSelectedUnit}
-          flags={this.props.flags}
-        />
+      <div>
+        <div className="main">
+          <Board
+            players={this.props.players}
+            units={this.props.units}
+            futureUnits={this.state.futureUnits}
+            _nextTurn={this.props._nextTurn}
+            turn={this.props.turn}
+            step={this.props.step}
+            _changeStep={this.props._changeStep}
+            _changePosition={this._changePosition}
+            selectedUnit={this.props.selectedUnit}
+            _setSelectedUnit={this.props._setSelectedUnit}
+            flags={this.props.flags}
+          />
+        </div>
         <Panel
           futureMove={this.futureMove}
           step={this.props.step}

@@ -2,6 +2,14 @@
   background-color: black;
   display: flex;
   width: 100%;
+  min-height: 100vh;
+}
+
+.justify-center{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 
 .triangle{
@@ -30,14 +38,34 @@
   font-weight: bold;
 }
 
+.introScreen-container{
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  margin: auto;
+  height: 50vh;
+  /* background-color: red; */
+  color: white;
+}
+
+.title{
+  font-size: 3em;
+}
+
+.subtitle{
+  font-size: 1.5em;
+}
+
 .unitSelection-container{
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   align-items: center;
   background-color: white;
-  margin: 3rem;
+  margin: 1rem 0rem;
   padding: 2rem;
+  width: 43.6rem;
 }
 
 .taskForceSelector-container{
@@ -104,7 +132,7 @@
 .main {
   display: flex;
   flex-direction: row;
-  justify-content: middle;
+  justify-content: center;
 }
 
 .board {
@@ -263,7 +291,7 @@
 
 .infobar{
   background-color: white;
-  margin: 2rem 3rem;
+  margin: 1rem 3rem;
   width: 50rem;
 }
 
@@ -271,6 +299,12 @@
   margin: 1rem;
 }
 
+.fight-button{
+  position: relative;
+  left: 50rem;
+  top: -25rem;
+  height: 5rem;
+}
 
 button.inactive{
   background-color: rgb(239, 239, 239);
