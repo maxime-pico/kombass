@@ -14,9 +14,13 @@ class Square extends Component {
     const playerNumber = this.props.step < 5 ? 0 : 1
     if (this.props.step !== 10){
       if (this.props.isReachable && !this.props.isForbidden){
-        this.props._changeStep(this.props.step, turn, playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
-        this.props._changePosition(playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
-        this.props._nextTurn(turn)
+        if(this.props.step === -1){
+          this.props._placeUnit(this.props.player, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
+        }else{
+          this.props._changeStep(this.props.step, turn, playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
+          this.props._changePosition(playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
+          this.props._nextTurn(turn)
+        }
       }
     }
   }

@@ -4,12 +4,28 @@
   width: 100%;
 }
 
+.triangle{
+  width: 0; 
+  height: 0;
+  border-color: black;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+}
+
+.triangle.up{
+  border-bottom: 1rem solid;
+}
+
+.triangle.down{
+  border-top: 1rem solid;
+}
+
 .App {
   text-align: left;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  margin-left: 4rem;
+  margin: auto;
   font-family: 'Courier New', Courier, monospace;
   font-weight: bold;
 }
@@ -45,21 +61,6 @@
   height: 100%;
 }
 
-.triangle{
-  width: 0; 
-  height: 0;
-  border-color: black;
-  border-left: 1rem solid transparent;
-  border-right: 1rem solid transparent;
-}
-
-.triangle.up{
-  border-bottom: 1rem solid;
-}
-
-.triangle.down{
-  border-top: 1rem solid;
-}
 
 .error{
   color: red;
@@ -73,6 +74,33 @@
   width: 100%;
 }
 
+.unitPlacement-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  width: 60%;
+  margin-top: 3rem;
+  margin-bottom: 3rem;
+}
+
+.unitPlacement-box{
+  background-color: white;
+  width: 10%;
+  opacity: 0.5;
+}
+
+.unitPlacement-box.selected{
+  opacity: 1;
+}
+
+.unitPlacement-box > .selected{
+  position: relative;
+  bottom: -2.5rem;
+  margin: auto;
+  z-index: 3;
+}
+
 .main {
   display: flex;
   flex-direction: row;
@@ -81,7 +109,7 @@
 
 .board {
   border: 2rem solid white;
-  width: 56rem;
+  width: 43.6rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
@@ -97,8 +125,8 @@
 }
 
 .square {
-  height: 2rem;
-  width: 2rem;
+  height: 1.8rem;
+  width: 1.8rem;
   border: 1px solid rgb(10, 10, 10);
   font-size: 0.7rem;
   display: flex;
@@ -138,7 +166,7 @@
 }
 
 .square-inside.reachable{
-  background-color: rgba(75, 228, 55, 0.3);
+  background-color: rgba(107, 255, 88, 0.68);
 }
 
 
@@ -251,6 +279,6 @@ button.inactive{
 }
 
 button.active{
-  background-color: lightgray;
-  color: black;
+  background-color: rgb(252, 0, 0);
+  color: white;
 }

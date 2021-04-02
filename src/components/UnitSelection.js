@@ -26,7 +26,7 @@ class UnitSelection extends Component {
           player: 1,
         })
       }else{
-        this.props._startGame()
+        this.props._placeUnits()
       }
     }
     return true

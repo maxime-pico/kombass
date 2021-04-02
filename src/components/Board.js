@@ -5,36 +5,60 @@ class Board extends Component {
   constructor(props){
     super(props)
     this.state = {
-      board: Array(21).fill(Array(26).fill(null)),
+      board: Array(21).fill(Array(22).fill(null)),
+      placementZone: 5,
     }
   }
 
-  _isReachable(unit, col, row){
-    const x = unit ? unit.x : false
-    const y = unit ? unit.y : false
-    const speed = unit ? unit.speed : -1
-    return unit ? (Math.abs(x - col) + Math.abs(y - row) <= speed) : false
+  _isReachable(unit, col, row, placement = false){
+    let isReachable = false
+    if (placement){
+      const playerNumber = this.props.player
+      const placementZone = this.state.placementZone
+      const ownFlag = this.props.flags[playerNumber]
+      const flagZone = ownFlag ? ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3)) : false
+      isReachable = playerNumber ? (col > (this.state.board[0].length - placementZone -1)) : ( col < placementZone)
+      isReachable = isReachable && !flagZone
+    }else{
+      const x = unit ? unit.x : false
+      const y = unit ? unit.y : false
+      const speed = unit ? unit.speed : -1
+      const ownFlag = this.props.flags[this.props.selectedUnit.playerNumber]
+      const flagZone = ownFlag ? ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3)) : false
+      isReachable = unit ? (Math.abs(x - col) + Math.abs(y - row) <= speed) && !flagZone : false
+    }
+    return isReachable
   }
   
-  _isForbidden(unit, col, row){
-    const playerNumber = this.props.selectedUnit.playerNumber
+  _isForbidden(unit, col, row, placement = false){
+    let playerNumber = this.props.selectedUnit.playerNumber
     const unitNumber = this.props.selectedUnit.unitNumber
     const ownFlag = this.props.flags[playerNumber]
     let isForbidden = false
-    if (playerNumber !== -1){
+
+    if (placement){
+      playerNumber = this.props.player
+      const placementZone = this.state.placementZone
       this.props.units[playerNumber].forEach((unit, unit_index) => {
-        if ((unitNumber !== unit_index)){
-          isForbidden = isForbidden || ((unit.x === col) && (unit.y === row) && (unit.life > 0))
+        if (this.props.placedUnits[playerNumber][unit_index]){
+          isForbidden = isForbidden || ((unit.x === col) && (unit.y === row))
         }
       })
-      this.props.futureUnits[playerNumber].forEach((unit, unit_index) => {
-        if (unit && (unitNumber !== unit_index)){
-          isForbidden = isForbidden || ((unit.x === col) && (unit.y === row) && (unit.life > 0))
-        }
-      })
-      if(!this.props.units[playerNumber][unitNumber].hasFlag){
-        if (ownFlag && (ownFlag.x !== -1)){
-            isForbidden = isForbidden || ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3))
+      if (ownFlag && (ownFlag.x !== -1)){
+          isForbidden = isForbidden || ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3))
+      }
+      isForbidden = playerNumber ? isForbidden || (col <= (this.state.board[0].length - placementZone -1)) : isForbidden || ( col >= placementZone)
+    } else {  
+      if (playerNumber !== -1){
+        this.props.futureUnits[playerNumber].forEach((unit, unit_index) => {
+          if (unit && (unitNumber !== unit_index)){
+            isForbidden = isForbidden || ((unit.x === col) && (unit.y === row) && (unit.life > 0))
+          }
+        })
+        if(!this.props.units[playerNumber][unitNumber].hasFlag){
+          if (ownFlag && (ownFlag.x !== -1)){
+              isForbidden = isForbidden || ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3))
+          }
         }
       }
     }
@@ -52,30 +76,36 @@ class Board extends Component {
     return isFlagZone
   }
 
-  _isInDanger(col, row){
+  _isInDanger(col, row, placement = false){
     let isInDanger = [false, false]
-    const playerNumber = this.props.selectedUnit.playerNumber
-    const ownFlag = this.props.flags[playerNumber]
-    const unitNumber = this.props.selectedUnit.unitNumber
-    if (playerNumber !== -1){
-      this.props.units.forEach((player, player_index) => {
-        player.forEach((unit, unit_index) => {
-          if(!this.props.units[playerNumber][unitNumber].hasFlag){
-            if (ownFlag && (ownFlag.x !== -1) && !(Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3) && unit.life > 0){
-                isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
+    if (!placement){
+      const playerNumber = this.props.selectedUnit.playerNumber
+      const flag1 = this.props.flags[0]
+      let inReachFlag1 = (flag1 && (flag1.x !== -1) && !(Math.abs(col - flag1.x) + Math.abs(row - flag1.y) <= 3))
+      const flag2 = this.props.flags[1]
+      let inReachFlag2 = (flag2 && (flag2.x !== -1) && !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3))
+      const unitNumber = this.props.selectedUnit.unitNumber
+      if (playerNumber !== -1){
+        this.props.units.forEach((player, player_index) => {
+          player.forEach((unit, unit_index) => {
+            if(!this.props.units[playerNumber][unitNumber].hasFlag){
+              if (inReachFlag1 && inReachFlag2 && unit.life > 0){
+                  isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
+              }
             }
-          }
+          })
         })
-      })
+      }
     }
     return isInDanger
   }
 
-  _containsUnits(units, col, row){
+  _containsUnits(units, col, row, player = null, placement = false){
     let unitContained = null
     let unitNumber = null
     units.forEach((unit, index) => {
-      if (unit.x === col && unit.y === row && (unit.life >0)){
+      let isPlaced = placement ? this.props.placedUnits[player][index] : true
+      if (unit.x === col && unit.y === row && (unit.life >0) && isPlaced){
         unitContained = unit
         unitNumber = index
       }
@@ -98,17 +128,19 @@ class Board extends Component {
   }
 
   renderSquare(col,row) {
+    const player = this.props.player
+    const placement = this.props.placement
     const unit = this.props.units[this.props.selectedUnit.playerNumber]?.[this.props.selectedUnit.unitNumber]
-    const unitsp1 = this.props.units[0]
+    const unitsp1 = player !== 1 ? this.props.units[0] : []
     const unitsp2 = this.props.units[1]
-    const containsUnits1 = this._containsUnits(unitsp1, col, row)
-    const containsUnits2 = this._containsUnits(unitsp2, col, row)
+    const containsUnits1 = this._containsUnits(unitsp1, col, row, 0, placement)
+    const containsUnits2 = this._containsUnits(unitsp2, col, row, 1, placement)
     const containsUnits = containsUnits1[0] ? containsUnits1 : containsUnits2[0] ? containsUnits2 : null
     const containsPlayer = containsUnits1[0] ? 0 : containsUnits2[0] ? 1 : null
     const containsFlag = this._containsFlag(col,row)
-    const isReachable = this._isReachable(unit, col, row)
-    const isForbidden = this._isForbidden(unit, col, row)
-    const isInDanger = this._isInDanger(col, row)
+    const isReachable = this._isReachable(unit, col, row, placement)
+    const isForbidden = this._isForbidden(unit, col, row, placement)
+    const isInDanger = this._isInDanger(col, row, placement)
     const isFlagZone = this._isFlagZone(col, row)
     return (
       <Square
@@ -130,6 +162,8 @@ class Board extends Component {
         selected={this._isSelected(col, row, this.props.selectedUnit)}
         selectedUnit={this.props.selectedUnit}
         containsFlag={containsFlag}
+        _placeUnit={this.props._placeUnit}
+        player={this.props.player}
       />
     )
   }

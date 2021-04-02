@@ -4,6 +4,7 @@ import React, { Component } from 'react'
 import InfoBar from './components/InfoBar'
 import Game from './components/Game'
 import UnitSelection from './components/UnitSelection'
+import UnitPlacement from './components/UnitPlacement'
 import {UNITS} from './utilities/dict'
 
 class App extends Component {
@@ -11,7 +12,8 @@ class App extends Component {
     super(props)
     this.state = {
       turn: 0,
-      step: -1,
+      step: -2,
+      player: 0,
       players:[
         {
           name: 'P1',
@@ -42,16 +44,16 @@ class App extends Component {
         ],
         [
           {
-            strength: 1, speed: 3, x: 23, y: 3, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 21, y: 3, life: 1, hasFlag: false,
           },
           {
-            strength: 1, speed: 3, x: 23, y: 7, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 21, y: 7, life: 1, hasFlag: false,
           },
           {
-            strength: 1, speed: 3, x: 23, y: 17, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 21, y: 17, life: 1, hasFlag: false,
           },
           {
-            strength: 2, speed: 2, x: 23, y: 14, life: 2, hasFlag: false,
+            strength: 2, speed: 2, x: 21, y: 14, life: 2, hasFlag: false,
           },
           {
             strength: 3, speed: 1, x: 21, y: 10, life: 3, hasFlag: false,
@@ -62,13 +64,29 @@ class App extends Component {
         playerNumber: 0,
         unitNumber: 0,
       },
+      placedUnits: Array(2).fill(Array(5).fill(false)),
+      flags: [
+        {
+          x: 0,
+          y: 10,
+          inZone: true,
+        },
+        {
+          x: 21,
+          y: 10,
+          inZone: true,
+        },
+      ]
     }
 
     this._nextTurn = this._nextTurn.bind(this);
     this._changeStep = this._changeStep.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
+    this._placeUnits = this._placeUnits.bind(this);
+    this._placeUnit = this._placeUnit.bind(this);
     this._startGame = this._startGame.bind(this);
     this._circleUnit = this._circleUnit.bind(this);
+    this._updateFlags = this._updateFlags.bind(this);
 
   }
 
@@ -98,7 +116,47 @@ class App extends Component {
     })
   }
 
+  _placeUnits(){
+    this.setState({
+      step: -1,
+    })
+  }
+
+  _placeUnit(playerNumber, unitNumber, col, row){
+    console.log('playerNumber', playerNumber, 'unitNumber', unitNumber, 'position', col, row)
+    let units = this.state.units
+    let currentPlayerUnits = [...units[playerNumber]]
+    let currentPlayerUnit = {...currentPlayerUnits[unitNumber]}
+    currentPlayerUnit = {...currentPlayerUnit, x: col, y:row}
+    currentPlayerUnits[unitNumber] = currentPlayerUnit
+    units[playerNumber] = currentPlayerUnits
+
+    let placedUnits = this.state.placedUnits
+    let currentPlayerPlacedUnits = [...placedUnits[playerNumber]]
+    let playerPlacedUnits = currentPlayerPlacedUnits[unitNumber]
+    playerPlacedUnits = true
+    currentPlayerPlacedUnits[unitNumber] = playerPlacedUnits
+    placedUnits[playerNumber] = currentPlayerPlacedUnits
+
+    let nextUnitNumber = (unitNumber + 1) % 5
+    let nextPlayerNumber = (playerNumber === 0) && (unitNumber === 4) ? playerNumber + 1 : playerNumber
+
+    this._setSelectedUnit(nextPlayerNumber,nextUnitNumber, 0)
+
+    console.log(nextPlayerNumber, nextUnitNumber, units, placedUnits)
+    this.setState({
+      units: units,
+      placedUnits: placedUnits,
+      player: nextPlayerNumber,
+    })
+
+    if (playerNumber === 1 && unitNumber === 4 ) {
+      this._startGame()
+    }
+  }
+  
   _startGame(){
+    this._setSelectedUnit(0,0,0)
     this.setState({
       step: 0,
     })
@@ -131,6 +189,12 @@ class App extends Component {
     })
   }
 
+  _updateFlags(newFlags){
+    this.setState({
+      flags: newFlags,
+    })
+  }
+
   render(){
 
     return (
@@ -138,12 +202,25 @@ class App extends Component {
         <header className="infobar">
           <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} />
         </header>
-        { this.state.step === -1 ?
+        { this.state.step === -2 ?
           <UnitSelection
             step={this.state.step}
-            _startGame={this._startGame}
+            _placeUnits={this._placeUnits}
             units={this.state.units}
             _circleUnit={this._circleUnit}
+          /> :
+          this.state.step === -1 ?
+          <UnitPlacement
+            units={this.state.units}
+            placedUnits={this.state.placedUnits}
+            flags={this.state.flags}
+            _startGame={this._startGame}
+            selectedUnit={this.state.selectedUnit}
+            _setSelectedUnit={this._setSelectedUnit}
+            player={this.state.player}
+            players={this.state.players}
+            _placeUnit={this._placeUnit}
+            step={this.state.step}
           /> :
           <Game
             units={this.state.units}
@@ -154,6 +231,8 @@ class App extends Component {
             _nextTurn={this._nextTurn}
             selectedUnit={this.state.selectedUnit}
             _setSelectedUnit={this._setSelectedUnit}
+            flags={this.state.flags}
+            _updateFlags={this._updateFlags}
           />
         }
       </div>

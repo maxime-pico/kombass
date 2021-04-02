@@ -11,18 +11,6 @@ class Game extends Component {
       units: this.props.units,
       futureUnits: Array(2).fill(Array(5).fill(null)),
       movedUnits: Array(2).fill(Array(5).fill(false)),
-      flags: [
-        {
-          x: 0,
-          y: 10,
-          inZone: true,
-        },
-        {
-          x: 25,
-          y: 10,
-          inZone: true,
-        },
-      ]
     }
 
     this._changePosition = this._changePosition.bind(this);
@@ -58,7 +46,7 @@ class Game extends Component {
     let embuscadeBack = false
     let damageTaken = 0
     let inFlagZone = false
-    let flags = this.state.flags
+    let flags = this.props.flags
 
     if (playerNumber === 1){
       futureOpponentUnits.forEach((opponentUnit, unit_index) => {
@@ -89,7 +77,7 @@ class Game extends Component {
 
     futurePlayerUnit = { ...currentPlayerUnit, x: x, y: y, life: (life - damageTaken) }
 
-    if (this.state.flags[opponentNumber].x === x && this.state.flags[opponentNumber].y === y && this.state.flags[opponentNumber].inZone && ((life-damageTaken)>0)){
+    if (this.props.flags[opponentNumber].x === x && this.props.flags[opponentNumber].y === y && this.props.flags[opponentNumber].inZone && ((life-damageTaken)>0)){
       futurePlayerUnit = {...futurePlayerUnit, hasFlag: true}
     }
     
@@ -108,7 +96,7 @@ class Game extends Component {
   _applyMoves(){
     if (this.props.step === 10){
       let units = [...this.props.units]
-      const flags = this.state.flags
+      const flags = this.props.flags
 
       units.forEach((playerUnits, playerIndex) => {
         playerUnits.forEach((element, index) => {
@@ -117,9 +105,7 @@ class Game extends Component {
           if (hadFlag && this.state.futureUnits[playerIndex][index].life < 1) {
             flag = { ...flags[(playerIndex+1)%2], inZone: true }
             flags[(playerIndex+1)%2] = flag
-            this.setState({
-              flags: flags
-            })
+            this.props._updateFlags(flags)
           }
           if (this._hasItMoved(playerIndex, index)) {
             element.x = this.state.futureUnits[playerIndex][index].x
@@ -130,9 +116,7 @@ class Game extends Component {
             if (element.hasFlag) {
               flag = { ...flags[(playerIndex+1)%2], inZone: false }
               flags[(playerIndex+1)%2] = flag
-              this.setState({
-                flags: flags
-              })
+              this.props._updateFlags(flags)
             }
           }
         });
@@ -167,7 +151,7 @@ class Game extends Component {
           _changePosition={this._changePosition}
           selectedUnit={this.props.selectedUnit}
           _setSelectedUnit={this.props._setSelectedUnit}
-          flags={this.state.flags}
+          flags={this.props.flags}
         />
         <Panel
           futureMove={this.futureMove}
