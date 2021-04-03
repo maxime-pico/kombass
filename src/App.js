@@ -6,7 +6,12 @@ import IntroScreen from './components/IntroScreen'
 import Game from './components/Game'
 import UnitSelection from './components/UnitSelection'
 import UnitPlacement from './components/UnitPlacement'
-import {UNITS} from './utilities/dict'
+import {UNITS, SPRITES} from './utilities/dict'
+
+function preloading(url){
+  var img=new Image();
+  img.src=url;
+}
 
 class App extends Component {
   constructor(props){
@@ -195,10 +200,10 @@ class App extends Component {
 
   componentDidMount(){
     UNITS.forEach(unit => {
-      unit.svg.forEach(url =>{
-        var img=new Image();
-        img.src=url;
-      })
+      unit.svg.forEach(url => preloading(url))
+    })
+    Object.values(SPRITES).forEach(sprite=>{
+      sprite.forEach(url => preloading(url))
     })
   }
 

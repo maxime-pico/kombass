@@ -17,8 +17,8 @@ class UnitPlacement extends Component {
     const selectedUnit = this.props.selectedUnit.unitNumber
     return (
       <div className="justify-center">
-        <div className="unitSelection-container">
-          <div> Place your units!</div>
+        <div className={`unitPlacement${player ? ' left': ' right'}`}>
+          <div className="title"> Place your units!</div>
           <div className="unitPlacement-container">
             {
               this.props.placedUnits[player].map((placedUnit, unit_index) => {

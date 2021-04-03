@@ -21,7 +21,7 @@ class Unit extends Component {
           <img src={unitSprite} alt="player unit" />
         </div>
         <div className='unit-info'>
-          {`${unit.life}${hasFlag ? ' F' : ''}`}
+          {`HP:${unit.life} S:${unit.strength} ${hasFlag ? ' F' : ''}`}
         </div>
         { hasFlag ? <Flag containsFlag={containsFlag} withPlayer={true} /> : null}
       </div>

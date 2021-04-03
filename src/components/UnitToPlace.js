@@ -14,9 +14,9 @@ class UnitToPlace extends Component {
     const playerIndex = this.props.playerIndex
     const selected = this.props.selected
     return (
-      <div className={`unitPlacement-box ${selected && ' selected'}`}>
+      <div className={`unitPlacement-box${selected ? ' selected':''}`}>
+        <div className="unitPlacement-background"></div>
         <Unit unit={unit} playerIndex={playerIndex} />
-        {selected && <div className="selected triangle up"> </div>}
       </div>
               
     )
