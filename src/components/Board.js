@@ -24,7 +24,7 @@ class Board extends Component {
       const y = unit ? unit.y : false
       const speed = unit ? unit.speed : -1
       const ownFlag = this.props.flags[this.props.selectedUnit.playerNumber]
-      const flagZone = ownFlag ? ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3)) : false
+      const flagZone = ownFlag && !unit.hasFlag ? ((Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3)) : false
       isReachable = unit ? (Math.abs(x - col) + Math.abs(y - row) <= speed) && !flagZone : false
     }
     return isReachable
@@ -147,8 +147,6 @@ class Board extends Component {
         key={`${col} ${row}`}
         col={col}
         row={row}
-        _nextTurn={this.props._nextTurn}
-        turn={this.props.turn}
         unit={containsUnits}
         playerIndex={containsPlayer}
         players={this.props.players}

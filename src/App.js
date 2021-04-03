@@ -12,7 +12,6 @@ class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      turn: 0,
       step: -3,
       player: 0,
       players:[
@@ -48,7 +47,7 @@ class App extends Component {
             strength: 1, speed: 3, x: 21, y: 3, life: 1, hasFlag: false,
           },
           {
-            strength: 1, speed: 3, x: 21, y: 7, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 21, y: 6, life: 1, hasFlag: false,
           },
           {
             strength: 1, speed: 3, x: 21, y: 17, life: 1, hasFlag: false,
@@ -57,7 +56,7 @@ class App extends Component {
             strength: 2, speed: 2, x: 21, y: 14, life: 2, hasFlag: false,
           },
           {
-            strength: 3, speed: 1, x: 21, y: 10, life: 3, hasFlag: false,
+            strength: 3, speed: 1, x: 17, y: 10, life: 3, hasFlag: false,
           },
         ]
       ],
@@ -81,7 +80,6 @@ class App extends Component {
     }
 
     this._selectUnits = this._selectUnits.bind(this);
-    this._nextTurn = this._nextTurn.bind(this);
     this._changeStep = this._changeStep.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
     this._placeUnits = this._placeUnits.bind(this);
@@ -131,7 +129,6 @@ class App extends Component {
   }
 
   _placeUnit(playerNumber, unitNumber, col, row){
-    console.log('playerNumber', playerNumber, 'unitNumber', unitNumber, 'position', col, row)
     let units = this.state.units
     let currentPlayerUnits = [...units[playerNumber]]
     let currentPlayerUnit = {...currentPlayerUnits[unitNumber]}
@@ -151,7 +148,6 @@ class App extends Component {
 
     this._setSelectedUnit(nextPlayerNumber,nextUnitNumber, 0)
 
-    console.log(nextPlayerNumber, nextUnitNumber, units, placedUnits)
     this.setState({
       units: units,
       placedUnits: placedUnits,
@@ -191,12 +187,6 @@ class App extends Component {
     })
   }
 
-  _nextTurn(turn){
-    this.setState({
-      turn: turn + 1,
-    })
-  }
-
   _updateFlags(newFlags){
     this.setState({
       flags: newFlags,
@@ -204,7 +194,6 @@ class App extends Component {
   }
 
   render(){
-
     return (
       <div className="App">
         <header className="infobar">
@@ -235,11 +224,9 @@ class App extends Component {
           /> :
           <Game
             units={this.state.units}
-            turn={this.state.turn}
             step={this.state.step}
             players={this.state.players}
             _changeStep={this._changeStep}
-            _nextTurn={this._nextTurn}
             selectedUnit={this.state.selectedUnit}
             _setSelectedUnit={this._setSelectedUnit}
             flags={this.state.flags}

@@ -2,6 +2,7 @@
 import React, { Component } from 'react'
 import Board from './Board'
 import Panel from './Panel'
+import GameOver from './GameOver'
 
 
 class Game extends Component {
@@ -10,6 +11,7 @@ class Game extends Component {
     this.state = {
       units: this.props.units,
       futureUnits: Array(2).fill(Array(5).fill(null)),
+      gameOver: false,
     }
 
     this._changePosition = this._changePosition.bind(this);
@@ -78,7 +80,6 @@ class Game extends Component {
   }
 
   _applyMoves(){
-    console.log(this.state.futureUnits)
     if (this.props.step === 10){
       let units = [...this.props.units]
       const flags = this.props.flags
@@ -92,10 +93,9 @@ class Game extends Component {
             flags[(playerIndex+1)%2] = flag
             this.props._updateFlags(flags)
           }
-          element.x = this.state.futureUnits[playerIndex][index].x
-          element.y = this.state.futureUnits[playerIndex][index].y
-          element.life = this.state.futureUnits[playerIndex][index].life
-          element.strength = this.state.futureUnits[playerIndex][index].strength
+          element.x = element.life > 0 ? this.state.futureUnits[playerIndex][index].x : element.x
+          element.y = element.life > 0 ? this.state.futureUnits[playerIndex][index].y : element.y
+          element.life = element.life > 0 ? this.state.futureUnits[playerIndex][index].life : element.life
           element.hasFlag = this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
           if (element.hasFlag) {
             flag = { ...flags[(playerIndex+1)%2], inZone: false }
@@ -114,7 +114,52 @@ class Game extends Component {
     }
   }
 
+  _isGameOver(){
+    console.log('GAME ON')
+    const units = this.props.units
+    const flags = this.props.flags
+    let deadUnits = [0, 0]
+    let isFlagInZone = [false, false]
+    let gameOver = false
+
+    units.forEach((player, player_index) => {
+      let ownFlag = flags[player_index]
+      units[player_index].forEach((unit, unit_index) => {
+        deadUnits[player_index] = unit.life > 0 ? deadUnits[player_index] : deadUnits[player_index] + 1
+        let flagInZone = unit.hasFlag && unit.life > 0 && ((Math.abs(unit.x - ownFlag.x) + Math.abs(unit.y - ownFlag.y) <= 3))
+        isFlagInZone[player_index] =  isFlagInZone[player_index] || flagInZone 
+      })
+    })
+
+    if(isFlagInZone[0] || isFlagInZone[1] || deadUnits[0] > 4 || deadUnits[1] > 4){
+      if(isFlagInZone[0] && isFlagInZone[1]){
+        gameOver = 'Good job fuckers, you both did it at the same time, now what?'
+      }
+      else{
+        if(isFlagInZone[0] || isFlagInZone[1]){
+          let winner = isFlagInZone[0] ? 0 : 1
+          gameOver = `${this.props.players[winner].name} won! Suck it ${this.props.players[winner].name}...`
+        }
+      }
+      if(deadUnits[0] > 4 && deadUnits[1] > 4){
+        gameOver = 'Oh wow, you guys anihilated each other! Nice! Who\'s going to "save the world" now???'
+      } else{
+        if(deadUnits[0] > 4 || deadUnits[1] > 4){
+          let winner = deadUnits[0] ? 0 : 1
+          gameOver = `${this.props.players[winner].name} destroyed ${this.props.players[winner].name}!! Time for some "democratic elections"`
+        }
+      }
+      this.setState({
+        gameOver: gameOver,
+      })
+    }
+  }
+
   render(){
+
+    if (!this.state.gameOver){
+      this._isGameOver()
+    }
 
     if((this.props.selectedUnit.playerNumber !== -1) && this.props.units[this.props.selectedUnit.playerNumber][this.props.selectedUnit.unitNumber].life < 1){
       this.props._changeStep(this.props.step)
@@ -122,13 +167,12 @@ class Game extends Component {
 
     return (
       <div>
+        { this.state.gameOver ? <GameOver gameOver={this.state.gameOver} /> : null}
         <div className="main">
           <Board
             players={this.props.players}
             units={this.props.units}
             futureUnits={this.state.futureUnits}
-            _nextTurn={this.props._nextTurn}
-            turn={this.props.turn}
             step={this.props.step}
             _changeStep={this.props._changeStep}
             _changePosition={this._changePosition}

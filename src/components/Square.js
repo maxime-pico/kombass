@@ -10,16 +10,15 @@ class Square extends Component {
     }
   }
 
-  _clickedSquare(turn){
+  _clickedSquare(){
     const playerNumber = this.props.step < 5 ? 0 : 1
     if (this.props.step !== 10){
       if (this.props.isReachable && !this.props.isForbidden){
         if(this.props.step === -1){
           this.props._placeUnit(this.props.player, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
         }else{
-          this.props._changeStep(this.props.step, turn, playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
+          this.props._changeStep(this.props.step)
           this.props._changePosition(playerNumber, this.props.selectedUnit.unitNumber, this.props.col, this.props.row)
-          this.props._nextTurn(turn)
         }
       }
     }
@@ -37,7 +36,7 @@ class Square extends Component {
     return (
       <div
         className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}`}
-        onClick={() => this._clickedSquare(this.props.turn)}
+        onClick={() => this._clickedSquare()}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
           { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} /> : '' }
