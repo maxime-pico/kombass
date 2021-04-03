@@ -193,6 +193,15 @@ class App extends Component {
     })
   }
 
+  componentDidMount(){
+    UNITS.forEach(unit => {
+      unit.svg.forEach(url =>{
+        var img=new Image();
+        img.src=url;
+      })
+    })
+  }
+
   render(){
     return (
       <div className="App">
