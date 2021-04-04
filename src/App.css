@@ -141,7 +141,7 @@ button{
 .unitPlacement-container{
   display: flex;
   flex-direction: row;
-  justify-content: start;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
   margin-top: 3rem;
@@ -205,6 +205,77 @@ button{
   justify-content: center;
 }
 
+.teamPanel-container{
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 0 1rem;
+  width: 4rem;
+}
+
+.teamPanel{
+  height: 30rem;
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  background-color: gray;
+}
+
+.teamPanel > .unit{
+  margin: 2rem 0;
+  width: 50%;
+}
+
+.unitPanel-background{
+  position: absolute;
+  z-index: -1;
+  height: 4.5rem;
+  width: 4.5rem;
+  background-color: white;
+  outline: 0.5rem solid
+}
+
+.unitPanel-foreground{
+  position: absolute;
+  transform: translate(-1rem, -1.5rem);
+  z-index: 200;
+}
+
+.unitPanel-foreground:before, .unitPanel-foreground:after{
+  position: absolute;
+  left: 0.6rem;
+  content: ' ';
+  height: 3rem;
+  width: 0.5rem;
+  background-color: red;
+  z-index: 200;
+}
+.unitPanel-foreground:before{
+  transform: rotate(-45deg);
+}
+
+.unitPanel-foreground:after{
+  transform: rotate(45deg);
+}
+
+.unitPanel-background.p1{
+  outline-color: #dce2ff;
+}
+
+.unitPanel-background.p2{
+  outline-color: #ffdcdc;
+}
+
+.unitPanel-background.selected.p1{
+  background-color: aquamarine;
+}
+
+.unitPanel-background.selected.p2{
+  background-color: gold;
+}
+
 .board {
   border: 2rem solid white;
   width: 43.6rem;
@@ -217,16 +288,16 @@ button{
 
 .panel {
   position: absolute;
-  right: 9rem;
-  top: 22rem;
-  height: 5rem;
+  right: 38rem;
+  top: 2rem;
+  height: 2rem;
   display: flex;
-  flex-direction: column;
-  justify-content: start;
+  flex-direction: row;
+  justify-content: center;
 }
 
 .undo-button{
-  margin-top: 1rem;
+  margin-left: 1rem;
   background-color: lightslategrey;
   color: white;
 }
@@ -274,10 +345,18 @@ button{
   align-items: center;
 }
 
-.square-inside.reachable{
-  background-color: rgba(107, 255, 88, 0.68);
+.board.p1 > .square > .square-inside.reachable{
+  background-color: aquamarine
 }
 
+
+.board.p2 > .square > .square-inside.reachable{
+  background-color: gold
+}
+
+.board > .square.selected > .square-inside.reachable{
+  background-color: white
+}
 
 .square.forbidden{
   background: repeating-linear-gradient(
@@ -355,16 +434,16 @@ button{
 }
 
 .unit-sprite{
-  width: 200%;
+  width: 230%;
 }
 
 .unit-info{
   flex-shrink: 1;
   font-size: 0.8em;
-  width: 117%;
+  width: 225%;
   line-height: 0.9;
   text-align: center;
-  margin-top: -0.6rem;
+  margin-top: -0.3rem;
   background-color: white;
   color: black;
   font-weight: 800;

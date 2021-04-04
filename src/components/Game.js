@@ -3,6 +3,7 @@ import React, { Component } from 'react'
 import Board from './Board'
 import Panel from './Panel'
 import GameOver from './GameOver'
+import TeamPanel from './TeamPanel'
 
 
 class Game extends Component {
@@ -168,6 +169,11 @@ class Game extends Component {
       <div>
         { this.state.gameOver ? <GameOver gameOver={this.state.gameOver} /> : null}
         <div className="main">
+          <TeamPanel
+            playerIndex={0}
+            units={this.props.units[0]}
+            selectedUnit={this.props.selectedUnit}
+          />
           <Board
             players={this.props.players}
             units={this.props.units}
@@ -178,6 +184,11 @@ class Game extends Component {
             selectedUnit={this.props.selectedUnit}
             _setSelectedUnit={this.props._setSelectedUnit}
             flags={this.props.flags}
+          />
+          <TeamPanel
+            playerIndex={1}
+            units={this.props.units[1]}
+            selectedUnit={this.props.selectedUnit}
           />
         </div>
         <Panel

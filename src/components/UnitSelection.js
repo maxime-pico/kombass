@@ -39,7 +39,7 @@ class UnitSelection extends Component {
         <div> Compose your Task Force </div>
         <TaskForceSelector units={units} player={this.state.player} _circleUnit={this.props._circleUnit} />
         <div className="error">{ this.state.errors ? 'Max three units per type!' : ''}</div>
-        <div> <button onClick={() => {this._checkForViolation(units)}} > { this.state.player === 0 ? 'NEXT' : 'START'} </button> </div>
+        <div> <button className="button" onClick={() => {this._checkForViolation(units)}} > { this.state.player === 0 ? 'NEXT' : 'START'} </button> </div>
       </div>
     )
   }

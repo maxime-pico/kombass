@@ -13,6 +13,7 @@ class Unit extends Component {
     const playerIndex = this.props.playerIndex
     const hasFlag = unit.hasFlag
     const unitSprite = UNITS[unit.strength-1].svg[playerIndex]
+    const displayUnitInfo = this.props.displayUnitInfo ? true : false
     let containsFlag = [false, false]
     containsFlag[(playerIndex+1)%2] = hasFlag
     return (
@@ -20,9 +21,13 @@ class Unit extends Component {
         <div className={`unit-sprite${hasFlag ? ' mirror' : ''}`}>
           <img src={unitSprite} alt="player unit" />
         </div>
-        <div className='unit-info'>
-          {`HP:${unit.life} S:${unit.strength} ${hasFlag ? ' F' : ''}`}
-        </div>
+        {
+          displayUnitInfo ? (
+            <div className='unit-info'>
+              {`HP:${unit.life} S:${unit.strength} ${hasFlag ? ' F' : ''}`}
+            </div>
+          ):null
+        }
         { hasFlag ? <Flag containsFlag={containsFlag} withPlayer={true} /> : null}
       </div>
     )

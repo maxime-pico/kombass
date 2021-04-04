@@ -84,7 +84,6 @@ class Board extends Component {
       let inReachFlag1 = (flag1 && (flag1.x !== -1) && !(Math.abs(col - flag1.x) + Math.abs(row - flag1.y) <= 3))
       const flag2 = this.props.flags[1]
       let inReachFlag2 = (flag2 && (flag2.x !== -1) && !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3))
-      const unitNumber = this.props.selectedUnit.unitNumber
       if (playerNumber !== -1){
         this.props.units.forEach((player, player_index) => {
           player.forEach((unit, unit_index) => {
@@ -166,7 +165,7 @@ class Board extends Component {
   
   render(){
     return (
-      <div className='board'>
+      <div className={`board p${this.props.selectedUnit.playerNumber + 1}`}>
         {
           this.state.board.map((row, row_index) => (
             row.map((column, column_index) => (
