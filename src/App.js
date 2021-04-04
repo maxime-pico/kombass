@@ -17,7 +17,7 @@ class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      step: 0,
+      step: -3,
       player: 0,
       players:[
         {
