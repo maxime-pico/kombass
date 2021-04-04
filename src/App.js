@@ -17,7 +17,7 @@ class App extends Component {
   constructor(props){
     super(props)
     this.state = {
-      step: -3,
+      step: 0,
       player: 0,
       players:[
         {
@@ -92,7 +92,7 @@ class App extends Component {
     this._startGame = this._startGame.bind(this);
     this._circleUnit = this._circleUnit.bind(this);
     this._updateFlags = this._updateFlags.bind(this);
-
+    this._undoMove = this._undoMove.bind(this);
   }
 
   _circleUnit(playerIndex, unitIndex, currentType, direction){
@@ -125,6 +125,11 @@ class App extends Component {
         unitNumber: unitNumber,
       }
     })
+  }
+
+  _undoMove(){
+    this._setSelectedUnit(this.state.selectedUnit.playerNumber -1, this.state.selectedUnit.unitNumber -1)
+    this._changeStep(this.state.step - 2)
   }
 
   _placeUnits(){
@@ -208,6 +213,7 @@ class App extends Component {
   }
 
   render(){
+    console.log(this.state)
     return (
       <div className="App">
         <header className="infobar">
@@ -245,6 +251,7 @@ class App extends Component {
             _setSelectedUnit={this._setSelectedUnit}
             flags={this.state.flags}
             _updateFlags={this._updateFlags}
+            _undoMove={this._undoMove}
           />
         }
       </div>

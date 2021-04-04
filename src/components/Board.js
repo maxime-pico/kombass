@@ -88,10 +88,8 @@ class Board extends Component {
       if (playerNumber !== -1){
         this.props.units.forEach((player, player_index) => {
           player.forEach((unit, unit_index) => {
-            if(!this.props.units[playerNumber][unitNumber].hasFlag){
-              if (inReachFlag1 && inReachFlag2 && unit.life > 0){
-                  isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
-              }
+            if (inReachFlag1 && inReachFlag2 && unit.life > 0){
+                isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
             }
           })
         })

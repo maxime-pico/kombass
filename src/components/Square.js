@@ -37,6 +37,7 @@ class Square extends Component {
       <div
         className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}`}
         onClick={() => this._clickedSquare()}
+        onTouchEnd={void(0)}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
           { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} /> : '' }

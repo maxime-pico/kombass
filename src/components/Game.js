@@ -115,7 +115,6 @@ class Game extends Component {
   }
 
   _isGameOver(){
-    console.log('GAME ON')
     const units = this.props.units
     const flags = this.props.flags
     let deadUnits = [0, 0]
@@ -184,8 +183,11 @@ class Game extends Component {
         <Panel
           futureMove={this.futureMove}
           step={this.props.step}
+          selectedUnit={this.props.selectedUnit}
           _changeStep={this.props._changeStep}
           _applyMoves={this._applyMoves}
+          _undoMove={this.props._undoMove}
+          _setSelectedUnit={this.props._setSelectedUnit}
         />
       </div>
     );

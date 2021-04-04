@@ -71,24 +71,9 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 
 # Plan
-// 1. Représenter une matrice avec certaines valeurs dedans
-// 2. Changer la valeur des cases en fonction d'un event
-// 3. Instancier les valeurs en fonction d'une matrice
-// 4. Alterner les "tours"
-// 5. Selectionner un élément quand c'est son tour
-// 6. Bouger l'élément avec un second click
-// 7. Attendre les deux séléctions, appliquer le mouvement uniquement au click du bouton
-// 8. Implémenter systeme de vies futuremove -> matrice taille du plateau contenant vie et player resultant, parcourir la matrice au moment de applymoves pour voir où il y a des éléments
-// 9. Gérer plusieurs unités par joueur
-// 10. Ajuster le système de vie pour tenir en compte une zone d'attaque
-// 11. Sauter le tour des unités mortes
-// 12. Si mort avec drapeau alors retour position d'origine
-// 13. Implémenter zones où il n'est pas possible de se déplacer
-// 14. Implémenter zone où on ne peut pas prendre des dégats
-// 15. Visualiser zone de dégats
-16. Visualiser type d'unités
-// 17. Reduire longueur du plateau
-18. Implémenter victoire
+// Implémenter liste units sur les côtés
+// Implémenter visualisation de la position future
+// Implémenter animations lors d'embuscades
 
 # regles
 * 3 unités par type max

@@ -5,6 +5,11 @@
   min-height: 100vh;
 }
 
+button{
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
 .justify-center{
   display: flex;
   flex-direction: column;
@@ -211,10 +216,19 @@
 }
 
 .panel {
-  display: flex;
+  position: absolute;
+  right: 9rem;
+  top: 22rem;
   height: 5rem;
-  align-self: center;
-  margin-left: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: start;
+}
+
+.undo-button{
+  margin-top: 1rem;
+  background-color: lightslategrey;
+  color: white;
 }
 
 .square {
@@ -227,9 +241,11 @@
   align-items: center;
 }
 
-.square:hover{
-  border : 2px solid yellow;
-  background-color: yellow;
+@media(hover: hover) {
+  .square:hover{
+    border : 2px solid yellow;
+    background-color: yellow;
+  }
 }
 
 .square.active{
@@ -326,6 +342,7 @@
   align-items: center;
   z-index: 10;
   height: 3rem;
+  pointer-events: none;
 }
 
 .unit.has-flag{
@@ -338,8 +355,7 @@
 }
 
 .unit-sprite{
-  flex-grow: 0.7;
-  width: 180%;
+  width: 200%;
 }
 
 .unit-info{
@@ -348,7 +364,7 @@
   width: 117%;
   line-height: 0.9;
   text-align: center;
-  margin-top: -0.3rem;
+  margin-top: -0.6rem;
   background-color: white;
   color: black;
   font-weight: 800;
@@ -363,13 +379,6 @@
 
 .info-container{
   margin: 1rem;
-}
-
-.fight-button{
-  position: relative;
-  left: 50rem;
-  top: -25rem;
-  height: 5rem;
 }
 
 button.inactive{

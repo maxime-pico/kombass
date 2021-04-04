@@ -9,9 +9,12 @@ class Panel extends Component {
   render(){
     return (
       <div className='panel'>
-        <button className={`fight-button ${this.props.step !== 10 ? 'inactive' : 'active'}`} onClick={() => this.props.step === 10 ? this.props._applyMoves() : null}>
-          Fight!
+        {this.props.step === 10 ? (
+          <button className='fight-button active' onClick={() => this.props.step === 10 ? this.props._applyMoves() : null}>
+          FIGHT!
         </button>
+        ): null}
+        <button className='undo-button' onClick={() => this.props._undoMove()}>Undo</button>
       </div>
     )
   }
