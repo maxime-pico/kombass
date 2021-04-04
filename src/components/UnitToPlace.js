@@ -16,7 +16,7 @@ class UnitToPlace extends Component {
     return (
       <div className={`unitPlacement-box${selected ? ' selected':''}`}>
         <div className="unitPlacement-background"></div>
-        <Unit unit={unit} playerIndex={playerIndex} />
+        <Unit unit={unit} playerIndex={playerIndex}/>
       </div>
               
     )

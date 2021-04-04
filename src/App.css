@@ -112,6 +112,10 @@ button{
   width: 100%;
 }
 
+.unit-box > .unit > .unit-info{
+  width: 160%
+}
+
 .unitPlacement{
   display: flex;
   flex-direction: column;
@@ -119,9 +123,10 @@ button{
   align-items: center;
   margin: 1rem 0rem;
   padding: 2rem;
-  width: 45%;
+  width: 50%;
   position: absolute;
   z-index: 100;
+  pointer-events: none;
 }
 
 .unitPlacement > .title{
@@ -188,7 +193,7 @@ button{
 
 .unitPlacement-box.selected > .unitPlacement-background{
   background-color: white;
-  outline: 1rem dashed #267702;
+  outline: 1rem solid #267702;
   outline-offset: -1rem;
 }
 
@@ -239,13 +244,16 @@ button{
 
 .unitPanel-foreground{
   position: absolute;
-  transform: translate(-1rem, -1.5rem);
+  height: 5rem;
+  width: 5rem;
   z-index: 200;
+  background-color: rgba(10,10,10,0.5);
 }
 
 .unitPanel-foreground:before, .unitPanel-foreground:after{
   position: absolute;
-  left: 0.6rem;
+  left: 2.2rem;
+  top: 0.9rem;
   content: ' ';
   height: 3rem;
   width: 0.5rem;
@@ -412,6 +420,10 @@ button{
   border-radius: 4rem;
 }
 
+.danger.ghost{
+  opacity: 0;
+}
+
 .unit{
   margin-top: -1rem;
   display: flex;
@@ -426,6 +438,10 @@ button{
 
 .unit.has-flag{
   margin-top: 1.7rem;
+}
+
+.unit.ghost{
+  opacity: 0;
 }
 
 .mirror{

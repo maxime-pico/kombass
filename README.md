@@ -71,7 +71,6 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 
 # Plan
-// Implémenter liste units sur les côtés
 // Implémenter visualisation de la position future
 // Implémenter animations lors d'embuscades
 

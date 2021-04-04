@@ -10,6 +10,7 @@ class Unit extends Component {
 
   render(){
     const unit = this.props.unit
+    let isGhost = this.props.isGhost ? ' ghost' : ''
     const playerIndex = this.props.playerIndex
     const hasFlag = unit.hasFlag
     const unitSprite = UNITS[unit.strength-1].svg[playerIndex]
@@ -17,7 +18,7 @@ class Unit extends Component {
     let containsFlag = [false, false]
     containsFlag[(playerIndex+1)%2] = hasFlag
     return (
-      <div className={`unit${hasFlag ? ' has-flag':''}`}>
+      <div className={`unit${hasFlag ? ' has-flag':''}${isGhost}`}>
         <div className={`unit-sprite${hasFlag ? ' mirror' : ''}`}>
           <img src={unitSprite} alt="player unit" />
         </div>

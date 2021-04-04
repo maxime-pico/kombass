@@ -77,7 +77,7 @@ class Board extends Component {
   }
 
   _isInDanger(col, row, placement = false){
-    let isInDanger = [false, false]
+    let isInDanger = [false, false, false]
     if (!placement){
       const playerNumber = this.props.selectedUnit.playerNumber
       const flag1 = this.props.flags[0]
@@ -85,6 +85,15 @@ class Board extends Component {
       const flag2 = this.props.flags[1]
       let inReachFlag2 = (flag2 && (flag2.x !== -1) && !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3))
       if (playerNumber !== -1){
+        const futureUnits = this.props.futureUnits
+        futureUnits.forEach((player, player_index) => {
+          player.forEach((unit, unit_index) => {
+            if (unit){
+              isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
+              isInDanger[2] = isInDanger[2] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
+            }
+          })
+        })
         this.props.units.forEach((player, player_index) => {
           player.forEach((unit, unit_index) => {
             if (inReachFlag1 && inReachFlag2 && unit.life > 0){
@@ -100,14 +109,27 @@ class Board extends Component {
   _containsUnits(units, col, row, player = null, placement = false){
     let unitContained = null
     let unitNumber = null
+    let isGhost = false
+    if(!placement){
+      const futureUnits = this.props.futureUnits[player]
+      futureUnits.forEach((unit, index) => {
+        if (unit && unit.x === col && unit.y === row && (unit.life >0)){
+          unitContained = unit
+          unitNumber = index
+          isGhost = true
+        }
+      })
+    }
     units.forEach((unit, index) => {
       let isPlaced = placement ? this.props.placedUnits[player][index] : true
       if (unit.x === col && unit.y === row && (unit.life >0) && isPlaced){
         unitContained = unit
         unitNumber = index
+        isGhost = false
       }
     })
-    return [unitContained, unitNumber]
+    
+    return [unitContained, unitNumber, isGhost]
   }
 
   _containsFlag(col, row){

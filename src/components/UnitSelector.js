@@ -17,7 +17,7 @@ class UnitSelector extends Component {
         <div className="taskForceSelector-unit">
           <div className="triangle up" onClick={() => this.props._circleUnit(playerIndex, unitIndex, currentType,1)}></div>
           <div className="unit-box">
-            <Unit unit={unit} playerIndex={playerIndex} />
+            <Unit unit={unit} playerIndex={playerIndex} displayUnitInfo />
           </div>
           <div className="triangle down" onClick={() => this.props._circleUnit(playerIndex, unitIndex, currentType,-1)}></div>
         </div>

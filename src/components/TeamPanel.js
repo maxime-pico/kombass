@@ -12,7 +12,6 @@ class TeamPanel extends Component {
     const playerIndex = this.props.playerIndex
     const selectedUnit = this.props.selectedUnit
     let selected = false
-    console.log(units)
     return (
       <div className='teamPanel-container'>
         <div className='teamPanel'>

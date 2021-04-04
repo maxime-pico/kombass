@@ -40,10 +40,10 @@ class Square extends Component {
         onTouchEnd={void(0)}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
-          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} /> : '' }
+          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} isGhost={unit[2]} />: '' }
           <Flag containsFlag={containsFlag}/>
           {/* { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null} */}
-          { isInDanger && !unit ?  <div className='danger' style={{backgroundColor: isInDanger}}></div> : null }
+          { isInDanger && !unit ?  <div className={`danger${this.props.isInDanger[2] ? ' ghost' : ''}`} style={{backgroundColor: isInDanger}}></div> : null }
         </div>
       </div>
     )
