@@ -348,10 +348,44 @@ button{
   opacity: 1;
 }
 
-.square.boom{
+.square::after{
   opacity: 0;
-  transform: scale(3) rotate(10deg);
+  content: ' ';
+  position: absolute;
+  transform: scale(1) rotate(0deg);
   background-color: red;
+  height: 1.8rem;
+  width: 1.8rem;
+  transition: 0.5s;
+  border-radius: 3rem;
+}
+
+.square.boom::after{
+  animation: boom 1s cubic-bezier(.36,.07,.19,.97) both;
+  opacity: 1;
+  position: absolute;
+  transform: scale(3) rotate(10deg);
+  transition: 0s;
+}
+
+@keyframes boom {
+  10%, 90% {
+    transform: scale(3) rotate(10deg);
+  }
+  
+  20%, 80% {
+    transform: scale(2) rotate(40deg);
+  }
+
+  30%, 50%, 70% {
+    transform: scale(5) rotate(-10deg);
+    background-color: yellow;
+  }
+
+  40%, 60% {
+    transform: scale(10) rotate(40deg);
+    background-color: red;
+  }
 }
 
 @media(hover: hover) {
@@ -462,6 +496,7 @@ button{
 
 .unit.ghost{
   opacity: 0;
+  transition: 0.1s;
 }
 
 .unit{

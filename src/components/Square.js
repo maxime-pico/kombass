@@ -35,7 +35,7 @@ class Square extends Component {
 
   componentDidUpdate() {
     if(this.state.boom){
-      setTimeout(()=>{this.setState({boom: false})}, 500)
+      setTimeout(()=>{this.setState({boom: false})}, 800)
       window.removeEventListener('boom', this._boom)
     }
   }
