@@ -52,7 +52,7 @@ class Board extends Component {
       if (playerNumber !== -1){
         this.props.futureUnits[playerNumber].forEach((unit, unit_index) => {
           if (unit && (unitNumber !== unit_index)){
-            isForbidden = isForbidden || ((unit.x === col) && (unit.y === row) && (unit.life > 0))
+            isForbidden = isForbidden || ((unit.x === col) && (unit.y === row))
           }
         })
         if(!this.props.units[playerNumber][unitNumber].hasFlag){
