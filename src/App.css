@@ -410,6 +410,7 @@ button{
   height:3rem;
 }
 
+
 .danger{
   width: 0.9rem;
   height: 0.9rem;
@@ -421,6 +422,10 @@ button{
 }
 
 .danger.ghost{
+  opacity: 0;
+}
+
+.unit.ghost{
   opacity: 0;
 }
 
@@ -440,9 +445,6 @@ button{
   margin-top: 1.7rem;
 }
 
-.unit.ghost{
-  opacity: 0;
-}
 
 .mirror{
   -webkit-transform: scaleX(-1);

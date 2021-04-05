@@ -10,7 +10,7 @@ class Square extends Component {
     }
   }
 
-  _clickedSquare(){
+  _clickedSquare(square){
     const playerNumber = this.props.step < 5 ? 0 : 1
     if (this.props.step !== 10){
       if (this.props.isReachable && !this.props.isForbidden){
@@ -35,8 +35,9 @@ class Square extends Component {
     const isFlagZone = this.props.isFlagZone
     return (
       <div
+        ref={elem => this.square = elem}
         className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}`}
-        onClick={() => this._clickedSquare()}
+        onClick={() => this._clickedSquare(this.square)}
         onTouchEnd={void(0)}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
