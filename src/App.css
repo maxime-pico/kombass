@@ -364,26 +364,28 @@ button{
   animation: boom 1s cubic-bezier(.36,.07,.19,.97) both;
   opacity: 1;
   position: absolute;
-  transform: scale(3) rotate(10deg);
+  transform: scale(3);
   transition: 0s;
 }
 
 @keyframes boom {
   10%, 90% {
-    transform: scale(3) rotate(10deg);
+    transform: scale(2);
+    background-color: red;
   }
   
   20%, 80% {
-    transform: scale(2) rotate(40deg);
+    transform: scale(8);
+    background-color: orange;
   }
 
   30%, 50%, 70% {
-    transform: scale(5) rotate(-10deg);
+    transform: scale(5);
     background-color: yellow;
   }
 
   40%, 60% {
-    transform: scale(10) rotate(40deg);
+    transform: scale(10);
     background-color: red;
   }
 }
@@ -443,6 +445,10 @@ button{
     #949494 5px,
     #949494 10px
   );
+}
+
+.board.p1 > .square.forbidden > .square-inside.reachable, .board.p2 > .square.forbidden > .square-inside.reachable{
+  background-color: transparent;
 }
 
 .square.contains-flag{

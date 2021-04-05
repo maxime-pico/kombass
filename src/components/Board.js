@@ -106,30 +106,18 @@ class Board extends Component {
     return isInDanger
   }
 
-  _containsUnits(units, col, row, player = null, placement = false){
+  _containsUnits(units, col, row, player = null, placement = false, ghost = false){
     let unitContained = null
     let unitNumber = null
-    let isGhost = false
-    if(!placement){
-      const futureUnits = this.props.futureUnits[player]
-      futureUnits.forEach((unit, index) => {
-        if (unit && unit.x === col && unit.y === row){
-          unitContained = unit
-          unitNumber = index
-          isGhost = true
-        }
-      })
-    }
     units.forEach((unit, index) => {
       let isPlaced = placement ? this.props.placedUnits[player][index] : true
-      if (unit.x === col && unit.y === row && (unit.life >0) && isPlaced){
+      if (unit && unit.x === col && unit.y === row && ((unit.life >0) || ghost) && isPlaced){
         unitContained = unit
         unitNumber = index
-        isGhost = false
       }
     })
     
-    return [unitContained, unitNumber, isGhost]
+    return [unitContained, unitNumber]
   }
 
   _containsFlag(col, row){
@@ -155,6 +143,14 @@ class Board extends Component {
     const containsUnits1 = this._containsUnits(unitsp1, col, row, 0, placement)
     const containsUnits2 = this._containsUnits(unitsp2, col, row, 1, placement)
     const containsUnits = containsUnits1[0] ? containsUnits1 : containsUnits2[0] ? containsUnits2 : null
+    let containsGhostUnits = null
+    
+    if (!placement){
+      const containsGhostUnits1 = this._containsUnits(this.props.futureUnits[0], col, row, 0, placement, true)
+      const containsGhostUnits2 = this._containsUnits(this.props.futureUnits[1], col, row, 1, placement, true)
+      containsGhostUnits = containsGhostUnits1[0] ? containsGhostUnits1 : containsGhostUnits2[0] ? containsGhostUnits2 : null
+    }
+
     const containsPlayer = containsUnits1[0] ? 0 : containsUnits2[0] ? 1 : null
     const containsFlag = this._containsFlag(col,row)
     const isReachable = this._isReachable(unit, col, row, placement)
@@ -167,6 +163,7 @@ class Board extends Component {
         col={col}
         row={row}
         unit={containsUnits}
+        ghostUnit={containsGhostUnits}
         playerIndex={containsPlayer}
         players={this.props.players}
         _changeStep={this.props._changeStep}

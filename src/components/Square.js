@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import Unit from './Unit'
 import Flag from './Flag'
+import {AUDIO} from '../utilities/dict'
 
 class Square extends Component {
   constructor(props){
@@ -15,8 +16,10 @@ class Square extends Component {
   squareRef = React.createRef()
 
   _boom(e){
-    this.setState({boom: true})
     this.props._screenShake()
+    var audio = new Audio()
+	  audio.src = AUDIO.boom
+    setTimeout(() => {audio.play();this.setState({boom: true});}, Math.floor(Math.random() * 200))
   }
 
   _clickedSquare(square){
@@ -35,14 +38,16 @@ class Square extends Component {
 
   componentDidUpdate() {
     if(this.state.boom){
-      setTimeout(()=>{this.setState({boom: false})}, 800)
+      setTimeout(()=>{this.setState({boom: false})}, 1000)
       window.removeEventListener('boom', this._boom)
     }
   }
 
   render() {
     const unit = this.props.unit
-    if(unit && unit[2] && unit[0].life <1 && !this.state.boom){
+    const ghostUnit = this.props.ghostUnit
+
+    if(ghostUnit && ghostUnit[0].life <1 && !this.state.boom){
       window.addEventListener('boom', this._boom)
     }
     const playerIndex = this.props.playerIndex
@@ -60,10 +65,9 @@ class Square extends Component {
         onTouchEnd={void(0)}
       >
         <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
-          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} isGhost={unit[2]} />: '' }
+          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} />: '' }
           <Flag containsFlag={containsFlag}/>
-          {/* { containsFlag[0] || containsFlag[1] ? <div className='flag' style={{backgroundColor: bgcol}}>F</div> : null} */}
-          { isInDanger && !unit ?  <div className={`danger${this.props.isInDanger[2] ? ' ghost' : ''}`} style={{backgroundColor: isInDanger}}></div> : null }
+          { isInDanger && !unit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
         </div>
       </div>
     )
