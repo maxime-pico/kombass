@@ -14,7 +14,9 @@ class Panel extends Component {
           FIGHT!
         </button>
         ): null}
-        <button className='undo-button' onClick={() => this.props._undoMove()}>Undo</button>
+        {this.props.step !== 0 ? (
+          <button className='undo-button' onClick={() => this.props._undoMove()}>Undo</button>
+        ):null}
       </div>
     )
   }

@@ -159,9 +159,9 @@ class Game extends Component {
           gameOver = `${this.props.players[winner].name} destroyed ${this.props.players[winner].name}!! Time for some "democratic elections"`
         }
       }
-      this.setState({
+      window.setTimeout(()=>{this.setState({
         gameOver: gameOver,
-      })
+      })}, 1000)
     }
   }
 
