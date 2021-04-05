@@ -10,13 +10,23 @@ class Game extends Component {
   constructor(props){
     super(props)
     this.state = {
-      units: this.props.units,
       futureUnits: Array(2).fill(Array(5).fill(null)),
       gameOver: false,
+      shake: false,
     }
 
     this._changePosition = this._changePosition.bind(this);
     this._applyMoves = this._applyMoves.bind(this);
+    this._screenShake = this._screenShake.bind(this);
+  }
+
+  _screenShake(){
+    this.setState({
+      shake: true
+    })
+    setTimeout(() => {
+      this.setState({shake: false})
+    }, 1000);
   }
   
   _changePosition(playerNumber, unitNumber, x, y){
@@ -110,7 +120,7 @@ class Game extends Component {
         units: units,
         futureUnits: Array(2).fill(Array(5).fill({})),
       })
-
+      window.dispatchEvent(new CustomEvent("boom"))
       this.props._changeStep(this.props.step)
     }
   }
@@ -168,7 +178,7 @@ class Game extends Component {
     return (
       <div>
         { this.state.gameOver ? <GameOver gameOver={this.state.gameOver} /> : null}
-        <div className="main">
+        <div className={`main${this.state.shake ? ' fight' : ''}`}>
           <TeamPanel
             playerIndex={0}
             units={this.props.units[0]}
@@ -184,6 +194,7 @@ class Game extends Component {
             selectedUnit={this.props.selectedUnit}
             _setSelectedUnit={this.props._setSelectedUnit}
             flags={this.props.flags}
+            _screenShake={this._screenShake}
           />
           <TeamPanel
             playerIndex={1}

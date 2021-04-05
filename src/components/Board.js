@@ -110,16 +110,16 @@ class Board extends Component {
     let unitContained = null
     let unitNumber = null
     let isGhost = false
-    // if(!placement){
-    //   const futureUnits = this.props.futureUnits[player]
-    //   futureUnits.forEach((unit, index) => {
-    //     if (unit && unit.x === col && unit.y === row && (unit.life >0)){
-    //       unitContained = unit
-    //       unitNumber = index
-    //       isGhost = true
-    //     }
-    //   })
-    // }
+    if(!placement){
+      const futureUnits = this.props.futureUnits[player]
+      futureUnits.forEach((unit, index) => {
+        if (unit && unit.x === col && unit.y === row){
+          unitContained = unit
+          unitNumber = index
+          isGhost = true
+        }
+      })
+    }
     units.forEach((unit, index) => {
       let isPlaced = placement ? this.props.placedUnits[player][index] : true
       if (unit.x === col && unit.y === row && (unit.life >0) && isPlaced){
@@ -181,6 +181,7 @@ class Board extends Component {
         containsFlag={containsFlag}
         _placeUnit={this.props._placeUnit}
         player={this.props.player}
+        _screenShake={this.props._screenShake}
       />
     )
   }

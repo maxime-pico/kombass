@@ -7,7 +7,16 @@ class Square extends Component {
     super(props);
     this.state = {
       selected: this.props.selected,
+      boom: false,
     }
+    this._boom = this._boom.bind(this);
+  }
+
+  squareRef = React.createRef()
+
+  _boom(e){
+    this.setState({boom: true})
+    this.props._screenShake()
   }
 
   _clickedSquare(square){
@@ -24,8 +33,18 @@ class Square extends Component {
     }
   }
 
+  componentDidUpdate() {
+    if(this.state.boom){
+      setTimeout(()=>{this.setState({boom: false})}, 500)
+      window.removeEventListener('boom', this._boom)
+    }
+  }
+
   render() {
     const unit = this.props.unit
+    if(unit && unit[2] && unit[0].life <1 && !this.state.boom){
+      window.addEventListener('boom', this._boom)
+    }
     const playerIndex = this.props.playerIndex
     const containsFlag = this.props.containsFlag
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
@@ -35,8 +54,8 @@ class Square extends Component {
     const isFlagZone = this.props.isFlagZone
     return (
       <div
-        ref={elem => this.square = elem}
-        className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}`}
+        ref={this.squareRef}
+        className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}${this.state.boom ? ' boom':''}`}
         onClick={() => this._clickedSquare(this.square)}
         onTouchEnd={void(0)}
       >
