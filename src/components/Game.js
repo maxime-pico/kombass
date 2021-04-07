@@ -107,7 +107,7 @@ class Game extends Component {
           element.x = element.life > 0 ? this.state.futureUnits[playerIndex][index].x : element.x
           element.y = element.life > 0 ? this.state.futureUnits[playerIndex][index].y : element.y
           element.life = element.life > 0 ? this.state.futureUnits[playerIndex][index].life : element.life
-          element.hasFlag = this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
+          element.hasFlag = this.state.futureUnits[playerIndex][index] && this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
           if (element.hasFlag) {
             flag = { ...flags[(playerIndex+1)%2], inZone: false }
             flags[(playerIndex+1)%2] = flag

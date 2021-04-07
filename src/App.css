@@ -351,98 +351,6 @@ button{
   opacity: 1;
 }
 
-.square::after{
-  opacity: 0;
-  content: ' ';
-  position: absolute;
-  transform: scale(1) rotate(0deg);
-  background-color: red;
-  height: 1.8rem;
-  width: 1.8rem;
-  transition: 0.5s;
-  z-index: 1;
-  pointer-events: none;
-  /* border-radius: 3rem; */
-}
-
-.square::before{
-  opacity: 0;
-  content: ' ';
-  position: absolute;
-  transform: scale(1) rotate(0deg);
-  background-color: red;
-  height: 1.8rem;
-  width: 1.8rem;
-  transition: 0.5s;
-  z-index: 1;
-  transform: scale(2) translate(-1px, -1px);
-  pointer-events: none;
-  /* border-radius: 3rem; */
-}
-
-.square.boom::after{
-  animation: boom 0.8s cubic-bezier(.36,.07,.19,.97) both;
-  opacity: 1;
-  transform: scale(3);
-}
-
-.square.boom::before{
-  animation: boom2 0.5s cubic-bezier(.36,.07,.19,.97) both;
-  opacity: 1;
-  transform: translate(1px, 1px);
-}
-
-@keyframes boom {
-  10%, 90% {
-    transform: scale(2) translate3d(-2px, -2px, 3px);
-    background-color: white;
-    box-shadow: 0 0 0 5px red;
-  }
-  
-  20%, 80% {
-    transform: scale(5) translate(2px, 2px, 10px);
-    background-color: orange;
-    box-shadow: 0 0 0 8px red;
-  }
-
-  30%, 50%, 70% {
-    transform: scale(4) translate(0, 0, 2px);
-    background-color: white;
-    box-shadow: 0 0 0 0 orange;
-  }
-
-  40%, 60% {
-    transform: scale(8) translate(-2px, 0, 10px);
-    background-color: red;
-  }
-}
-
-@keyframes boom2 {
-  10%, 90% {
-    transform: scale(2) translate3d(2px, 2px, 1px);
-    background-color: white;
-    box-shadow: 0 0 0 5px red;
-  }
-  
-  20%, 80% {
-    transform: scale(3) translate(0px, 1px, 5px);
-    background-color: orange;
-    box-shadow: 0 0 0 5px red;
-  }
-
-  30%, 50%, 70% {
-    transform: scale(8) translate(-1px, -1px, 2px);
-    background-color: white;
-    box-shadow: 0 0 0 12px orange;
-  }
-
-  40%, 60% {
-    transform: scale(6) translate(-1px, 0, 10px);
-    background-color: white;
-    box-shadow: 0 0 0 10px red;
-  }
-}
-
 @media(hover: hover) {
   .square:hover{
     border : 2px solid yellow;
@@ -650,4 +558,93 @@ button.active{
 
 .question {
   margin: 1rem 0;
+}
+
+.square::after{
+  opacity: 0;
+  content: ' ';
+  position: absolute;
+  transform: scale(1) rotate(0deg);
+  background-color: red;
+  height: 1.8rem;
+  width: 1.8rem;
+  transition: 0.5s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.square::before{
+  opacity: 0;
+  content: ' ';
+  position: absolute;
+  transform: scale(1) rotate(0deg);
+  background-color: red;
+  height: 1.8rem;
+  width: 1.8rem;
+  transform: scale(2) translate(-5px, -5px);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.square.boom::after{
+  animation: boom 1s cubic-bezier(.36,.07,.19,.97) both;
+  opacity: 1;
+  transform: scale(3);
+}
+
+.square.boom::before{
+  animation: boom2 0.8s cubic-bezier(.36,.07,.19,.97) both;
+  opacity: 1;
+  transform: translate(1px, 1px);
+}
+
+@keyframes boom {
+  10%, 90% {
+    transform: scale(2) translate3d(-5px, -5px, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 5px red;
+  }
+  
+  20%, 80% {
+    transform: scale(8) translate(2px, 2px, 3rem);
+    background-color: orange;
+    box-shadow: 0 0 0 10px red;
+  }
+
+  30%, 50%, 70% {
+    transform: scale(4) translate(0, 0, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 0 orange;
+  }
+
+  40%, 60% {
+    transform: scale(12) translate(-2px, 0, 4rem);
+    background-color: red;
+  }
+}
+
+@keyframes boom2 {
+  10%, 90% {
+    transform: scale(2) translate3d(2px, 2px, 1rem);
+    background-color: white;
+    box-shadow: 0 0 0 5px red;
+  }
+  
+  20%, 80% {
+    transform: scale(3) translate(0px, 1px, 3rem);
+    background-color: orange;
+    box-shadow: 0 0 0 5px red;
+  }
+
+  30%, 50%, 70% {
+    transform: scale(10) translate(-1px, -1px, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 14px orange;
+  }
+
+  40%, 60% {
+    transform: scale(7) translate(-1px, 0, 5rem);
+    background-color: white;
+    box-shadow: 0 0 0 10px red;
+  }
 }
