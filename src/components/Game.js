@@ -31,6 +31,8 @@ class Game extends Component {
     let deadUnits = [0, 0]
     let isFlagInZone = [false, false]
     let gameOver = false
+    let winner = null
+    let loser = null
 
     units.forEach((player, player_index) => {
       let ownFlag = flags[player_index]
@@ -47,16 +49,18 @@ class Game extends Component {
       }
       else{
         if(isFlagInZone[0] || isFlagInZone[1]){
-          let winner = isFlagInZone[0] ? 0 : 1
-          gameOver = `${this.props.players[winner].name} won! Suck it ${this.props.players[winner].name}...`
+          winner = isFlagInZone[0] ? 0 : 1
+          loser = Math.abs(1-winner)
+          gameOver = `${this.props.players[winner].name} won! Suck it ${this.props.players[loser].name}...`
         }
       }
       if(deadUnits[0] > 4 && deadUnits[1] > 4){
         gameOver = 'Oh wow, you guys anihilated each other! Nice! Who\'s going to "save the world" now???'
       } else{
         if(deadUnits[0] > 4 || deadUnits[1] > 4){
-          let winner = deadUnits[0] ? 0 : 1
-          gameOver = `${this.props.players[winner].name} destroyed ${this.props.players[winner].name}!! Time for some "democratic elections"`
+          winner = deadUnits[0] ? 1 : 0
+          loser = Math.abs(1-winner)
+          gameOver = `${this.props.players[winner].name} destroyed ${this.props.players[loser].name}!! Time for some "democratic elections"`
         }
       }
       window.setTimeout(()=>{this.setState({

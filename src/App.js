@@ -35,7 +35,7 @@ class App extends Component {
             strength: 1, speed: 3, x: 12, y: 6, life: 1, hasFlag: false,
           },
           {
-            strength: 1, speed: 1, x: 12, y: 5, life: 1, hasFlag: false,
+            strength: 1, speed: 3, x: 12, y: 5, life: 1, hasFlag: false,
           },
           {
             strength: 2, speed: 2, x: 4, y: 8, life: 2, hasFlag: false,
@@ -326,7 +326,7 @@ class App extends Component {
   }
 
   render(){
-    // console.log(this.state)
+    console.log(this.state)
     return (
       <div className="App">
         <header className="infobar">

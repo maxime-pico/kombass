@@ -17,6 +17,18 @@ class UnitPlacement extends Component {
     const selectedUnit = this.props.selectedUnit.unitNumber
     return (
       <div className="justify-center">
+        <Board
+          placement={true}
+          units={units}
+          player={player}
+          selectedUnit={this.props.selectedUnit}
+          _setSelectedUnit={this.props._setSelectedUnit}
+          placedUnits={this.props.placedUnits}
+          flags={this.props.flags}
+          players={this.props.players}
+          _placeUnit={this.props._placeUnit}
+          step={this.props.step}
+        />
         <div className={`unitPlacement${player ? ' left': ' right'}`}>
           <div className="title"> Place your units!</div>
           <div className="unitPlacement-container">
@@ -32,18 +44,6 @@ class UnitPlacement extends Component {
             }
           </div>
         </div>
-        <Board
-          placement={true}
-          units={units}
-          player={player}
-          selectedUnit={this.props.selectedUnit}
-          _setSelectedUnit={this.props._setSelectedUnit}
-          placedUnits={this.props.placedUnits}
-          flags={this.props.flags}
-          players={this.props.players}
-          _placeUnit={this.props._placeUnit}
-          step={this.props.step}
-        />
       </div>
     )
   }

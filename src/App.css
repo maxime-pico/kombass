@@ -128,13 +128,14 @@ button{
   align-items: center;
   margin: 1rem 0rem;
   padding: 2rem;
-  width: 50%;
+  width: 40rem;
   position: absolute;
   z-index: 100;
   pointer-events: none;
 }
 
 .unitPlacement > .title{
+  position: relative;
   background-color: white;
   padding: 0.5rem 2rem;
   font-size: 1em;
@@ -149,6 +150,7 @@ button{
 }
 
 .unitPlacement-container{
+  position: relative;
   display: flex;
   flex-direction: row;
   justify-content: flex-start;
@@ -164,6 +166,7 @@ button{
 }
 
 .unitPlacement-box{
+  position: relative;
   width: 8%;
   margin: 2rem;
 }
@@ -580,6 +583,10 @@ button.active{
 
 .question {
   margin: 1rem 0;
+}
+
+.square.boom{
+  z-index: 10;
 }
 
 .square::after{
