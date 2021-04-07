@@ -71,8 +71,14 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 
 
 # Plan
-// Implémenter visualisation de la position future
-// Implémenter animations lors d'embuscades
+// Vérifier compatibilité mobile landscape (en particulier placement des unités)
+// Implémenter visualisation de la position future de l'unité plutôt qu'actuelle pour le joueur qui joue
+// Implémenter "?" là où l'enemi peut être au tour suivant
+// Dans team panel si hasflag alors border changer
+// Tester strength qui descend avec vie
+// Améliorer infos lors de la selection d'unités
+// Implémenter mouvement visuel des unités
+// Améliorer visibilité du tableau et unités: couleurs mais aussi render progressif
 
 # regles
 * 3 unités par type max

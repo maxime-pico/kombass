@@ -49,6 +49,8 @@ button{
   font-family: 'Press Start 2P', 'Courier New', Courier, monospace;
   font-weight: bold;
   font-size: 12px;
+  position: relative;
+  z-index: 0;
 }
 
 .introScreen-container{
@@ -211,6 +213,7 @@ button{
   display: flex;
   flex-direction: row;
   justify-content: center;
+  position: relative;
 }
 
 .teamPanel-container{
@@ -219,6 +222,8 @@ button{
   align-items: center;
   margin: 0 1rem;
   width: 4rem;
+  position: relative;
+  z-index: 0;
 }
 
 .teamPanel{
@@ -288,12 +293,13 @@ button{
 }
 
 .board {
+  position: relative;
   border: 2rem solid white;
-  width: 43.6rem;
+  width: 43.59rem;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  background-color: #fff7af;
+  background-color: #c3ffbd;
   margin-bottom: 2rem;
 }
 
@@ -339,9 +345,11 @@ button{
 }
 
 .square {
+  position: relative;
+  z-index: 0;
   height: 1.8rem;
   width: 1.8rem;
-  border: 1px solid rgb(10, 10, 10);
+  border: 1px solid #f1fff0;
   font-size: 0.7rem;
   display: flex;
   justify-content: center;
@@ -351,16 +359,10 @@ button{
   opacity: 1;
 }
 
-@media(hover: hover) {
-  .square:hover{
-    border : 2px solid yellow;
-    background-color: yellow;
-    transition: 0.2s;
-  }
-}
 
 .square.active{
   color: white;
+  z-index: 3;
 }
 
 .square.selected{
@@ -374,16 +376,18 @@ button{
     #a2e08f 5px,
     #7bc565 5px,
     #7bc565 10px
-  );
-}
-
+    );
+  }
+  
 .square-inside{
+  position: relative;
   height: 100%;
   width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
 }
+
 
 .board.p1 > .square > .square-inside.reachable{
   background-color: aquamarine
@@ -398,6 +402,7 @@ button{
   background-color: white
 }
 
+
 .square.forbidden{
   background: repeating-linear-gradient(
     45deg,
@@ -405,14 +410,22 @@ button{
     #cecece 5px,
     #949494 5px,
     #949494 10px
-  );
-}
-
-.board.p1 > .square.forbidden > .square-inside.reachable, .board.p2 > .square.forbidden > .square-inside.reachable{
-  background-color: transparent;
-}
-
+    );
+  }
+  
+  .board.p1 > .square.forbidden > .square-inside.reachable, .board.p2 > .square.forbidden > .square-inside.reachable{
+    background-color: transparent;
+  }
+  
+  @media(hover: hover) {
+    .board.p1 > .square > .square-inside.reachable:hover, .board.p2 > .square > .square-inside.reachable:hover, .square-inside:hover{
+      background-color: hsl(114deg 80% 60% / 80%);
+      z-index: 4;
+    }
+  }
+  
 .square.contains-flag{
+  z-index: 3;
   color: white;
   padding: 0.2rem;
 }
@@ -433,7 +446,8 @@ button{
   width: 200%;
   height: 200%;
   margin-bottom: 1rem;
-  z-index: 2;
+  position: relative;
+  z-index: 3;
 }
 
 .flag-image.with-player{
@@ -473,7 +487,8 @@ button{
   width: 100%;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  position: relative;
+  z-index: 3;
   height: 3rem;
   pointer-events: none;
 }
@@ -489,8 +504,15 @@ button{
 }
 
 .unit-sprite{
+  position: relative;
+  z-index: 4;
   width: 230%;
   transition: 0.5s;
+}
+
+.unit-sprite > img{
+  position: relative;
+  z-index: 5;
 }
 
 .unit-info{
