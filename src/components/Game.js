@@ -10,13 +10,9 @@ class Game extends Component {
   constructor(props){
     super(props)
     this.state = {
-      futureUnits: Array(2).fill(Array(5).fill(null)),
       gameOver: false,
       shake: false,
     }
-
-    this._changePosition = this._changePosition.bind(this);
-    this._applyMoves = this._applyMoves.bind(this);
     this._screenShake = this._screenShake.bind(this);
   }
 
@@ -27,102 +23,6 @@ class Game extends Component {
     setTimeout(() => {
       this.setState({shake: false})
     }, 1000);
-  }
-  
-  _changePosition(playerNumber, unitNumber, x, y){
-    //if playerNumber = 0 -> just add to futureUnits and moves
-    //if playerNumber = 1 -> check more
-    const life = this.props.units[playerNumber][unitNumber].life
-    const strength = this.props.units[playerNumber][unitNumber].strength
-    let currentPlayerUnit = this.props.units[playerNumber][unitNumber]
-    let futureUnits = [...this.state.futureUnits]
-    let futurePlayerUnits = [...futureUnits[playerNumber]]
-    let futurePlayerUnit = futurePlayerUnits[unitNumber]
-    let opponentNumber = (playerNumber + 1) % 2
-    let futureOpponentUnits = [...futureUnits[opponentNumber]]
-    let embuscade = false
-    let embuscadeBack = false
-    let damageTaken = 0
-    let inFlagZone = false
-    let flags = this.props.flags
-
-    if (playerNumber === 1){
-      futureOpponentUnits.forEach((opponentUnit, unit_index) => {
-        if (this.props.units[opponentNumber][unit_index].life > 0){
-          let a = opponentUnit.x
-          let b = opponentUnit.y
-          let opponentStrength = opponentUnit.strength
-          embuscade = (Math.abs(x - a) + Math.abs(y - b) <= opponentStrength)
-          embuscadeBack = (Math.abs(x - a) + Math.abs(y - b) <= strength)
-          flags.forEach((flag, flag_index) => {
-            inFlagZone = inFlagZone || (Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3) || (Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3)
-          })
-          if (!inFlagZone){
-            if (embuscade){
-              console.log('EMBUSCADE!!')
-              damageTaken = damageTaken + opponentStrength
-            }
-            if (embuscadeBack){
-              console.log('EMBUSCADE BACK!!')
-              let futureOpponentUnit = futureOpponentUnits[unit_index]
-              futureOpponentUnit = { ...futureOpponentUnit, x: a, y: b, life: (opponentUnit.life - strength)}
-              futureOpponentUnits[unit_index] = futureOpponentUnit
-            }
-          }
-        }
-      })
-    }
-
-    futurePlayerUnit = { ...currentPlayerUnit, x: x, y: y, life: (life - damageTaken) }
-
-    if (this.props.flags[opponentNumber].x === x && this.props.flags[opponentNumber].y === y && this.props.flags[opponentNumber].inZone && ((life-damageTaken)>0)){
-      futurePlayerUnit = {...futurePlayerUnit, hasFlag: true}
-    }
-    
-
-    let futureUnitsArray = [null, null]
-    futurePlayerUnits[unitNumber] = futurePlayerUnit
-    futureUnitsArray[opponentNumber] = futureOpponentUnits
-    futureUnitsArray[playerNumber] = futurePlayerUnits
-
-    this.setState({
-      futureUnits: futureUnitsArray,
-    })
-  }
-
-  _applyMoves(){
-    if (this.props.step === 10){
-      let units = [...this.props.units]
-      const flags = this.props.flags
-
-      units.forEach((playerUnits, playerIndex) => {
-        playerUnits.forEach((element, index) => {
-          let hadFlag = element.hasFlag
-          let flag = flags[(playerIndex+1)%2]
-          if (hadFlag && this.state.futureUnits[playerIndex][index].life < 1) {
-            flag = { ...flags[(playerIndex+1)%2], inZone: true }
-            flags[(playerIndex+1)%2] = flag
-            this.props._updateFlags(flags)
-          }
-          element.x = element.life > 0 ? this.state.futureUnits[playerIndex][index].x : element.x
-          element.y = element.life > 0 ? this.state.futureUnits[playerIndex][index].y : element.y
-          element.life = element.life > 0 ? this.state.futureUnits[playerIndex][index].life : element.life
-          element.hasFlag = this.state.futureUnits[playerIndex][index] && this.state.futureUnits[playerIndex][index].hasFlag && element.life > 0
-          if (element.hasFlag) {
-            flag = { ...flags[(playerIndex+1)%2], inZone: false }
-            flags[(playerIndex+1)%2] = flag
-            this.props._updateFlags(flags)
-          }
-        });
-      })
-      
-      this.setState({
-        units: units,
-        futureUnits: Array(2).fill(Array(5).fill({})),
-      })
-      window.dispatchEvent(new CustomEvent("boom"))
-      this.props._changeStep(this.props.step)
-    }
   }
 
   _isGameOver(){
@@ -187,10 +87,10 @@ class Game extends Component {
           <Board
             players={this.props.players}
             units={this.props.units}
-            futureUnits={this.state.futureUnits}
+            futureUnits={this.props.futureUnits}
             step={this.props.step}
             _changeStep={this.props._changeStep}
-            _changePosition={this._changePosition}
+            _changePosition={this.props._changePosition}
             selectedUnit={this.props.selectedUnit}
             _setSelectedUnit={this.props._setSelectedUnit}
             flags={this.props.flags}
@@ -207,7 +107,7 @@ class Game extends Component {
           step={this.props.step}
           selectedUnit={this.props.selectedUnit}
           _changeStep={this.props._changeStep}
-          _applyMoves={this._applyMoves}
+          _applyMoves={this.props._applyMoves}
           _undoMove={this.props._undoMove}
           _setSelectedUnit={this.props._setSelectedUnit}
         />

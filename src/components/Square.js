@@ -49,6 +49,8 @@ class Square extends Component {
 
     if(ghostUnit && ghostUnit[0].life <1 && !this.state.boom){
       window.addEventListener('boom', this._boom)
+    }else{
+      window.removeEventListener('boom', this._boom)
     }
     const playerIndex = this.props.playerIndex
     const containsFlag = this.props.containsFlag
