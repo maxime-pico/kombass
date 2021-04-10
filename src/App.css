@@ -179,18 +179,18 @@ button{
 
 .unitPlacement-box.selected{
   opacity: 1;
-  box-shadow: 0px 0px 0px 2.5vh green;
+  box-shadow: 0px 0px 0px 0.7rem green;
+}
+
+@media only screen and (max-width: 800px) {
+  .unitPlacement-box.selected{
+    box-shadow: 0px 0px 0px 0.3rem green;
+  }
 }
 
 .unitPlacement-box.selected > .unit{
   opacity: 1;
 }
-
-/* .unitPlacement-box.selected > .unitPlacement-background{
-  background-color: white;
-  outline: 1rem solid #267702;
-  outline-offset: -1rem;
-} */
 
 .main {
   display: flex;
@@ -198,7 +198,6 @@ button{
   justify-content: center;
   align-items: center;
   position: relative;
-  padding: 10vh 0;
 }
 
 .teamPanel-container{
@@ -289,12 +288,17 @@ button{
 .board{
   position: relative;
   width: 50%;
-  height: 80%;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   background-color: #c3ffbd;
-  box-shadow: 0px 0px 0px 4vh white;
+  box-shadow: 0px 0px 0px 1.5rem white;
+}
+
+@media only screen and (max-width: 800px) {
+  .board{
+    box-shadow: 0px 0px 0px 0.8rem white;
+  }
 }
 
 .main.fight {

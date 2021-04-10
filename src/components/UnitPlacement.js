@@ -16,7 +16,7 @@ class UnitPlacement extends Component {
     const player = this.props.player
     const selectedUnit = this.props.selectedUnit.unitNumber
     return (
-      <div className="justify-center">
+      <div className="main">
         <Board
           placement={true}
           units={units}

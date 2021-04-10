@@ -88,20 +88,18 @@ class Game extends Component {
             units={this.props.units[0]}
             selectedUnit={this.props.selectedUnit}
           />
-          {/* <div className='board-container'> */}
-            <Board
-              players={this.props.players}
-              units={this.props.units}
-              futureUnits={this.props.futureUnits}
-              step={this.props.step}
-              _changeStep={this.props._changeStep}
-              _changePosition={this.props._changePosition}
-              selectedUnit={this.props.selectedUnit}
-              _setSelectedUnit={this.props._setSelectedUnit}
-              flags={this.props.flags}
-              _screenShake={this._screenShake}
-            />
-          {/* </div> */}
+          <Board
+            players={this.props.players}
+            units={this.props.units}
+            futureUnits={this.props.futureUnits}
+            step={this.props.step}
+            _changeStep={this.props._changeStep}
+            _changePosition={this.props._changePosition}
+            selectedUnit={this.props.selectedUnit}
+            _setSelectedUnit={this.props._setSelectedUnit}
+            flags={this.props.flags}
+            _screenShake={this._screenShake}
+          />
           <TeamPanel
             playerIndex={1}
             units={this.props.units[1]}
