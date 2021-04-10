@@ -140,8 +140,7 @@ class App extends Component {
       futureUnits: futureUnits,
       futureUnitsHistory: futureUnitsHistory,
     })
-    this._setSelectedUnit(this.state.selectedUnit.playerNumber -1, this.state.selectedUnit.unitNumber -1)
-    this._changeStep(this.state.step - 2)
+    this._changeStep(this.state.step, -1)
   }
 
   _placeUnits(){
@@ -188,14 +187,21 @@ class App extends Component {
     })
   }
 
-  _changeStep(step){
-    var nextStep = (step + 1) % 11
+  _changeStep(step, direction = 1){
+    var nextStep = (step + direction) % 11
+    let selectedUnit = [null,null]
     if (nextStep !== 10 ){
       if (nextStep < 5 ){
-        this._setSelectedUnit(0,(nextStep % 5), nextStep)
+        selectedUnit = [0, (nextStep % 5)]
       }
       else {
-        this._setSelectedUnit(1,(nextStep % 5), nextStep)
+        selectedUnit = [1, (nextStep % 5)]
+      }
+      if(this.state.units[selectedUnit[0]][selectedUnit[1]].life > 0){
+        this._setSelectedUnit(selectedUnit[0],selectedUnit[1], nextStep)
+      }else{
+        this._changeStep(nextStep, direction)
+        return true
       }
     }
     else{
@@ -207,6 +213,7 @@ class App extends Component {
     this.setState({
       step: nextStep
     })
+    return true
   }
 
   _updateFlags(newFlags){
@@ -329,9 +336,9 @@ class App extends Component {
     console.log(this.state)
     return (
       <div className="App">
-        <header className="infobar">
-          {/* <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} /> */}
-        </header>
+        {/*<header className="infobar">
+           <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} /> 
+        </header>*/}
         { this.state.step === -3 ?
           <IntroScreen
             _selectUnits={this._selectUnits}

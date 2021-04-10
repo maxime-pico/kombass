@@ -7,8 +7,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
   display: flex;
   flex-direction: column;
-  width: 100%;
   background-color: black;
+  min-height: 100vh; /* Use vh as a fallback for browsers that do not support Custom Properties */
+  min-height: calc(var(--vh, 1vh) * 100);
+  min-width: 100vw;
+  min-width: calc(var(--vw, 1vw) * 100);
+  margin: 0 auto;
 }
 
 code {

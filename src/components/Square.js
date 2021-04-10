@@ -60,16 +60,18 @@ class Square extends Component {
     const isInDanger = this.props.isInDanger[0] ? this.props.players[0].color : this.props.isInDanger[1] ? this.props.players[1].color : false
     const isFlagZone = this.props.isFlagZone
     return (
-      <div
-        ref={this.squareRef}
-        className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}${this.state.boom ? ' boom':''}`}
-        onClick={() => this._clickedSquare(this.square)}
-        onTouchEnd={void(0)}
-      >
-        <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
-          { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} />: '' }
-          <Flag containsFlag={containsFlag}/>
-          { isInDanger && !unit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
+      <div className='square-container'>
+        <div
+          ref={this.squareRef}
+          className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}${this.state.boom ? ' boom':''}`}
+          onClick={() => this._clickedSquare(this.square)}
+          onTouchEnd={void(0)}
+        >
+          <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
+            { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} />: '' }
+            <Flag containsFlag={containsFlag}/>
+            { isInDanger && !unit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
+          </div>
         </div>
       </div>
     )
