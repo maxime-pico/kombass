@@ -19,7 +19,8 @@ class Square extends Component {
     this.props._screenShake()
     var audio = new Audio()
 	  audio.src = AUDIO.boom
-    setTimeout(() => {audio.play();this.setState({boom: true});}, Math.floor(Math.random() * 200))
+    audio.play()
+    this.setState({boom: true})
   }
 
   _clickedSquare(square){
@@ -46,13 +47,14 @@ class Square extends Component {
   render() {
     const unit = this.props.unit
     const ghostUnit = this.props.ghostUnit
-
-    if(ghostUnit && ghostUnit[0].life <1 && !this.state.boom){
-      window.addEventListener('boom', this._boom)
-    }else{
-      window.removeEventListener('boom', this._boom)
-    }
     const playerIndex = this.props.playerIndex
+
+    if(ghostUnit && !this.state.boom){
+      if(this.props.futureUnits && this.props.futureUnits[playerIndex][ghostUnit[1]].life <1){
+        window.addEventListener('boom', this._boom)
+      }
+    }
+
     const containsFlag = this.props.containsFlag
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
     const isReachable = this.props.isReachable
@@ -63,7 +65,7 @@ class Square extends Component {
       <div className='square-container'>
         <div
           ref={this.squareRef}
-          className={`square${unit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}${this.state.boom ? ' boom':''}`}
+          className={`square${unit || ghostUnit ? ' active' : ''}${this.props.selected && unit ? ' selected' : ''}${ isForbidden ? ' forbidden' : ''}${bgcol ? ' contains-flag' : ''}${isFlagZone ? ' flag-zone' : ''}${this.state.boom ? ' boom':''}`}
           onClick={() => this._clickedSquare(this.square)}
           onTouchEnd={void(0)}
         >

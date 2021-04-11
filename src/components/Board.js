@@ -161,7 +161,7 @@ class Board extends Component {
     }
 
     // const containsPlayer = containsUnits1[0] || containsGhostUnits1[0] ? 0 : containsUnits2[0] || containsGhostUnits2[0] ? 1 : null
-    const containsPlayer = containsUnits2[0] || containsGhostUnits2?.[0] ? 1 :containsUnits1[0] || containsGhostUnits1?.[0] ? 0 : null
+    const containsPlayer = containsUnits2[0] || containsGhostUnits2?.[0] ? 1 : containsUnits1[0] || containsGhostUnits1?.[0] ? 0 : null
     const containsFlag = this._containsFlag(col,row)
     const isReachable = this._isReachable(unit, col, row, placement)
     const isForbidden = this._isForbidden(unit, col, row, placement)
@@ -173,6 +173,7 @@ class Board extends Component {
         col={col}
         row={row}
         unit={containsUnits}
+        futureUnits={this.props.futureUnits}
         ghostUnit={containsGhostUnits}
         playerIndex={containsPlayer}
         players={this.props.players}
