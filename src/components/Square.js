@@ -69,8 +69,9 @@ class Square extends Component {
         >
           <div className={`square-inside${isReachable ? ' reachable' : ''}`}>
             { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} />: '' }
-            <Flag containsFlag={containsFlag}/>
-            { isInDanger && !unit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
+            { ghostUnit ? <Unit unit={ghostUnit[0]} playerIndex={playerIndex} />: '' }
+            { bgcol && !ghostUnit && !unit ? <Flag containsFlag={containsFlag}/>: ''}
+            { isInDanger && !unit && !ghostUnit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
           </div>
         </div>
       </div>

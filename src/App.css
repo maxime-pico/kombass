@@ -461,13 +461,19 @@ button{
 }
 
 .flag-image.with-player{
-  position: relative;
-  top: -3.8rem;
-  left: 0.5rem;
+  position: absolute;
+  top: -62%;
   width: 150%;
-  margin-bottom: 0;
   z-index: -1;
-  height:3rem;
+}
+
+.teamPanel > .teamPanel-box > .unit > .flag-image.with-player{
+  top: -22%;
+  left: 34%;
+  width: 67%;
+  z-index: -1;
+  margin: 0;
+  height: 100%;
 }
 
 
@@ -501,7 +507,7 @@ button{
 }
 
 .unit.has-flag{
-  margin-top: 1.7rem;
+  /* margin-top: 1.7rem; */
 }
 
 

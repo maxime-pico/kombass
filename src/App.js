@@ -236,12 +236,12 @@ class App extends Component {
     let embuscade = false
     let embuscadeBack = false
     let damageTaken = 0
-    let inFlagZone = false
     let flags = this.state.flags
 
     if (playerNumber === 1){
       futureOpponentUnits.forEach((opponentUnit, unit_index) => {
         if (this.state.units[opponentNumber][unit_index].life > 0){
+          let inFlagZone = false
           let a = opponentUnit.x
           let b = opponentUnit.y
           let opponentStrength = opponentUnit.strength
@@ -336,9 +336,6 @@ class App extends Component {
     console.log(this.state)
     return (
       <div className="App">
-        {/*<header className="infobar">
-           <InfoBar players={this.state.players} turn={this.state.turn} step={this.state.step} /> 
-        </header>*/}
         { this.state.step === -3 ?
           <IntroScreen
             _selectUnits={this._selectUnits}

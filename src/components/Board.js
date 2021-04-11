@@ -78,6 +78,8 @@ class Board extends Component {
 
   _isInDanger(col, row, placement = false){
     let isInDanger = [false, false, false]
+    const currentPlayer = this.props.selectedUnit.playerNumber
+    const currentUnit = this.props.selectedUnit.unitNumber
     if (!placement){
       const playerNumber = this.props.selectedUnit.playerNumber
       const flag1 = this.props.flags[0]
@@ -85,18 +87,17 @@ class Board extends Component {
       const flag2 = this.props.flags[1]
       let inReachFlag2 = (flag2 && (flag2.x !== -1) && !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3))
       if (playerNumber !== -1){
-        // const futureUnits = this.props.futureUnits
-        // futureUnits.forEach((player, player_index) => {
-        //   player.forEach((unit, unit_index) => {
-        //     if (unit){
-        //       isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
-        //       isInDanger[2] = isInDanger[2] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
-        //     }
-        //   })
-        // })
+        const futureUnits = this.props.futureUnits
+        futureUnits.forEach((player, player_index) => {
+          player.forEach((unit, unit_index) => {
+            if (inReachFlag1 && inReachFlag2 && unit && (currentPlayer === player_index)){
+              isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
+            }
+          })
+        })
         this.props.units.forEach((player, player_index) => {
           player.forEach((unit, unit_index) => {
-            if (inReachFlag1 && inReachFlag2 && unit.life > 0){
+            if ((inReachFlag1 && inReachFlag2 && unit.life > 0) && ((player_index !== currentPlayer) || (unit_index >= currentUnit))){
                 isInDanger[player_index] = isInDanger[player_index] || ((Math.abs(col - unit.x) + Math.abs(row - unit.y) <= unit.strength))
             }
           })
@@ -107,17 +108,23 @@ class Board extends Component {
   }
 
   _containsUnits(units, col, row, player = null, placement = false, ghost = false){
+    const currentPlayer = this.props.selectedUnit.playerNumber
+    const currentUnit = this.props.selectedUnit.unitNumber
     let unitContained = null
     let unitNumber = null
+    let display = false
     units.forEach((unit, index) => {
       let isPlaced = placement ? this.props.placedUnits[player][index] : true
-      if (unit && unit.x === col && unit.y === row && ((unit.life >0) || ghost) && isPlaced){
-        unitContained = unit
-        unitNumber = index
+      if( placement || ghost || ((index >= currentUnit) || (player !== currentPlayer))){
+        if (unit && unit.x === col && unit.y === row && ((unit.life >0) || ghost) && isPlaced){
+          unitContained = unit
+          unitNumber = index
+          display = ghost && (player !== currentPlayer) ? false : true
+        }
       }
     })
     
-    return [unitContained, unitNumber]
+    return [unitContained, unitNumber, display]
   }
 
   _containsFlag(col, row){
@@ -142,16 +149,19 @@ class Board extends Component {
     const unitsp2 = this.props.units[1]
     const containsUnits1 = this._containsUnits(unitsp1, col, row, 0, placement)
     const containsUnits2 = this._containsUnits(unitsp2, col, row, 1, placement)
-    const containsUnits = containsUnits1[0] ? containsUnits1 : containsUnits2[0] ? containsUnits2 : null
+    const containsUnits = containsUnits1[0] && containsUnits1[2] ? containsUnits1 : containsUnits2[0] && containsUnits2[2] ? containsUnits2 : null
     let containsGhostUnits = null
+    let containsGhostUnits1 = null
+    let containsGhostUnits2 = null
     
     if (!placement){
-      const containsGhostUnits1 = this._containsUnits(this.props.futureUnits[0], col, row, 0, placement, true)
-      const containsGhostUnits2 = this._containsUnits(this.props.futureUnits[1], col, row, 1, placement, true)
-      containsGhostUnits = containsGhostUnits1[0] ? containsGhostUnits1 : containsGhostUnits2[0] ? containsGhostUnits2 : null
+      containsGhostUnits1 = this._containsUnits(this.props.futureUnits[0], col, row, 0, placement, true)
+      containsGhostUnits2 = this._containsUnits(this.props.futureUnits[1], col, row, 1, placement, true)
+      containsGhostUnits = containsGhostUnits2[0] && containsGhostUnits2[2] ? containsGhostUnits2 : containsGhostUnits1[0] && containsGhostUnits1[2] ? containsGhostUnits1 : null
     }
 
-    const containsPlayer = containsUnits1[0] ? 0 : containsUnits2[0] ? 1 : null
+    // const containsPlayer = containsUnits1[0] || containsGhostUnits1[0] ? 0 : containsUnits2[0] || containsGhostUnits2[0] ? 1 : null
+    const containsPlayer = containsUnits2[0] || containsGhostUnits2?.[0] ? 1 :containsUnits1[0] || containsGhostUnits1?.[0] ? 0 : null
     const containsFlag = this._containsFlag(col,row)
     const isReachable = this._isReachable(unit, col, row, placement)
     const isForbidden = this._isForbidden(unit, col, row, placement)

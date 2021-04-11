@@ -25,7 +25,7 @@ class Unit extends Component {
         {
           displayUnitInfo ? (
             <div className='unit-info'>
-              {`HP:${unit.life} S:${unit.strength} ${hasFlag ? ' F' : ''}`}
+              {`HP:${unit.life} S:${unit.strength}`}
             </div>
           ):null
         }
