@@ -59,7 +59,7 @@ class Square extends Component {
     const bgcol = containsFlag[0] ? this.props.players[0].color : containsFlag[1] ? this.props.players[1].color : ''
     const isReachable = this.props.isReachable
     const isForbidden = this.props.isForbidden
-    const isInDanger = this.props.isInDanger[0] ? this.props.players[0].color : this.props.isInDanger[1] ? this.props.players[1].color : false
+    const isInDanger = this.props.isInDanger
     const isFlagZone = this.props.isFlagZone
     return (
       <div className='square-container'>
@@ -73,7 +73,9 @@ class Square extends Component {
             { unit ? <Unit unit={unit[0]} playerIndex={playerIndex} />: '' }
             { ghostUnit ? <Unit unit={ghostUnit[0]} playerIndex={playerIndex} />: '' }
             { bgcol && !ghostUnit && !unit ? <Flag containsFlag={containsFlag}/>: ''}
-            { isInDanger && !unit && !ghostUnit ?  <div className="danger" style={{backgroundColor: isInDanger}}></div> : null }
+            { isInDanger.map((danger, danger_id) => 
+              isInDanger[danger_id] && !unit && !ghostUnit && danger_id !== 2 ? <div className="danger" style={{backgroundColor: this.props.players[danger_id].color}}></div> : null
+            )}
           </div>
         </div>
       </div>
