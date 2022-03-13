@@ -119,10 +119,17 @@ class Board extends Component {
               unit &&
               currentPlayer === player_index
             ) {
-              isInDanger[player_index] =
-                isInDanger[player_index] ||
-                Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                  unit.strength;
+              if (unit.strength > 1) {
+                isInDanger[player_index] =
+                  isInDanger[player_index] ||
+                  Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
+                    unit.strength;
+              } else {
+                isInDanger[player_index] =
+                  isInDanger[player_index] ||
+                  Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <=
+                    2;
+              }
             }
           });
         });
@@ -134,10 +141,17 @@ class Board extends Component {
               unit.life > 0 &&
               (player_index !== currentPlayer || unit_index >= currentUnit)
             ) {
-              isInDanger[player_index] =
-                isInDanger[player_index] ||
-                Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                  unit.strength;
+              if (unit.strength > 1) {
+                isInDanger[player_index] =
+                  isInDanger[player_index] ||
+                  Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
+                    unit.strength;
+              } else {
+                isInDanger[player_index] =
+                  isInDanger[player_index] ||
+                  Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <=
+                    2;
+              }
             }
           });
         });

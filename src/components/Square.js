@@ -64,7 +64,11 @@ class Square extends Component {
     if (ghostUnit && !this.state.boom) {
       if (
         this.props.futureUnits &&
-        this.props.futureUnits[playerIndex][ghostUnit[1]].life < 1
+        this.props.futureUnits.reduce(
+          (playersFutureUnits, futureUnit) =>
+            playersFutureUnits || futureUnit[ghostUnit[1]]?.life < 1,
+          false
+        )
       ) {
         window.addEventListener("boom", this._boom);
       }

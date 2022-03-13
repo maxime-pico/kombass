@@ -285,8 +285,24 @@ class App extends Component {
           let a = opponentUnit.x;
           let b = opponentUnit.y;
           let opponentStrength = opponentUnit.strength;
-          embuscade = Math.abs(x - a) + Math.abs(y - b) <= opponentStrength;
-          embuscadeBack = Math.abs(x - a) + Math.abs(y - b) <= strength;
+          if (opponentStrength === 1 && strength === 1) {
+            embuscade = Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= 2;
+            embuscadeBack = Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= 2;
+          } else {
+            if (strength === 1) {
+              embuscadeBack =
+                Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= strength ** 2;
+            } else {
+              embuscadeBack = Math.abs(x - a) + Math.abs(y - b) <= strength;
+            }
+            if (opponentStrength === 1) {
+              embuscade =
+                Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <=
+                opponentStrength ** 2;
+            } else {
+              embuscade = Math.abs(x - a) + Math.abs(y - b) <= opponentStrength;
+            }
+          }
           flags.forEach((flag, flag_index) => {
             inFlagZone =
               inFlagZone ||
