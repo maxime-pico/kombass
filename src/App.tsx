@@ -8,6 +8,8 @@ import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
 import Rooms from "./components/Rooms";
 import { UNITS, SPRITES } from "./utilities/dict";
+import socketService from "./services/socketService";
+import GameContext, { IGameContextProps } from "./gameContext";
 
 export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
@@ -34,6 +36,9 @@ interface AppProps {}
 
 interface AppState {
   step: number;
+  _changeStep: (step: number, direction: -1 | 1) => void;
+  isInRoom: boolean;
+  _setInRoom: () => void;
   player: 0 | 1;
   players: IPlayers;
   boardWidth: number;
@@ -53,6 +58,9 @@ class App extends Component<AppProps, AppState> {
     super(props);
     this.state = {
       step: -5,
+      _changeStep: this._changeStep,
+      isInRoom: false,
+      _setInRoom: this._setInRoom,
       player: 0,
       players: [
         {
@@ -99,6 +107,7 @@ class App extends Component<AppProps, AppState> {
       ],
     };
 
+    this._setInRoom = this._setInRoom.bind(this);
     this._joinRoom = this._joinRoom.bind(this);
     this._defineSettings = this._defineSettings.bind(this);
     this._setBoardSize = this._setBoardSize.bind(this);
@@ -117,6 +126,18 @@ class App extends Component<AppProps, AppState> {
     this._changePosition = this._changePosition.bind(this);
     this._applyMoves = this._applyMoves.bind(this);
   }
+
+  _setInRoom = () => {
+    this.setState({
+      isInRoom: true,
+    });
+  };
+
+  connectSocket = async () => {
+    const socket = await socketService
+      .connect("http://localhost:9000")
+      .catch((e: string) => console.log("Error on connect: ", e));
+  };
 
   _setUnitCount = (count: number) => {
     this.setState({
@@ -282,25 +303,30 @@ class App extends Component<AppProps, AppState> {
   };
 
   _changeStep = (step: number, direction: -1 | 1) => {
-    var nextStep = (step + direction) % (this.state.unitsCount * 2 + 1);
-    let selectedUnit = [];
-    if (nextStep !== this.state.unitsCount * 2) {
-      if (nextStep < this.state.unitsCount) {
-        selectedUnit = [0, nextStep % this.state.unitsCount];
-      } else {
-        selectedUnit = [1, nextStep % this.state.unitsCount];
-      }
-      if (this.state.units[selectedUnit[0]][selectedUnit[1]].life > 0) {
-        this._setSelectedUnit(selectedUnit[0], selectedUnit[1], nextStep);
-      } else {
-        this._changeStep(nextStep, direction);
-        return true;
-      }
+    var nextStep = step;
+    if (step < 0) {
+      nextStep = step + direction;
     } else {
-      let selectedUnit = { playerNumber: -1, unitNumber: -1 };
-      this.setState({
-        selectedUnit: selectedUnit,
-      });
+      var nextStep = (step + direction) % (this.state.unitsCount * 2 + 1);
+      let selectedUnit = [];
+      if (nextStep !== this.state.unitsCount * 2) {
+        if (nextStep < this.state.unitsCount) {
+          selectedUnit = [0, nextStep % this.state.unitsCount];
+        } else {
+          selectedUnit = [1, nextStep % this.state.unitsCount];
+        }
+        if (this.state.units[selectedUnit[0]][selectedUnit[1]].life > 0) {
+          this._setSelectedUnit(selectedUnit[0], selectedUnit[1], nextStep);
+        } else {
+          this._changeStep(nextStep, direction);
+          return true;
+        }
+      } else {
+        let selectedUnit = { playerNumber: -1, unitNumber: -1 };
+        this.setState({
+          selectedUnit: selectedUnit,
+        });
+      }
     }
     this.setState({
       step: nextStep,
@@ -486,77 +512,80 @@ class App extends Component<AppProps, AppState> {
     Object.values(SPRITES).forEach((sprite) => {
       sprite.forEach((url) => preloading(url));
     });
+    this.connectSocket();
   }
 
   render() {
     return (
-      <div className="App">
-        {this.state.step === -5 ? (
-          <IntroScreen _defineSettings={this._defineSettings} />
-        ) : this.state.step === -4 ? (
-          <Rooms step={this.state.step} _changeStep={this._changeStep} />
-        ) : this.state.step === -3 ? (
-          <Settings
-            boardLength={this.state.boardLength}
-            boardWidth={this.state.boardWidth}
-            _setBoardSize={this._setBoardSize}
-            placementZone={this.state.placementZone}
-            _setPlacementZone={this._setPlacementZone}
-            unitsCount={this.state.unitsCount}
-            _setUnitCount={this._setUnitCount}
-            _selectUnits={this._selectUnits}
-          />
-        ) : this.state.step === -2 ? (
-          <UnitSelection
-            _placeUnits={this._placeUnits}
-            units={this.state.units}
-            _circleUnit={this._circleUnit}
-            player={this.state.player}
-            _circlePlayer={this._circlePlayer}
-          />
-        ) : this.state.step === -1 ? (
-          <UnitPlacement
-            units={this.state.units}
-            placedUnits={this.state.placedUnits}
-            flags={this.state.flags}
-            selectedUnit={this.state.selectedUnit}
-            _setSelectedUnit={this._setSelectedUnit}
-            player={this.state.player}
-            players={this.state.players}
-            _placeUnit={this._placeUnit}
-            step={this.state.step}
-            boardLength={this.state.boardLength}
-            boardWidth={this.state.boardWidth}
-            placementZone={this.state.placementZone}
-            unitsCount={this.state.unitsCount}
-            futureUnits={this.state.futureUnits}
-            _changeStep={this._changeStep}
-            _changePosition={this._changePosition}
-          />
-        ) : (
-          <Game
-            boardLength={this.state.boardLength}
-            boardWidth={this.state.boardWidth}
-            placementZone={this.state.placementZone}
-            units={this.state.units}
-            step={this.state.step}
-            players={this.state.players}
-            _changeStep={this._changeStep}
-            selectedUnit={this.state.selectedUnit}
-            flags={this.state.flags}
-            _updateFlags={this._updateFlags}
-            _undoMove={this._undoMove}
-            futureUnits={this.state.futureUnits}
-            _changePosition={this._changePosition}
-            _applyMoves={this._applyMoves}
-            unitsCount={this.state.unitsCount}
-            player={this.state.player}
-            placedUnits={this.state.placedUnits}
-            _placeUnit={this._placeUnit}
-            _setSelectedUnit={this._setSelectedUnit}
-          />
-        )}
-      </div>
+      <GameContext.Provider value={this.state}>
+        <div className="App">
+          {this.state.step === -5 ? (
+            <IntroScreen />
+          ) : this.state.step === -4 ? (
+            <Rooms />
+          ) : this.state.step === -3 ? (
+            <Settings
+              boardLength={this.state.boardLength}
+              boardWidth={this.state.boardWidth}
+              _setBoardSize={this._setBoardSize}
+              placementZone={this.state.placementZone}
+              _setPlacementZone={this._setPlacementZone}
+              unitsCount={this.state.unitsCount}
+              _setUnitCount={this._setUnitCount}
+              _selectUnits={this._selectUnits}
+            />
+          ) : this.state.step === -2 ? (
+            <UnitSelection
+              _placeUnits={this._placeUnits}
+              units={this.state.units}
+              _circleUnit={this._circleUnit}
+              player={this.state.player}
+              _circlePlayer={this._circlePlayer}
+            />
+          ) : this.state.step === -1 ? (
+            <UnitPlacement
+              units={this.state.units}
+              placedUnits={this.state.placedUnits}
+              flags={this.state.flags}
+              selectedUnit={this.state.selectedUnit}
+              _setSelectedUnit={this._setSelectedUnit}
+              player={this.state.player}
+              players={this.state.players}
+              _placeUnit={this._placeUnit}
+              step={this.state.step}
+              boardLength={this.state.boardLength}
+              boardWidth={this.state.boardWidth}
+              placementZone={this.state.placementZone}
+              unitsCount={this.state.unitsCount}
+              futureUnits={this.state.futureUnits}
+              _changeStep={this._changeStep}
+              _changePosition={this._changePosition}
+            />
+          ) : (
+            <Game
+              boardLength={this.state.boardLength}
+              boardWidth={this.state.boardWidth}
+              placementZone={this.state.placementZone}
+              units={this.state.units}
+              step={this.state.step}
+              players={this.state.players}
+              _changeStep={this._changeStep}
+              selectedUnit={this.state.selectedUnit}
+              flags={this.state.flags}
+              _updateFlags={this._updateFlags}
+              _undoMove={this._undoMove}
+              futureUnits={this.state.futureUnits}
+              _changePosition={this._changePosition}
+              _applyMoves={this._applyMoves}
+              unitsCount={this.state.unitsCount}
+              player={this.state.player}
+              placedUnits={this.state.placedUnits}
+              _placeUnit={this._placeUnit}
+              _setSelectedUnit={this._setSelectedUnit}
+            />
+          )}
+        </div>
+      </GameContext.Provider>
     );
   }
 }

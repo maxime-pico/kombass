@@ -1,12 +1,12 @@
-import React from "react";
+import React, { useContext } from "react";
+import gameContext from "../gameContext";
 
-interface IntroScreenProps {
-  _defineSettings: () => void;
-}
+interface IntroScreenProps {}
 
 interface IntroScreenState {}
 
 export function IntroScreen(props: IntroScreenProps) {
+  const { _changeStep, step } = useContext(gameContext);
   return (
     <div className="introScreen-container">
       <div className="title">
@@ -17,7 +17,7 @@ export function IntroScreen(props: IntroScreenProps) {
         <button
           className="button active"
           onClick={() => {
-            props._defineSettings();
+            _changeStep(step, 1);
           }}
         >
           {" "}
