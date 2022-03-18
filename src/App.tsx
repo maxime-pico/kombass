@@ -1,24 +1,58 @@
 // import logo from './logo.svg';
 import "./App.css";
 import React, { Component } from "react";
-// import InfoBar from './components/InfoBar'
 import Settings from "./components/Settings";
 import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
+import Rooms from "./components/Rooms";
 import { UNITS, SPRITES } from "./utilities/dict";
 
-function preloading(url) {
+export type IPlayer = 0 | 1;
+export type IPlayers = Array<{ name: string; color: string }>;
+export type IUnit = {
+  strength: number;
+  speed: number;
+  x: number;
+  y: number;
+  life: number;
+  hasFlag: boolean;
+};
+export type ISelectedUnit = {
+  playerNumber: number;
+  unitNumber: number;
+};
+export type IFlag = { x: number; y: number; inZone: boolean };
+
+function preloading(url: string) {
   var img = new Image();
   img.src = url;
 }
 
-class App extends Component {
-  constructor(props) {
+interface AppProps {}
+
+interface AppState {
+  step: number;
+  player: 0 | 1;
+  players: IPlayers;
+  boardWidth: number;
+  boardLength: number;
+  placementZone: number;
+  unitsCount: number;
+  units: Array<Array<IUnit>>;
+  futureUnits: Array<Array<IUnit>>;
+  futureUnitsHistory: Array<Array<Array<IUnit>>>;
+  selectedUnit: ISelectedUnit;
+  placedUnits: Array<Array<boolean>>;
+  flags: Array<IFlag>;
+}
+
+class App extends Component<AppProps, AppState> {
+  constructor(props: AppProps) {
     super(props);
     this.state = {
-      step: -4,
+      step: -5,
       player: 0,
       players: [
         {
@@ -65,6 +99,7 @@ class App extends Component {
       ],
     };
 
+    this._joinRoom = this._joinRoom.bind(this);
     this._defineSettings = this._defineSettings.bind(this);
     this._setBoardSize = this._setBoardSize.bind(this);
     this._setPlacementZone = this._setPlacementZone.bind(this);
@@ -76,13 +111,14 @@ class App extends Component {
     this._placeUnit = this._placeUnit.bind(this);
     this._startGame = this._startGame.bind(this);
     this._circleUnit = this._circleUnit.bind(this);
+    this._circlePlayer = this._circlePlayer.bind(this);
     this._updateFlags = this._updateFlags.bind(this);
     this._undoMove = this._undoMove.bind(this);
     this._changePosition = this._changePosition.bind(this);
     this._applyMoves = this._applyMoves.bind(this);
   }
 
-  _setUnitCount(count) {
+  _setUnitCount = (count: number) => {
     this.setState({
       units: Array(2).fill(
         Array(count).fill({
@@ -98,12 +134,15 @@ class App extends Component {
       placedUnits: Array(2).fill(Array(count).fill(false)),
       unitsCount: count,
     });
-  }
+  };
 
-  _setBoardSize(
+  _setBoardSize = ({
     length = this.state.boardLength,
-    width = this.state.boardWidth
-  ) {
+    width = this.state.boardWidth,
+  }: {
+    length: number;
+    width: number;
+  }) => {
     this.setState({
       boardLength: length,
       boardWidth: width,
@@ -120,15 +159,20 @@ class App extends Component {
         },
       ],
     });
-  }
+  };
 
-  _setPlacementZone(width) {
+  _setPlacementZone = (width: number) => {
     this.setState({
       placementZone: width,
     });
-  }
+  };
 
-  _circleUnit(playerIndex, unitIndex, currentType, direction) {
+  _circleUnit = (
+    playerIndex: number,
+    unitIndex: number,
+    currentType: number,
+    direction: number
+  ) => {
     let units = this.state.units;
     let currentPlayerUnits = [...units[playerIndex]];
     let currentPlayerUnit = currentPlayerUnits[unitIndex];
@@ -145,50 +189,58 @@ class App extends Component {
     this.setState({
       units: units,
     });
-  }
+  };
 
-  _defineSettings() {
+  _circlePlayer = () => {
+    this.setState({
+      player: this.state.player === 0 ? 1 : 0,
+    });
+  };
+
+  _joinRoom = () => {
+    this.setState({
+      step: -4,
+    });
+  };
+
+  _defineSettings = () => {
     this.setState({
       step: -3,
     });
-  }
+  };
 
-  _selectUnits() {
+  _selectUnits = () => {
     this.setState({
       step: -2,
     });
-  }
+  };
 
-  _setSelectedUnit(playerNumber, unitNumber, step) {
+  _setSelectedUnit = (
+    playerNumber: number,
+    unitNumber: number,
+    step: number
+  ) => {
     this.setState({
       selectedUnit: {
         playerNumber: playerNumber,
         unitNumber: unitNumber,
       },
     });
-  }
+  };
 
-  _undoMove() {
-    let futureUnits = [...this.state.futureUnits];
-    let futureUnitsHistory = [...this.state.futureUnitsHistory];
-    futureUnitsHistory.pop();
-    futureUnits = futureUnitsHistory.length
-      ? futureUnitsHistory[futureUnitsHistory.length - 1]
-      : Array(2).fill(Array(this.state.unitsCount).fill(null));
-    this.setState({
-      futureUnits: futureUnits,
-      futureUnitsHistory: futureUnitsHistory,
-    });
-    this._changeStep(this.state.step, -1);
-  }
-
-  _placeUnits() {
+  _placeUnits = () => {
     this.setState({
       step: -1,
+      player: 0,
     });
-  }
+  };
 
-  _placeUnit(playerNumber, unitNumber, col, row) {
+  _placeUnit = (
+    playerNumber: number,
+    unitNumber: number,
+    col: number,
+    row: number
+  ) => {
     let units = this.state.units;
     let currentPlayerUnits = [...units[playerNumber]];
     let currentPlayerUnit = { ...currentPlayerUnits[unitNumber] };
@@ -214,24 +266,24 @@ class App extends Component {
     this.setState({
       units: units,
       placedUnits: placedUnits,
-      player: nextPlayerNumber,
+      player: nextPlayerNumber % 2 === 0 ? 0 : 1,
     });
 
     if (playerNumber === 1 && unitNumber === this.state.unitsCount - 1) {
       this._startGame();
     }
-  }
+  };
 
-  _startGame() {
+  _startGame = () => {
     this._setSelectedUnit(0, 0, 0);
     this.setState({
       step: 0,
     });
-  }
+  };
 
-  _changeStep(step = this.state.step, direction = 1) {
+  _changeStep = (step: number, direction: -1 | 1) => {
     var nextStep = (step + direction) % (this.state.unitsCount * 2 + 1);
-    let selectedUnit = [null, null];
+    let selectedUnit = [];
     if (nextStep !== this.state.unitsCount * 2) {
       if (nextStep < this.state.unitsCount) {
         selectedUnit = [0, nextStep % this.state.unitsCount];
@@ -254,15 +306,34 @@ class App extends Component {
       step: nextStep,
     });
     return true;
-  }
+  };
 
-  _updateFlags(newFlags) {
+  _undoMove = () => {
+    let futureUnits = [...this.state.futureUnits];
+    let futureUnitsHistory = [...this.state.futureUnitsHistory];
+    futureUnitsHistory.pop();
+    futureUnits = futureUnitsHistory.length
+      ? futureUnitsHistory[futureUnitsHistory.length - 1]
+      : Array(2).fill(Array(this.state.unitsCount).fill(null));
+    this.setState({
+      futureUnits: futureUnits,
+      futureUnitsHistory: futureUnitsHistory,
+    });
+    this._changeStep(this.state.step, -1);
+  };
+
+  _updateFlags = (newFlags: Array<IFlag>) => {
     this.setState({
       flags: newFlags,
     });
-  }
+  };
 
-  _changePosition(playerNumber, unitNumber, x, y) {
+  _changePosition = (
+    playerNumber: number,
+    unitNumber: number,
+    x: number,
+    y: number
+  ) => {
     //if playerNumber = 0 -> just add to futureUnits and moves
     //if playerNumber = 1 -> check more
     const life = this.state.units[playerNumber][unitNumber].life;
@@ -346,7 +417,7 @@ class App extends Component {
       futurePlayerUnit = { ...futurePlayerUnit, hasFlag: true };
     }
 
-    let futureUnitsArray = [null, null];
+    let futureUnitsArray = [];
     futurePlayerUnits[unitNumber] = futurePlayerUnit;
     futureUnitsArray[opponentNumber] = futureOpponentUnits;
     futureUnitsArray[playerNumber] = futurePlayerUnits;
@@ -358,9 +429,9 @@ class App extends Component {
       futureUnits: futureUnitsArray,
       futureUnitsHistory: futureUnitsHistory,
     });
-  }
+  };
 
-  _applyMoves() {
+  _applyMoves = () => {
     if (this.state.step === this.state.unitsCount * 2) {
       let units = [...this.state.units];
       const flags = this.state.flags;
@@ -404,9 +475,9 @@ class App extends Component {
         futureUnitsHistory: [],
       });
       window.dispatchEvent(new CustomEvent("boom"));
-      this._changeStep(this.state.step);
+      this._changeStep(this.state.step, 1);
     }
-  }
+  };
 
   componentDidMount() {
     UNITS.forEach((unit) => {
@@ -420,12 +491,12 @@ class App extends Component {
   render() {
     return (
       <div className="App">
-        {this.state.step === -4 ? (
+        {this.state.step === -5 ? (
           <IntroScreen _defineSettings={this._defineSettings} />
+        ) : this.state.step === -4 ? (
+          <Rooms step={this.state.step} _changeStep={this._changeStep} />
         ) : this.state.step === -3 ? (
           <Settings
-            step={this.state.step}
-            _changeStep={this._changeStep}
             boardLength={this.state.boardLength}
             boardWidth={this.state.boardWidth}
             _setBoardSize={this._setBoardSize}
@@ -437,10 +508,11 @@ class App extends Component {
           />
         ) : this.state.step === -2 ? (
           <UnitSelection
-            step={this.state.step}
             _placeUnits={this._placeUnits}
             units={this.state.units}
             _circleUnit={this._circleUnit}
+            player={this.state.player}
+            _circlePlayer={this._circlePlayer}
           />
         ) : this.state.step === -1 ? (
           <UnitPlacement
@@ -457,6 +529,9 @@ class App extends Component {
             boardWidth={this.state.boardWidth}
             placementZone={this.state.placementZone}
             unitsCount={this.state.unitsCount}
+            futureUnits={this.state.futureUnits}
+            _changeStep={this._changeStep}
+            _changePosition={this._changePosition}
           />
         ) : (
           <Game
@@ -468,7 +543,6 @@ class App extends Component {
             players={this.state.players}
             _changeStep={this._changeStep}
             selectedUnit={this.state.selectedUnit}
-            _setSelectedUnit={this._setSelectedUnit}
             flags={this.state.flags}
             _updateFlags={this._updateFlags}
             _undoMove={this._undoMove}
@@ -476,6 +550,10 @@ class App extends Component {
             _changePosition={this._changePosition}
             _applyMoves={this._applyMoves}
             unitsCount={this.state.unitsCount}
+            player={this.state.player}
+            placedUnits={this.state.placedUnits}
+            _placeUnit={this._placeUnit}
+            _setSelectedUnit={this._setSelectedUnit}
           />
         )}
       </div>

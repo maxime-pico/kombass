@@ -4,12 +4,54 @@ import Board from "./Board";
 import Panel from "./Panel";
 import GameOver from "./GameOver";
 import TeamPanel from "./TeamPanel";
+import { IUnit, ISelectedUnit, IPlayers, IFlag } from "../App";
 
-class Game extends Component {
-  constructor(props) {
+interface GameProps {
+  units: Array<Array<IUnit>>;
+  flags: Array<IFlag>;
+  unitsCount: number;
+  players: IPlayers;
+  selectedUnit: ISelectedUnit;
+  _changeStep: (step: number, direction: -1 | 1) => void;
+  boardLength: number;
+  boardWidth: number;
+  placementZone: number;
+  futureUnits: Array<Array<IUnit>>;
+  step: number;
+  _changePosition: (
+    playerNumber: number,
+    unitNumber: number,
+    x: number,
+    y: number
+  ) => void;
+  _applyMoves: () => void;
+  _undoMove: () => void;
+  _updateFlags: (newFlags: Array<IFlag>) => void;
+  player: 0 | 1;
+  placedUnits: Array<Array<boolean>>;
+  _placeUnit: (
+    playerNumber: number,
+    unitNumber: number,
+    col: number,
+    row: number
+  ) => void;
+  _setSelectedUnit: (
+    playerNumber: number,
+    unitNumber: number,
+    step: number
+  ) => void;
+}
+
+interface GameStates {
+  gameOver: string;
+  shake: boolean;
+}
+
+class Game extends Component<GameProps, GameStates> {
+  constructor(props: GameProps) {
     super(props);
     this.state = {
-      gameOver: false,
+      gameOver: "",
       shake: false,
     };
     this._screenShake = this._screenShake.bind(this);
@@ -29,7 +71,7 @@ class Game extends Component {
     const flags = this.props.flags;
     let deadUnits = [0, 0];
     let isFlagInZone = [false, false];
-    let gameOver = false;
+    let gameOver = "";
     let winner = null;
     let loser = null;
 
@@ -97,7 +139,7 @@ class Game extends Component {
         this.props.selectedUnit.unitNumber
       ].life < 1
     ) {
-      this.props._changeStep(this.props.step);
+      this.props._changeStep(this.props.step, 1);
     }
 
     return (
@@ -122,10 +164,14 @@ class Game extends Component {
             _changeStep={this.props._changeStep}
             _changePosition={this.props._changePosition}
             selectedUnit={this.props.selectedUnit}
-            _setSelectedUnit={this.props._setSelectedUnit}
             flags={this.props.flags}
             _screenShake={this._screenShake}
             unitsCount={this.props.unitsCount}
+            player={this.props.player}
+            placedUnits={this.props.placedUnits}
+            placement={false}
+            _placeUnit={this.props._placeUnit}
+            _setSelectedUnit={this.props._setSelectedUnit}
           />
           <TeamPanel
             playerIndex={1}
@@ -134,13 +180,9 @@ class Game extends Component {
           />
         </div>
         <Panel
-          futureMove={this.futureMove}
           step={this.props.step}
-          selectedUnit={this.props.selectedUnit}
-          _changeStep={this.props._changeStep}
           _applyMoves={this.props._applyMoves}
           _undoMove={this.props._undoMove}
-          _setSelectedUnit={this.props._setSelectedUnit}
           unitsCount={this.props.unitsCount}
         />
       </div>
