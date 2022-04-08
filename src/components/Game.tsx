@@ -1,8 +1,7 @@
-// import logo from './logo.svg';
 import React, { Component } from "react";
 import Board from "./Board";
 import Panel from "./Panel";
-import GameOver from "./GameOver";
+import Modal from "./Modal";
 import TeamPanel from "./TeamPanel";
 import { IUnit, ISelectedUnit, IPlayers, IFlag } from "../App";
 
@@ -13,33 +12,8 @@ interface GameProps {
   players: IPlayers;
   selectedUnit: ISelectedUnit;
   _changeStep: (step: number, direction: -1 | 1) => void;
-  boardLength: number;
-  boardWidth: number;
-  placementZone: number;
-  futureUnits: Array<Array<IUnit>>;
   step: number;
-  _changePosition: (
-    playerNumber: number,
-    unitNumber: number,
-    x: number,
-    y: number
-  ) => void;
-  _applyMoves: () => void;
-  _undoMove: () => void;
-  _updateFlags: (newFlags: Array<IFlag>) => void;
-  player: 0 | 1;
-  placedUnits: Array<Array<boolean>>;
-  _placeUnit: (
-    playerNumber: number,
-    unitNumber: number,
-    col: number,
-    row: number
-  ) => void;
-  _setSelectedUnit: (
-    playerNumber: number,
-    unitNumber: number,
-    step: number
-  ) => void;
+  ready: Array<boolean>;
 }
 
 interface GameStates {
@@ -144,47 +118,38 @@ class Game extends Component<GameProps, GameStates> {
 
     return (
       <div className="game-container">
-        {this.state.gameOver ? (
-          <GameOver gameOver={this.state.gameOver} />
-        ) : null}
+        {this.state.gameOver && (
+          <Modal
+            title={"Game Over"}
+            subtitle={this.state.gameOver}
+            content={
+              "Don't tell me you think war is cool and you want to play again..."
+            }
+            action={() => window.location.reload()}
+          />
+        )}
+        {!this.props.ready.reduce((a, b) => a && b) && (
+          <Modal
+            title=""
+            subtitle={"Waiting for the other player to start the game"}
+            content=""
+            action={() => {}}
+          />
+        )}
         <div className={`main${this.state.shake ? " fight" : ""}`}>
           <TeamPanel
             playerIndex={0}
             units={this.props.units[0]}
             selectedUnit={this.props.selectedUnit}
           />
-          <Board
-            boardLength={this.props.boardLength}
-            boardWidth={this.props.boardWidth}
-            placementZone={this.props.placementZone}
-            players={this.props.players}
-            units={this.props.units}
-            futureUnits={this.props.futureUnits}
-            step={this.props.step}
-            _changeStep={this.props._changeStep}
-            _changePosition={this.props._changePosition}
-            selectedUnit={this.props.selectedUnit}
-            flags={this.props.flags}
-            _screenShake={this._screenShake}
-            unitsCount={this.props.unitsCount}
-            player={this.props.player}
-            placedUnits={this.props.placedUnits}
-            placement={false}
-            _placeUnit={this.props._placeUnit}
-            _setSelectedUnit={this.props._setSelectedUnit}
-          />
+          <Board _screenShake={this._screenShake} placement={false} />
           <TeamPanel
             playerIndex={1}
             units={this.props.units[1]}
             selectedUnit={this.props.selectedUnit}
           />
         </div>
-        <Panel
-          step={this.props.step}
-          _applyMoves={this.props._applyMoves}
-          _undoMove={this.props._undoMove}
-          unitsCount={this.props.unitsCount}
-        />
+        <Panel />
       </div>
     );
   }

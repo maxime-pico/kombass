@@ -1,6 +1,5 @@
 import { Socket } from "socket.io-client";
-// import { IPlayerMatrix } from "../../components/game";
-// import { IStartGame } from "../../components/game/index";
+import { IUnit } from "../../App";
 
 class GameService {
   public async joinGameRoom(socket: Socket, roomId: string): Promise<boolean> {
@@ -11,25 +10,73 @@ class GameService {
     });
   }
 
-  public async updateGame(socket: Socket, gameMatrix: any) {
-    // public async updateGame(socket: Socket, gameMatrix: IPlayerMatrix) {
-    socket.emit("update_game", { matrix: gameMatrix });
+  // method to request list of active rooms and player count on each
+  // unused at the moment as I have no way to handle self-socket room in UX
+  public async listRooms(
+    socket: Socket,
+    listener: (rooms: Array<string>) => void
+  ) {
+    socket.emit("list_rooms");
+    socket.on("rooms_list", (rooms) => listener(rooms));
   }
 
-  public async onGameUpdate(
-    socket: Socket,
-    // listener: (matrix: IPlayerMatrix) => void
-    listener: (matrix: any) => void
-  ) {
-    socket.on("on_game_update", ({ matrix }) => listener(matrix));
-  }
-
-  public async onStartGame(
-    socket: Socket,
-    // listener: (options: IStartGame) => void
-    listener: (options: any) => void
-  ) {
+  public async onJoinedGame(socket: Socket, listener: (options: any) => void) {
     socket.on("start_game", listener);
+  }
+
+  public async onSettingsReady(
+    socket: Socket,
+    settings: {
+      boardWidth: number;
+      boardLength: number;
+      placementZone: number;
+      unitsCount: number;
+    }
+  ) {
+    socket.emit("update_settings", settings);
+  }
+
+  public async updateSettings(
+    socket: Socket,
+    listener: (settings: {
+      boardWidth: number;
+      boardLength: number;
+      placementZone: number;
+      unitsCount: number;
+    }) => void
+  ) {
+    socket.on(
+      "settings_updated",
+      (settings: {
+        boardWidth: number;
+        boardLength: number;
+        placementZone: number;
+        unitsCount: number;
+      }) => listener(settings)
+    );
+  }
+
+  public async setReady(
+    socket: Socket,
+    player: 0 | 1,
+    units: Array<Array<IUnit>>
+  ) {
+    socket.emit("player_ready", { player: player, units: units });
+  }
+
+  public async onReady(socket: Socket, listener: (message: any) => void) {
+    socket.on("player_ready", (message) => listener(message));
+  }
+
+  public async sendMoves(socket: Socket, myUnits: Array<IUnit>) {
+    socket.emit("moves_sent", myUnits);
+  }
+
+  public async onUpdateMoves(
+    socket: Socket,
+    listener: (opponentUnits: Array<IUnit>) => void
+  ) {
+    socket.on("moves_received", (opponentUnits) => listener(opponentUnits));
   }
 
   public async gameWin(socket: Socket, message: string) {

@@ -1,32 +1,84 @@
-import React from "react";
+import React, { useContext, useEffect } from "react";
+import gameContext from "../gameContext";
+import socketService from "../services/socketService";
+import gameService from "../services/gameService";
+import { IUnit } from "../App";
 
-interface PanelProps {
-  step: number;
-  unitsCount: number;
-  _applyMoves: () => void;
-  _undoMove: () => void;
-}
+function Panel() {
+  const {
+    isPlayer,
+    step,
+    futureUnits,
+    unitsCount,
+    waitingForMoves,
+    _applyMoves,
+    _setWaitingForMoves,
+    _undoMove,
+    _updateOpponentUnits,
+  } = useContext(gameContext);
 
-function Panel(props: PanelProps) {
+  const _sendMoves = () => {
+    if (socketService.socket) {
+      gameService
+        .sendMoves(socketService.socket, futureUnits[isPlayer])
+        .then(() => {
+          _setWaitingForMoves(true, isPlayer);
+        });
+    }
+  };
+
+  const _updateMoves = () => {
+    if (socketService.socket) {
+      gameService.onUpdateMoves(
+        socketService.socket,
+        (opponentUnits: Array<IUnit>) => {
+          _updateOpponentUnits(opponentUnits);
+          _setWaitingForMoves(true, (isPlayer + 1) % 2);
+        }
+      );
+    }
+  };
+
+  useEffect(() => {
+    _updateMoves();
+  }, []);
+
   return (
     <div className="panel">
-      {props.step === props.unitsCount * 2 ? (
+      {step === unitsCount && waitingForMoves[isPlayer] && (
         <button
-          className="fight-button active"
+          className={`fight-button ${
+            waitingForMoves[(isPlayer + 1) % 2] ? "active" : "inactive"
+          }`}
           onClick={() => {
-            if (props.step === props.unitsCount * 2) {
-              props._applyMoves();
+            if (step === unitsCount) {
+              _applyMoves();
+            }
+          }}
+          disabled={!waitingForMoves[(isPlayer + 1) % 2]}
+        >
+          {waitingForMoves[(isPlayer + 1) % 2]
+            ? "FIGHT!"
+            : "WAITING FOR OPPONENT TO MOVE THEIR ASS"}
+        </button>
+      )}
+      {step === unitsCount && !waitingForMoves[isPlayer] && (
+        <button
+          className="fight-button confirm"
+          onClick={() => {
+            if (step === unitsCount) {
+              _sendMoves();
             }
           }}
         >
-          FIGHT!
+          CONFIRM MOVES
         </button>
-      ) : null}
-      {props.step !== 0 ? (
-        <button className="undo-button" onClick={() => props._undoMove()}>
+      )}
+      {step !== 0 && !waitingForMoves[isPlayer] && (
+        <button className="undo-button" onClick={() => _undoMove()}>
           Undo
         </button>
-      ) : null}
+      )}
     </div>
   );
 }

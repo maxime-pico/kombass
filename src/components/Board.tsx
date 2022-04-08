@@ -1,44 +1,34 @@
-import React from "react";
+import React, { useContext } from "react";
 import Square from "./Square";
-import { IUnit, IFlag, ISelectedUnit, IPlayers } from "../App";
+import { IUnit, ISelectedUnit } from "../App";
+import gameContext from "../gameContext";
 
 interface BoardProps {
-  player: 0 | 1;
-  placementZone: number;
-  flags: Array<IFlag>;
-  boardWidth: number;
-  boardLength: number;
-  selectedUnit: ISelectedUnit;
-  units: Array<Array<IUnit>>;
-  placedUnits: Array<Array<boolean>>;
-  futureUnits: Array<Array<IUnit>>;
   placement: boolean;
-  players: IPlayers;
-  _changeStep: (step: number, direction: -1 | 1) => void;
-  step: number;
-  _changePosition: (
-    playerNumber: number,
-    unitNumber: number,
-    x: number,
-    y: number
-  ) => void;
-  _placeUnit: (
-    playerNumber: number,
-    unitNumber: number,
-    col: number,
-    row: number
-  ) => void;
   _screenShake: () => void;
-  unitsCount: number;
-  _setSelectedUnit: (
-    playerNumber: number,
-    unitNumber: number,
-    step: number
-  ) => void;
 }
 
 function Board(props: BoardProps) {
   // Placement was false by default
+  const {
+    _changeStep,
+    _changePosition,
+    _placeUnit,
+    boardLength,
+    boardWidth,
+    flags,
+    futureUnits,
+    isPlayer,
+    placedUnits,
+    placementZone,
+    players,
+    ready,
+    selectedUnit,
+    step,
+    units,
+    unitsCount,
+  } = useContext(gameContext);
+
   const _isReachable = (
     unit: IUnit,
     col: number,
@@ -46,24 +36,21 @@ function Board(props: BoardProps) {
     placement: boolean
   ) => {
     let isReachable = false;
+    const ownFlag = flags[isPlayer];
     if (placement) {
-      const playerNumber = props.selectedUnit?.playerNumber || 0;
-      const placementZone = props.placementZone;
-      const ownFlag = props.flags[playerNumber];
       const flagZone = ownFlag
         ? Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3
         : false;
-      isReachable = playerNumber
-        ? col > props.boardWidth - placementZone - 1
+      isReachable = isPlayer
+        ? col > boardWidth - placementZone - 1
         : col < placementZone;
       isReachable = isReachable && !flagZone;
     } else {
       const x = unit ? unit.x : 999;
       const y = unit ? unit.y : 999;
       const speed = unit ? unit.speed : -1;
-      const ownFlag = props.flags[props.selectedUnit.playerNumber];
       const flagZone =
-        ownFlag && !unit.hasFlag
+        ownFlag && !unit?.hasFlag
           ? Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3
           : false;
       isReachable = unit
@@ -80,16 +67,13 @@ function Board(props: BoardProps) {
     row: number,
     placement: boolean
   ) => {
-    let playerNumber = props.selectedUnit?.playerNumber;
-    const unitNumber = props.selectedUnit?.unitNumber;
-    const ownFlag = props.flags[playerNumber];
+    const unitNumber = selectedUnit?.unitNumber;
+    const ownFlag = flags[isPlayer];
     let isForbidden = false;
 
     if (placement) {
-      playerNumber = props.player || 0;
-      const placementZone = props.placementZone;
-      props.units[playerNumber].forEach((unit, unit_index) => {
-        if (props.placedUnits[playerNumber][unit_index]) {
+      units[isPlayer].forEach((unit, unit_index) => {
+        if (placedUnits[isPlayer][unit_index]) {
           isForbidden = isForbidden || (unit.x === col && unit.y === row);
         }
       });
@@ -98,22 +82,20 @@ function Board(props: BoardProps) {
           isForbidden ||
           Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3;
       }
-      isForbidden = playerNumber
-        ? isForbidden || col <= props.boardWidth - placementZone - 1
+      isForbidden = isPlayer
+        ? isForbidden || col <= boardWidth - placementZone - 1
         : isForbidden || col >= placementZone;
     } else {
-      if (playerNumber !== -1) {
-        props.futureUnits[playerNumber].forEach((unit, unit_index) => {
-          if (unit && unitNumber !== unit_index) {
-            isForbidden = isForbidden || (unit.x === col && unit.y === row);
-          }
-        });
-        if (!props.units[playerNumber][unitNumber].hasFlag) {
-          if (ownFlag && ownFlag.x !== -1) {
-            isForbidden =
-              isForbidden ||
-              Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3;
-          }
+      futureUnits[isPlayer].forEach((unit, unit_index) => {
+        if (unit && unitNumber !== unit_index) {
+          isForbidden = isForbidden || (unit.x === col && unit.y === row);
+        }
+      });
+      if (!units[isPlayer][unitNumber]?.hasFlag) {
+        if (ownFlag && ownFlag.x !== -1) {
+          isForbidden =
+            isForbidden ||
+            Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3;
         }
       }
     }
@@ -121,7 +103,6 @@ function Board(props: BoardProps) {
   };
 
   const _isFlagZone = (col: number, row: number) => {
-    const flags = props.flags;
     let isFlagZone = false;
 
     flags.forEach((flag, flag_index) => {
@@ -132,98 +113,119 @@ function Board(props: BoardProps) {
     return isFlagZone;
   };
 
-  // placement was false by default
+  // Determines whether current square should display a danger bubble or not
+  // the "danger bubble" is the visual indicator showing the damage radius of a unit
+  // returns an array of boolean where:
+  // first cell determines if it's a player zero unit creating danger
+  // second cell determines if it's a player one unit creating danger
+  // third cell determines ??? I removed it, I couldn't read the code
   const _isInDanger = (col: number, row: number, placement: boolean) => {
-    let isInDanger = [false, false, false];
-    const currentPlayer = props.selectedUnit.playerNumber;
-    const currentUnit = props.selectedUnit.unitNumber;
+    // initialise vars
+    let isInDanger = [false, false];
+    const currentUnit = selectedUnit.unitNumber;
+
+    // During placement, do not display danger indicators
     if (!placement) {
-      const playerNumber = props.selectedUnit.playerNumber;
-      const flag1 = props.flags[0];
-      let inReachFlag1 =
+      // determine if we are in the flagzone or not. In the flagzone, players cannot be in danger
+      const flag1 = flags[0];
+      let notInReachFlag1 =
         flag1 &&
         flag1.x !== -1 &&
         !(Math.abs(col - flag1.x) + Math.abs(row - flag1.y) <= 3);
-      const flag2 = props.flags[1];
-      let inReachFlag2 =
+      const flag2 = flags[1];
+      let notInReachFlag2 =
         flag2 &&
         flag2.x !== -1 &&
         !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3);
-      if (playerNumber !== -1) {
-        const futureUnits = props.futureUnits;
-        futureUnits.forEach((player, player_index) => {
-          player.forEach((unit, unit_index) => {
-            if (
-              inReachFlag1 &&
-              inReachFlag2 &&
-              unit &&
-              currentPlayer === player_index
-            ) {
-              if (unit.strength > 1) {
-                isInDanger[player_index] =
-                  isInDanger[player_index] ||
-                  Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                    unit.strength;
-              } else {
-                isInDanger[player_index] =
-                  isInDanger[player_index] ||
-                  Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <=
-                    2;
-              }
+
+      // Future units are units already moved of the current player
+      // For each unit, determine whether it creates a danger bubble or not for current square
+      futureUnits.forEach((player, player_index) => {
+        player.forEach((unit, unit_index) => {
+          // Check if not in reach of the flags and if unit belongs to current player
+          if (
+            notInReachFlag1 &&
+            notInReachFlag2 &&
+            unit &&
+            isPlayer === player_index
+          ) {
+            // In that case, for each type of unit check if it's in range of current square
+            if (unit.strength > 1) {
+              // normal unit
+              isInDanger[player_index] =
+                isInDanger[player_index] ||
+                Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
+                  unit.strength;
+            } else {
+              // infantry unit with different range mechanism
+              isInDanger[player_index] =
+                isInDanger[player_index] ||
+                Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <= 2;
             }
-          });
+          }
         });
-        props.units.forEach((player, player_index) => {
-          player.forEach((unit, unit_index) => {
+      });
+      // For each unit, determine whether it creates a danger bubble or not for current square
+      units.forEach((player, player_index) => {
+        player.forEach((unit, unit_index) => {
+          // Check if not in reach of the flags and if unit belongs to current player
+          // also make sure player has finished placing units and is ready to start
+          if (
+            (step === unitsCount && player_index !== isPlayer) ||
+            step !== unitsCount
+          ) {
             if (
-              inReachFlag1 &&
-              inReachFlag2 &&
+              notInReachFlag1 &&
+              notInReachFlag2 &&
               unit.life > 0 &&
-              (player_index !== currentPlayer || unit_index >= currentUnit)
+              (player_index !== isPlayer || unit_index >= currentUnit) &&
+              ready[player_index]
             ) {
+              // In that case, for each type of unit check if it's in range of current square
               if (unit.strength > 1) {
+                // normal unit
                 isInDanger[player_index] =
                   isInDanger[player_index] ||
                   Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
                     unit.strength;
               } else {
+                // infantry unit with different range mechanism
                 isInDanger[player_index] =
                   isInDanger[player_index] ||
                   Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <=
                     2;
               }
             }
-          });
+          }
         });
-      }
+      });
     }
     return isInDanger;
   };
 
-  // player was null by default
-  // placement was false by default
-  // ghost was false by default
+  // Determines whether current square (row, col) contains a unit or not and if so
+  // what type it is and if it should be displayed
   const _containsUnits = (
     units: Array<IUnit>,
     col: number,
     row: number,
-    player: 0 | 1,
+    player: number,
     placement: boolean,
     ghost: boolean
   ) => {
-    const currentPlayer = props.selectedUnit.playerNumber;
-    const currentUnit = props.selectedUnit.unitNumber;
+    // initialise vars
+    const currentUnit = selectedUnit.unitNumber;
     let unitContained = null;
     let unitNumber = null;
     let display = false;
+
+    // for each unit in the current player array
     units.forEach((unit, index) => {
-      let isPlaced = placement ? props.placedUnits[player][index] : true;
-      if (
-        placement ||
-        ghost ||
-        index >= currentUnit ||
-        player !== currentPlayer
-      ) {
+      let isPlaced = placement ? placedUnits[player][index] : true;
+
+      // only continue if we are considering units that have not been moved or placed yet
+      if (placement || ghost || index >= currentUnit || player !== isPlayer) {
+        // only continue if the unit we look at is supposed to be in current square
         if (
           unit &&
           unit.x === col &&
@@ -231,9 +233,14 @@ function Board(props: BoardProps) {
           (unit.life > 0 || ghost) &&
           isPlaced
         ) {
+          // in that case, let square know that there is indeed a unit of current player
           unitContained = unit;
           unitNumber = index;
-          display = ghost && player !== currentPlayer ? false : true;
+          display =
+            ((ghost || !ready[player]) && player !== isPlayer) ||
+            (step === unitsCount && !ghost && player === isPlayer)
+              ? false // only visually hide it if it's a ghost of other player of if other player is not ready yet to start game (not finished placement)
+              : true;
         }
       }
     });
@@ -242,8 +249,8 @@ function Board(props: BoardProps) {
   };
 
   const _containsFlag = (col: number, row: number) => {
-    const flag1 = props.flags[0];
-    const flag2 = props.flags[1];
+    const flag1 = flags[0];
+    const flag2 = flags[1];
     const containsFlag = [];
     containsFlag[0] = flag1.x === col && flag1.y === row && flag1.inZone;
     containsFlag[1] = flag2.x === col && flag2.y === row && flag2.inZone;
@@ -255,73 +262,87 @@ function Board(props: BoardProps) {
     row: number,
     selectedUnit: ISelectedUnit
   ) => {
-    const unit =
-      props.units[selectedUnit.playerNumber]?.[selectedUnit.unitNumber];
+    const unit = units[selectedUnit.playerNumber]?.[selectedUnit.unitNumber];
     return unit && unit.x === col && unit.y === row;
   };
 
   const renderSquare = (col: number, row: number) => {
-    const player = props.selectedUnit?.playerNumber;
     const placement = props.placement;
-    const unit = props.units[player]?.[props.selectedUnit.unitNumber];
-    const [unitsp1, unitsp2] = props.units;
-    const containsUnits1 = _containsUnits(
-      unitsp1,
+    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
+    const [unitsp1, unitsp2] = units;
+    const containsUnitsPlayer = _containsUnits(
+      units[isPlayer],
       col,
       row,
-      0,
+      isPlayer,
       placement,
       false
     );
-    const containsUnits2 = _containsUnits(
-      unitsp2,
+    const containsUnitsOpponent = _containsUnits(
+      units[(isPlayer + 1) % 2],
       col,
       row,
-      1,
+      (isPlayer + 1) % 2,
       placement,
       false
     );
     const containsUnits =
-      containsUnits1.unit && containsUnits1.display
-        ? containsUnits1
-        : containsUnits2.unit && containsUnits2.display
-        ? containsUnits2
+      containsUnitsPlayer.unit && containsUnitsPlayer.display
+        ? containsUnitsPlayer
+        : containsUnitsOpponent.unit && containsUnitsOpponent.display
+        ? containsUnitsOpponent
         : { unit: null, unitNumber: null, display: false };
     let containsGhostUnits = { unit: null, unitNumber: null, display: false };
-    let containsGhostUnits1 = { unit: null, unitNumber: null, display: false };
-    let containsGhostUnits2 = { unit: null, unitNumber: null, display: false };
+    let containsOpponentGhostUnits = {
+      unit: null,
+      unitNumber: null,
+      display: false,
+    };
+    let containsGhostUnitsPlayer = {
+      unit: null,
+      unitNumber: null,
+      display: false,
+    };
+    let containsGhostUnitsOpponent = {
+      unit: null,
+      unitNumber: null,
+      display: false,
+    };
 
     if (!placement) {
-      containsGhostUnits1 = _containsUnits(
-        props.futureUnits[0],
+      containsGhostUnitsPlayer = _containsUnits(
+        futureUnits[isPlayer],
         col,
         row,
-        0,
+        isPlayer,
         placement,
         true
       );
-      containsGhostUnits2 = _containsUnits(
-        props.futureUnits[1],
+      containsGhostUnitsOpponent = _containsUnits(
+        futureUnits[(isPlayer + 1) % 2],
         col,
         row,
-        1,
+        (isPlayer + 1) % 2,
         placement,
         true
       );
       containsGhostUnits =
-        containsGhostUnits2.unit && containsGhostUnits2.display
-          ? containsGhostUnits2
-          : containsGhostUnits1.unit && containsGhostUnits1.display
-          ? containsGhostUnits1
+        containsGhostUnitsPlayer.unit && containsGhostUnitsPlayer.display
+          ? containsGhostUnitsPlayer
           : { unit: null, unitNumber: null, display: false };
+      containsOpponentGhostUnits = containsGhostUnitsOpponent || {
+        unit: null,
+        unitNumber: null,
+        display: false,
+      };
     }
 
     // const containsPlayer = containsUnits1[0] || containsGhostUnits1[0] ? 0 : containsUnits2[0] || containsGhostUnits2[0] ? 1 : null
     const containsPlayer =
-      containsUnits2?.unit || containsGhostUnits2?.unit
-        ? 1
-        : containsUnits1?.unit || containsGhostUnits1?.unit
-        ? 0
+      containsUnitsOpponent?.unit || containsGhostUnitsOpponent?.unit
+        ? (isPlayer + 1) % 2
+        : containsUnitsPlayer?.unit || containsGhostUnitsPlayer?.unit
+        ? isPlayer
         : null;
     const containsFlag = _containsFlag(col, row);
     const isReachable = _isReachable(unit, col, row, placement);
@@ -330,37 +351,32 @@ function Board(props: BoardProps) {
     const isFlagZone = _isFlagZone(col, row);
     return (
       <Square
-        key={`${col} ${row}`}
+        _changePosition={_changePosition}
+        _changeStep={_changeStep}
+        _placeUnit={_placeUnit}
+        _screenShake={props._screenShake}
+        boardWidth={boardWidth}
         col={col}
-        row={row}
-        unit={containsUnits}
-        futureUnits={props.futureUnits}
+        containsFlag={containsFlag}
         ghostUnit={containsGhostUnits}
-        playerIndex={containsPlayer}
-        players={props.players}
-        _changeStep={props._changeStep}
-        step={props.step}
-        _changePosition={props._changePosition}
-        isReachable={isReachable}
+        containsOpponentGhostUnits={containsOpponentGhostUnits}
+        isFlagZone={isFlagZone}
         isForbidden={isForbidden}
         isInDanger={isInDanger}
-        isFlagZone={isFlagZone}
-        selected={_isSelected(col, row, props.selectedUnit)}
-        selectedUnit={props.selectedUnit}
-        containsFlag={containsFlag}
-        _placeUnit={props._placeUnit}
-        player={props.player}
-        _screenShake={props._screenShake}
-        unitsCount={props.unitsCount}
-        boardWidth={props.boardWidth}
+        isReachable={isReachable}
+        key={`${col} ${row}`}
+        playerIndex={containsPlayer}
+        row={row}
+        selected={_isSelected(col, row, selectedUnit)}
+        unit={containsUnits}
       />
     );
   };
 
   return (
-    <div className={`board p${props.selectedUnit.playerNumber + 1}`}>
-      {Array(props.boardLength)
-        .fill(Array(props.boardWidth).fill(null))
+    <div className={`board p${isPlayer + 1}`}>
+      {Array(boardLength)
+        .fill(Array(boardWidth).fill(null))
         .map((row: any, row_index: number) =>
           row.map((column: any, column_index: number) =>
             renderSquare(column_index, row_index)

@@ -91,6 +91,26 @@ button {
   opacity: 1;
 }
 
+#settings .button-container {
+  text-align: center;
+}
+
+#settings .button {
+  margin-bottom: 1rem;
+}
+
+#settings .button.disabled {
+  background-color: hsl(0deg 0% 73%);
+  color: rgba(16, 16, 16, 0.3);
+  margin-top: 1rem;
+  height: 2.5rem;
+  margin-right: 1rem;
+}
+
+#settings .hint {
+  font-size: 0.9em;
+}
+
 .unitSelection-container {
   display: flex;
   flex-direction: column;
@@ -367,9 +387,21 @@ button {
   color: white;
 }
 
-/* .square-container {
-  width: 4.54%;
-} */
+.fight-button{
+    margin-top: 1rem;
+    height: 2.5rem;
+    margin-right: 1rem;
+}
+
+.fight-button.inactive {
+  background-color: grey;
+  color: lightgray;
+}
+
+.fight-button.confirm {
+  background-color: #06a12f;
+  color: white;
+}
 
 .square {
   position: relative;
@@ -588,6 +620,16 @@ button.active {
   backdrop-filter: blur(5px);
 }
 
+.modal-container {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  backdrop-filter: blur(5px);
+}
+
 .gameOver {
   position: absolute;
   width: 50%;
@@ -603,7 +645,27 @@ button.active {
   flex-direction: column;
 }
 
+.modalComponent {
+  position: absolute;
+  width: 50%;
+  padding: 3rem;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+  background-color: white;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+
 .gameOver > .question-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.modalComponent > .content-container {
   display: flex;
   flex-direction: column;
 }

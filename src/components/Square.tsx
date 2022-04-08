@@ -1,52 +1,51 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import Unit from "./Unit";
 import Flag from "./Flag";
 import { AUDIO } from "../utilities/dict";
-import { IUnit, IPlayers, ISelectedUnit } from "../App";
+import { IUnit } from "../App";
+import gameContext from "../gameContext";
+
+function isCustomEvent(event: Event): event is CustomEvent {
+  return "detail" in event;
+}
 
 interface SquareProps {
-  col: number;
-  row: number;
-  unit: { unit: IUnit | null; unitNumber: number | null; display: boolean };
-  futureUnits: Array<Array<IUnit>>;
-  ghostUnit: {
-    unit: IUnit | null;
-    unitNumber: number | null;
-    display: boolean;
-  };
-  playerIndex: 0 | 1 | null;
-  players: IPlayers;
-  _changeStep: (step: number, direction: -1 | 1) => void;
-  step: number;
   _changePosition: (
     playerNumber: number,
     unitNumber: number,
     x: number,
     y: number
   ) => void;
-  isReachable: boolean;
+  _changeStep: (step: number, direction: -1 | 1) => void;
+  _placeUnit: (unitNumber: number, col: number, row: number) => void;
+  _screenShake: () => void;
+  boardWidth: number;
+  col: number;
+  containsFlag: Array<boolean>;
+  ghostUnit: {
+    unit: IUnit | null;
+    unitNumber: number | null;
+    display: boolean;
+  };
+  containsOpponentGhostUnits: {
+    unit: IUnit | null;
+    unitNumber: number | null;
+    display: boolean;
+  };
+  isFlagZone: boolean;
   isForbidden: boolean;
   isInDanger: Array<boolean>;
-  isFlagZone: boolean;
+  isReachable: boolean;
+  playerIndex: number | null;
+  row: number;
   selected: boolean;
-  selectedUnit: ISelectedUnit;
-  containsFlag: Array<boolean>;
-  _placeUnit: (
-    playerNumber: number,
-    unitNumber: number,
-    col: number,
-    row: number
-  ) => void;
-  player: 0 | 1;
-  _screenShake: () => void;
-  unitsCount: number;
-  boardWidth: number;
+  unit: { unit: IUnit | null; unitNumber: number | null; display: boolean };
 }
 
 function Square(props: SquareProps) {
+  const { isPlayer, players, selectedUnit, step, unitsCount } =
+    useContext(gameContext);
   const [boom, setBoom] = useState(false);
-
-  const squareRef = React.createRef() as React.RefObject<HTMLDivElement>;
 
   const _boom = () => {
     props._screenShake();
@@ -57,21 +56,15 @@ function Square(props: SquareProps) {
   };
 
   const _clickedSquare = () => {
-    const playerNumber = props.step < props.unitsCount ? 0 : 1;
-    if (props.step !== props.unitsCount * 2) {
+    if (step !== unitsCount) {
       if (props.isReachable && !props.isForbidden) {
-        if (props.step === -1) {
-          props._placeUnit(
-            props.player,
-            props.selectedUnit.unitNumber,
-            props.col,
-            props.row
-          );
+        if (step === -1) {
+          props._placeUnit(selectedUnit.unitNumber, props.col, props.row);
         } else {
-          props._changeStep(props.step, 1);
+          props._changeStep(step, 1);
           props._changePosition(
-            playerNumber,
-            props.selectedUnit.unitNumber,
+            isPlayer,
+            selectedUnit.unitNumber,
             props.col,
             props.row
           );
@@ -93,24 +86,19 @@ function Square(props: SquareProps) {
   const ghostUnit = props.ghostUnit;
   const playerIndex = props.playerIndex;
 
-  if (ghostUnit.unit && !boom) {
-    if (
-      props.futureUnits &&
-      props.futureUnits.reduce(
-        (playersFutureUnits, futureUnit) =>
-          playersFutureUnits || futureUnit[ghostUnit.unitNumber || 0]?.life < 1,
-        false
-      )
-    ) {
-      window.addEventListener("boom", () => _boom());
-    }
+  if ((ghostUnit.unit || props.containsOpponentGhostUnits.unit) && !boom) {
+    document.addEventListener("boom", (e: Event) => {
+      if (!isCustomEvent(e)) throw new Error("not a custom event");
+      // e is now narrowed to CustomEvent ...
+      if (e.detail.x === props.col && e.detail.y === props.row) _boom();
+    });
   }
 
   const containsFlag = props.containsFlag;
   const bgcol = containsFlag[0]
-    ? props.players[0].color
+    ? players[0].color
     : containsFlag[1]
-    ? props.players[1].color
+    ? players[1].color
     : "";
   const isReachable = props.isReachable;
   const isForbidden = props.isForbidden;
@@ -122,7 +110,6 @@ function Square(props: SquareProps) {
       style={{ width: `${100 / props.boardWidth}%` }}
     >
       <div
-        ref={squareRef}
         className={`square${unit.unit || ghostUnit.unit ? " active" : ""}${
           props.selected && unit.unit ? " selected" : ""
         }${isForbidden ? " forbidden" : ""}${bgcol ? " contains-flag" : ""}${
@@ -157,19 +144,19 @@ function Square(props: SquareProps) {
           ) : (
             ""
           )}
-          {isInDanger.map((danger, danger_id) =>
-            isInDanger[danger_id] &&
-            !unit.unit &&
-            !ghostUnit.unit &&
-            danger_id !== 2 ? (
-              <div
-                key={danger_id}
-                className="danger"
-                style={{
-                  backgroundColor: props.players[danger_id].color,
-                }}
-              ></div>
-            ) : null
+          {isInDanger.map(
+            (danger, danger_id) =>
+              isInDanger[danger_id] &&
+              !unit.unit &&
+              !ghostUnit.unit && (
+                <div
+                  key={danger_id}
+                  className="danger"
+                  style={{
+                    backgroundColor: players[danger_id].color,
+                  }}
+                ></div>
+              )
           )}
         </div>
       </div>

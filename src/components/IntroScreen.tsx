@@ -1,11 +1,7 @@
 import React, { useContext } from "react";
 import gameContext from "../gameContext";
 
-interface IntroScreenProps {}
-
-interface IntroScreenState {}
-
-export function IntroScreen(props: IntroScreenProps) {
+export function IntroScreen() {
   const { _changeStep, step } = useContext(gameContext);
   return (
     <div className="introScreen-container">

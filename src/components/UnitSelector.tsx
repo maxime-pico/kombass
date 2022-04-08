@@ -1,4 +1,5 @@
-import React from "react";
+import React, { useContext } from "react";
+import gameContext from "../gameContext";
 import Unit from "./Unit";
 import { IUnit } from "../App";
 
@@ -6,15 +7,10 @@ interface UnitSelectorProps {
   unit: IUnit;
   playerIndex: number;
   unitIndex: number;
-  _circleUnit: (
-    playerIndex: number,
-    unitIndex: number,
-    currentType: number,
-    direction: number
-  ) => void;
 }
 
 function UnitSelector(props: UnitSelectorProps) {
+  const { _circleUnit } = useContext(gameContext);
   const unit = props.unit;
   const playerIndex = props.playerIndex;
   const unitIndex = props.unitIndex;
@@ -23,9 +19,7 @@ function UnitSelector(props: UnitSelectorProps) {
     <div className="taskForceSelector-unit">
       <div
         className="triangle up"
-        onClick={() =>
-          props._circleUnit(playerIndex, unitIndex, currentType, 1)
-        }
+        onClick={() => _circleUnit(playerIndex, unitIndex, currentType, 1)}
       ></div>
       <div className="unit-box">
         <Unit
@@ -37,9 +31,7 @@ function UnitSelector(props: UnitSelectorProps) {
       </div>
       <div
         className="triangle down"
-        onClick={() =>
-          props._circleUnit(playerIndex, unitIndex, currentType, -1)
-        }
+        onClick={() => _circleUnit(playerIndex, unitIndex, currentType, -1)}
       ></div>
     </div>
   ) : null;
