@@ -179,7 +179,7 @@ class App extends Component<AppProps, AppState> {
 
   connectSocket = async () => {
     const socket = await socketService
-      .connect("http://kombass-server.herokuapp.com")
+      .connect("https://kombass-server.herokuapp.com")
       .catch((e: string) => console.log("Error on connect: ", e));
   };
 
