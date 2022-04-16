@@ -1,3 +1,10 @@
+## TODO
+
+Life seems to not decrease for overpowering unit
+Display movement reach of opponent
+Add chat
+4p
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
@@ -69,8 +76,8 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
 
-
 # Plan
+
 // Implémenter visualisation de la position future de l'unité plutôt qu'actuelle pour le joueur qui joue
 // Implémenter "?" là où l'enemi peut être au tour suivant
 // Dans team panel si hasflag alors border changer
@@ -79,12 +86,13 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/t
 // Implémenter mouvement visuel des unités
 
 # regles
-* 3 unités par type max
-* Zone de danger en fonction du type d'unités
-* zone de non droit pour le joueur autour du drapeau
-* placement seulement sur la troisieme colonne
+
+- 3 unités par type max
+- Zone de danger en fonction du type d'unités
+- zone de non droit pour le joueur autour du drapeau
+- placement seulement sur la troisieme colonne
 
 0 1 2 3 4
 5 6 7 8 9
 10
-0 1 2 
+0 1 2

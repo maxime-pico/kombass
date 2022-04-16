@@ -179,7 +179,7 @@ class App extends Component<AppProps, AppState> {
 
   connectSocket = async () => {
     const socket = await socketService
-      .connect("https://kombass-server.herokuapp.com")
+      .connect("https://kombass-server.herokuapp.com/")
       .catch((e: string) => console.log("Error on connect: ", e));
   };
 
@@ -494,7 +494,7 @@ class App extends Component<AppProps, AppState> {
       let myFutureUnits = [...futureUnits[this.state.isPlayer]];
       let opponentNumber = (this.state.isPlayer + 1) % 2;
       let futureOpponentUnits = [...futureUnits[opponentNumber]];
-      let flags = this.state.flags;
+      let flags = [...this.state.flags];
       myFutureUnits.forEach((myUnit, my_unit_index) => {
         // for each of my units
         let life = myUnit.life;
@@ -575,6 +575,8 @@ class App extends Component<AppProps, AppState> {
         };
         myFutureUnits[my_unit_index] = myUnit;
       });
+
+      // make sure no units end up missing
       this.state.units[this.state.isPlayer].forEach((myUnit, myUnit_index) => {
         if (myUnit?.life < 1) myFutureUnits[myUnit_index] = myUnit;
         if (myUnit === null)
@@ -587,25 +589,35 @@ class App extends Component<AppProps, AppState> {
             hasFlag: false,
           };
       });
-      // then update units positions
-      let units = [];
-      units[this.state.isPlayer] = myFutureUnits;
-      units[opponentNumber] = futureOpponentUnits;
 
-      units.forEach((playerUnits, playerIndex) => {
+      // log new units positions
+      let newFutureUnits: Array<Array<IUnit>> = [];
+      newFutureUnits[this.state.isPlayer] = myFutureUnits;
+      newFutureUnits[opponentNumber] = futureOpponentUnits;
+
+      // check how to update flags as a result
+      this.state.units.forEach((playerUnits, playerIndex) => {
         playerUnits.forEach((element, index) => {
           let hadFlag = element.hasFlag;
-          let flag = flags[(playerIndex + 1) % 2];
-          if (hadFlag && this.state.units[playerIndex][index]?.life < 1) {
-            flag = { ...flags[(playerIndex + 1) % 2], inZone: true };
-            flags[(playerIndex + 1) % 2] = flag;
-            this._updateFlags(flags);
+          let opponentFlag = flags[(playerIndex + 1) % 2];
+          if (hadFlag && newFutureUnits[playerIndex][index]?.life < 1) {
+            opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: true };
+            flags[(playerIndex + 1) % 2] = opponentFlag;
+          } else if (
+            !hadFlag &&
+            newFutureUnits[playerIndex][index].hasFlag &&
+            newFutureUnits[playerIndex][index].life > 0
+          ) {
+            opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: false };
+            flags[(playerIndex + 1) % 2] = opponentFlag;
           }
         });
       });
 
+      this._updateFlags(flags);
+
       this.setState({
-        units: units,
+        units: newFutureUnits,
         futureUnits: Array(2).fill(Array(this.state.unitsCount).fill({})),
         futureUnitsHistory: [],
         waitingForMoves: [false, false],
