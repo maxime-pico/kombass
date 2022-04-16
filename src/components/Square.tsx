@@ -36,6 +36,7 @@ interface SquareProps {
   isForbidden: boolean;
   isInDanger: Array<boolean>;
   isReachable: boolean;
+  opponentCanReach: boolean;
   playerIndex: number | null;
   row: number;
   selected: boolean;
@@ -101,6 +102,7 @@ function Square(props: SquareProps) {
     ? players[1].color
     : "";
   const isReachable = props.isReachable;
+  const opponentCanReach = props.opponentCanReach;
   const isForbidden = props.isForbidden;
   const isInDanger = props.isInDanger;
   const isFlagZone = props.isFlagZone;
@@ -118,7 +120,11 @@ function Square(props: SquareProps) {
         onClick={() => _clickedSquare()}
         onTouchEnd={void 0}
       >
-        <div className={`square-inside${isReachable ? " reachable" : ""}`}>
+        <div
+          className={`square-inside${isReachable ? " reachable" : ""} ${
+            opponentCanReach ? " opponent-can-reach" : ""
+          }`}
+        >
           {unit?.unit ? (
             <Unit
               unit={unit.unit}

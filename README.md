@@ -1,7 +1,7 @@
 ## TODO
 
-Life seems to not decrease for overpowering unit
-Display movement reach of opponent
+Life seems to not decrease for overpowering unit -- Can't reproduce
+Block accepting next move of opponent until "fight" has been pressed
 Add chat
 4p
 

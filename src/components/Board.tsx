@@ -21,7 +21,6 @@ function Board(props: BoardProps) {
     isPlayer,
     placedUnits,
     placementZone,
-    players,
     ready,
     selectedUnit,
     step,
@@ -58,6 +57,32 @@ function Board(props: BoardProps) {
         : false;
     }
     return isReachable;
+  };
+
+  const _opponentCanReach = (
+    units: Array<IUnit>,
+    col: number,
+    row: number,
+    placement: boolean
+  ) => {
+    let opponentCanReach = false;
+    let opponentFlag = flags[(isPlayer + 1) % 2];
+    if (!placement) {
+      units.forEach((unit) => {
+        let x = unit ? unit.x : 999;
+        let y = unit ? unit.y : 999;
+        let speed = unit ? unit.speed : -1;
+        let life = unit ? unit.life : -1;
+        let opponentFlagZone =
+          Math.abs(col - opponentFlag.x) + Math.abs(row - opponentFlag.y) <= 3;
+        opponentCanReach =
+          opponentCanReach ||
+          (Math.abs(x - col) + Math.abs(y - row) <= speed &&
+            !opponentFlagZone &&
+            life > 0);
+      });
+    }
+    return opponentCanReach;
   };
 
   // placement was default false
@@ -269,7 +294,6 @@ function Board(props: BoardProps) {
   const renderSquare = (col: number, row: number) => {
     const placement = props.placement;
     const unit = units[isPlayer]?.[selectedUnit.unitNumber];
-    const [unitsp1, unitsp2] = units;
     const containsUnitsPlayer = _containsUnits(
       units[isPlayer],
       col,
@@ -346,6 +370,12 @@ function Board(props: BoardProps) {
         : null;
     const containsFlag = _containsFlag(col, row);
     const isReachable = _isReachable(unit, col, row, placement);
+    const opponentCanReach = _opponentCanReach(
+      units[(isPlayer + 1) % 2],
+      col,
+      row,
+      placement
+    );
     const isForbidden = _isForbidden(unit, col, row, placement);
     const isInDanger = _isInDanger(col, row, placement);
     const isFlagZone = _isFlagZone(col, row);
@@ -364,6 +394,7 @@ function Board(props: BoardProps) {
         isForbidden={isForbidden}
         isInDanger={isInDanger}
         isReachable={isReachable}
+        opponentCanReach={opponentCanReach}
         key={`${col} ${row}`}
         playerIndex={containsPlayer}
         row={row}

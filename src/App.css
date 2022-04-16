@@ -421,6 +421,14 @@ button {
   opacity: 1;
 }
 
+.board.p1 > .square-container > .square > .square-inside.opponent-can-reach {
+  background: repeating-linear-gradient(135deg, #ffd9004d, #ffd9004d 5px, #fce7724d 5px, #fce7724d 10px);
+}
+
+.board.p2 > .square-container > .square > .square-inside.opponent-can-reach {
+  background: repeating-linear-gradient(135deg, #5dfec880, #5dfec880 5px, #93ffdb80 5px, #93ffdb80 10px);
+}
+
 .square.active {
   color: white;
   z-index: 3;
@@ -432,13 +440,7 @@ button {
 }
 
 .square.flag-zone {
-  background: repeating-linear-gradient(
-    45deg,
-    #a2e08f,
-    #a2e08f 5px,
-    #7bc565 5px,
-    #7bc565 10px
-  );
+  background-color: #8bd475;
 }
 
 .square-inside {
@@ -482,6 +484,8 @@ button {
 @media (hover: hover) {
   .board.p1 > .square-container > .square > .square-inside.reachable:hover,
   .board.p2 > .square-container > .square > .square-inside.reachable:hover,
+  .board.p1 > .square-container > .square > .square-inside.opponent-can-reach:hover,
+  .board.p2 > .square-container > .square > .square-inside.opponent-can-reach:hover,
   .square-inside:hover {
     background-color: hsl(114deg 80% 60% / 80%);
     z-index: 4;
