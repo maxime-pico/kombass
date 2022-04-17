@@ -9,7 +9,7 @@ import UnitPlacement from "./components/UnitPlacement";
 import Rooms from "./components/Rooms";
 import { UNITS, SPRITES } from "./utilities/dict";
 import socketService from "./services/socketService";
-import GameContext, { dispatchBoom } from "./gameContext";
+import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
 
 export type IPlayer = 0 | 1;
@@ -43,7 +43,8 @@ function preloading(url: string) {
 interface AppProps {}
 
 interface AppState {
-  _applyMoves: () => void;
+  _applyBufferedMoves: () => void;
+  _applyMoves: () => Promise<any>;
   _changeStep: (step: number, direction: -1 | 1) => void;
   _changePosition: (
     playerNumber: number,
@@ -73,9 +74,16 @@ interface AppState {
   _setUnitCount: (unitCount: number) => void;
   _setWaitingForMoves: (ready: boolean, player: number) => void;
   _undoMove: () => void;
+  _updateBufferOpponentUnits: (bufferOpponentUnits: Array<IUnit>) => void;
+  _updateMovesListener: (update: {
+    units: Array<IUnit>;
+    round: number;
+  }) => void;
   _updateOpponentUnits: (opponentsFutureunits: Array<IUnit>) => void;
+  _waitingForMoves: (e: Event) => void;
   boardLength: number;
   boardWidth: number;
+  bufferOpponentUnits: Array<IUnit>;
   flags: Array<IFlag>;
   futureUnits: Array<Array<IUnit>>;
   futureUnitsHistory: Array<Array<Array<IUnit>>>;
@@ -88,6 +96,7 @@ interface AppState {
   player: 0 | 1;
   players: IPlayers;
   ready: Array<boolean>;
+  round: number;
   selectedUnit: ISelectedUnit;
   step: number;
   units: Array<Array<IUnit>>;
@@ -99,7 +108,7 @@ class App extends Component<AppProps, AppState> {
   constructor(props: AppProps) {
     super(props);
     this.state = {
-      _applyMoves: this._applyMoves,
+      _applyBufferedMoves: this._applyBufferedMoves,
       _changeStep: this._changeStep,
       _changePosition: this._changePosition,
       _circlePlayer: this._circlePlayer,
@@ -115,9 +124,14 @@ class App extends Component<AppProps, AppState> {
       _setUnitCount: this._setUnitCount,
       _setWaitingForMoves: this._setWaitingForMoves,
       _undoMove: this._undoMove,
+      _applyMoves: this._applyMoves,
+      _updateBufferOpponentUnits: this._updateBufferOpponentUnits,
+      _updateMovesListener: this._updateMovesListener,
       _updateOpponentUnits: this._updateOpponentUnits,
+      _waitingForMoves: this._waitingForMoves,
       boardLength: 21,
       boardWidth: 22,
+      bufferOpponentUnits: Array(5).fill(null),
       flags: [
         { x: 0, y: 10, inZone: true },
         { x: 21, y: 10, inZone: true },
@@ -136,6 +150,7 @@ class App extends Component<AppProps, AppState> {
         { name: "P2", color: "red" },
       ],
       ready: [false, false],
+      round: 0,
       selectedUnit: { playerNumber: 0, unitNumber: 0 },
       step: -5,
       units: Array(2).fill(
@@ -152,6 +167,7 @@ class App extends Component<AppProps, AppState> {
       waitingForMoves: [false, false],
     };
 
+    this._applyBufferedMoves = this._applyBufferedMoves.bind(this);
     this._applyMoves = this._applyMoves.bind(this);
     this._changePosition = this._changePosition.bind(this);
     this._changeStep = this._changeStep.bind(this);
@@ -172,9 +188,13 @@ class App extends Component<AppProps, AppState> {
     this._setUnitCount = this._setUnitCount.bind(this);
     this._startGame = this._startGame.bind(this);
     this._undoMove = this._undoMove.bind(this);
+    this._updateBufferOpponentUnits =
+      this._updateBufferOpponentUnits.bind(this);
+    this._updateMovesListener = this._updateMovesListener.bind(this);
     this._updateFlags = this._updateFlags.bind(this);
     this._setWaitingForMoves = this._setWaitingForMoves.bind(this);
     this._updateOpponentUnits = this._updateOpponentUnits.bind(this);
+    this._waitingForMoves = this._waitingForMoves.bind(this);
   }
 
   connectSocket = async () => {
@@ -267,7 +287,39 @@ class App extends Component<AppProps, AppState> {
     futureUnits[(this.state.isPlayer + 1) % 2] = opponentsFutureunits;
     this.setState({
       futureUnits: futureUnits,
+      bufferOpponentUnits: Array(5).fill(null),
     });
+  };
+
+  _updateBufferOpponentUnits = (bufferOpponentUnits: Array<IUnit>) => {
+    this.setState({
+      bufferOpponentUnits: [...bufferOpponentUnits],
+    });
+  };
+
+  _waitingForMoves = (e: Event) => {
+    if (!isCustomEvent(e)) throw new Error("not a custom event");
+    // e is now narrowed to CustomEvent ...
+    this._updateOpponentUnits(e.detail.units);
+    this._setWaitingForMoves(true, (this.state.isPlayer + 1) % 2);
+  };
+
+  _applyBufferedMoves = () => {
+    if (this.state.bufferOpponentUnits.filter((unit) => unit !== null).length) {
+      dispatchCustomEvent("ready_for_moves", {
+        units: this.state.bufferOpponentUnits,
+      });
+    }
+  };
+
+  _updateMovesListener = (update: { units: Array<IUnit>; round: number }) => {
+    if (this.state.round + 1 > update.round) {
+      this._updateOpponentUnits(update.units);
+      this._setWaitingForMoves(true, (this.state.isPlayer + 1) % 2);
+    } else {
+      this._updateBufferOpponentUnits(update.units);
+      document.addEventListener("ready_for_moves", this._waitingForMoves);
+    }
   };
 
   _circleUnit = (
@@ -487,7 +539,7 @@ class App extends Component<AppProps, AppState> {
     });
   };
 
-  _applyMoves = () => {
+  _applyMoves = async () => {
     // first check the results of the fights
     if (this.state.step === this.state.unitsCount) {
       let futureUnits = [...this.state.futureUnits];
@@ -554,13 +606,13 @@ class App extends Component<AppProps, AppState> {
                   life: opponentUnit.life - strength,
                 };
                 futureOpponentUnits[unit_index] = opponentUnit;
-                dispatchBoom("boom", { x: a, y: b });
+                dispatchCustomEvent("boom", { x: a, y: b });
               }
               // as well as for our own unit
               if (embuscade) {
                 console.log("EMBUSCADE!!");
                 damageTaken = damageTaken + opponentStrength;
-                dispatchBoom("boom", { x: x, y: y });
+                dispatchCustomEvent("boom", { x: x, y: y });
               }
             }
           } else {
@@ -621,8 +673,9 @@ class App extends Component<AppProps, AppState> {
         futureUnits: Array(2).fill(Array(this.state.unitsCount).fill({})),
         futureUnitsHistory: [],
         waitingForMoves: [false, false],
+        round: this.state.round + 1,
       });
-      window.dispatchEvent(new CustomEvent("boom"));
+
       this._changeStep(this.state.step, 1);
     }
   };
@@ -680,6 +733,7 @@ class App extends Component<AppProps, AppState> {
               step={this.state.step}
               units={this.state.units}
               unitsCount={this.state.unitsCount}
+              round={this.state.round}
             />
           )}
         </div>

@@ -3,11 +3,7 @@ import Unit from "./Unit";
 import Flag from "./Flag";
 import { AUDIO } from "../utilities/dict";
 import { IUnit } from "../App";
-import gameContext from "../gameContext";
-
-function isCustomEvent(event: Event): event is CustomEvent {
-  return "detail" in event;
-}
+import gameContext, { isCustomEvent } from "../gameContext";
 
 interface SquareProps {
   _changePosition: (
@@ -79,7 +75,7 @@ function Square(props: SquareProps) {
       setTimeout(() => {
         setBoom(false);
       }, 1000);
-      window.removeEventListener("boom", () => _boom());
+      document.removeEventListener("boom", () => _boom());
     }
   }, [boom, setBoom]);
 

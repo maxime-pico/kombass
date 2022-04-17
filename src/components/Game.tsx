@@ -12,6 +12,7 @@ interface GameProps {
   players: IPlayers;
   selectedUnit: ISelectedUnit;
   _changeStep: (step: number, direction: -1 | 1) => void;
+  round: number;
   step: number;
   ready: Array<boolean>;
 }
@@ -149,7 +150,7 @@ class Game extends Component<GameProps, GameStates> {
             selectedUnit={this.props.selectedUnit}
           />
         </div>
-        <Panel />
+        <Panel round={this.props.round} />
       </div>
     );
   }

@@ -68,15 +68,12 @@ class GameService {
     socket.on("player_ready", (message) => listener(message));
   }
 
-  public async sendMoves(socket: Socket, myUnits: Array<IUnit>) {
-    socket.emit("moves_sent", myUnits);
+  public async sendMoves(socket: Socket, myUnits: Array<IUnit>, round: number) {
+    socket.emit("moves_sent", { units: myUnits, round: round });
   }
 
-  public async onUpdateMoves(
-    socket: Socket,
-    listener: (opponentUnits: Array<IUnit>) => void
-  ) {
-    socket.on("moves_received", (opponentUnits) => listener(opponentUnits));
+  public async onUpdateMoves(socket: Socket, listener: (update: any) => void) {
+    socket.on("moves_received", (update) => listener(update));
   }
 
   public async gameWin(socket: Socket, message: string) {

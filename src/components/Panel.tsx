@@ -4,25 +4,33 @@ import socketService from "../services/socketService";
 import gameService from "../services/gameService";
 import { IUnit } from "../App";
 
-function Panel() {
+interface PanelProps {
+  round: number;
+}
+
+function Panel(props: PanelProps) {
   const {
+    bufferOpponentUnits,
     isPlayer,
     step,
     futureUnits,
     unitsCount,
     waitingForMoves,
+    _applyBufferedMoves,
     _applyMoves,
     _setWaitingForMoves,
     _undoMove,
-    _updateOpponentUnits,
+    _updateMovesListener,
+    _waitingForMoves,
   } = useContext(gameContext);
 
   const _sendMoves = () => {
     if (socketService.socket) {
       gameService
-        .sendMoves(socketService.socket, futureUnits[isPlayer])
+        .sendMoves(socketService.socket, futureUnits[isPlayer], props.round)
         .then(() => {
           _setWaitingForMoves(true, isPlayer);
+          _applyBufferedMoves();
         });
     }
   };
@@ -31,9 +39,8 @@ function Panel() {
     if (socketService.socket) {
       gameService.onUpdateMoves(
         socketService.socket,
-        (opponentUnits: Array<IUnit>) => {
-          _updateOpponentUnits(opponentUnits);
-          _setWaitingForMoves(true, (isPlayer + 1) % 2);
+        (update: { units: Array<IUnit>; round: number }) => {
+          _updateMovesListener(update);
         }
       );
     }
@@ -52,7 +59,19 @@ function Panel() {
           }`}
           onClick={() => {
             if (step === unitsCount) {
-              _applyMoves();
+              _applyMoves().then(() => {
+                document.removeEventListener(
+                  "ready_for_moves",
+                  _waitingForMoves
+                );
+                console.log("apply moves with buffer being");
+                console.log(bufferOpponentUnits);
+                if (
+                  bufferOpponentUnits.filter((unit) => unit !== null).length
+                ) {
+                  _setWaitingForMoves(true, (isPlayer + 1) % 2);
+                }
+              });
             }
           }}
           disabled={!waitingForMoves[(isPlayer + 1) % 2]}

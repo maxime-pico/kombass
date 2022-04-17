@@ -1,13 +1,18 @@
 import React from "react";
 import { IUnit, ISelectedUnit, IFlag, IPlayers } from "./App";
 
-export function dispatchBoom(eventType: string, data: any) {
+export function dispatchCustomEvent(eventType: string, data: any) {
   const event = new CustomEvent(eventType, { detail: data });
   document.dispatchEvent(event);
 }
 
+export function isCustomEvent(event: Event): event is CustomEvent {
+  return "detail" in event;
+}
+
 export interface IGameContextProps {
-  _applyMoves: () => void;
+  _applyBufferedMoves: () => void;
+  _applyMoves: () => Promise<any>;
   _changeStep: (step: number, direction: -1 | 1) => void;
   _changePosition: (
     playerNumber: number,
@@ -37,9 +42,16 @@ export interface IGameContextProps {
   _setUnitCount: (unitCount: number) => void;
   _setWaitingForMoves: (ready: boolean, player: number) => void;
   _undoMove: () => void;
+  _updateBufferOpponentUnits: (bufferOpponentUnits: Array<IUnit>) => void;
+  _updateMovesListener: (update: {
+    units: Array<IUnit>;
+    round: number;
+  }) => void;
   _updateOpponentUnits: (opponentsFutureunits: Array<IUnit>) => void;
+  _waitingForMoves: (e: Event) => void;
   boardLength: number;
   boardWidth: number;
+  bufferOpponentUnits: Array<IUnit>;
   flags: Array<IFlag>;
   futureUnits: Array<Array<IUnit>>;
   gameStarted: boolean;
@@ -51,6 +63,7 @@ export interface IGameContextProps {
   player: 0 | 1;
   players: IPlayers;
   ready: Array<boolean>;
+  round: number;
   selectedUnit: ISelectedUnit;
   step: number;
   units: Array<Array<IUnit>>;
@@ -59,7 +72,8 @@ export interface IGameContextProps {
 }
 
 const defaultState: IGameContextProps = {
-  _applyMoves: () => {},
+  _applyBufferedMoves: () => {},
+  _applyMoves: async () => {},
   _changeStep: () => {},
   _changePosition: () => {},
   _circlePlayer: () => {},
@@ -75,9 +89,13 @@ const defaultState: IGameContextProps = {
   _setUnitCount: () => {},
   _setWaitingForMoves: () => {},
   _undoMove: () => {},
+  _updateBufferOpponentUnits: () => {},
+  _updateMovesListener: () => {},
   _updateOpponentUnits: () => {},
+  _waitingForMoves: () => {},
   boardLength: 21,
   boardWidth: 22,
+  bufferOpponentUnits: Array(5).fill(null),
   flags: [
     { x: 0, y: 10, inZone: true },
     { x: 21, y: 10, inZone: true },
@@ -95,6 +113,7 @@ const defaultState: IGameContextProps = {
     { name: "P2", color: "red" },
   ],
   ready: [false, false],
+  round: 0,
   selectedUnit: { playerNumber: 0, unitNumber: 0 },
   step: -5,
   units: Array(2).fill(
