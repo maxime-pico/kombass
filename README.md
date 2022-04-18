@@ -1,9 +1,11 @@
 ## TODO
 
-Life seems to not decrease for overpowering unit -- Can't reproduce
-Block accepting next move of opponent until "fight" has been pressed
-Add chat
-4p
+- Life seems to not decrease for overpowering unit -- Can't reproduce
+- Add chat
+- Add default room and visual list of available rooms
+- Improve overall UI/polish
+- Add DB of games to be able to save/pause a game and go back at it later
+- 4p
 
 # Getting Started with Create React App
 
@@ -21,7 +23,7 @@ Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 The page will reload if you make edits.\
 You will also see any lint errors in the console.
 
-### `npm test`
+### `npm test` -- NO TESTS SET UP AT THE MOMENT
 
 Launches the test runner in the interactive watch mode.\
 See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
@@ -75,24 +77,3 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
-
-# Plan
-
-// Implémenter visualisation de la position future de l'unité plutôt qu'actuelle pour le joueur qui joue
-// Implémenter "?" là où l'enemi peut être au tour suivant
-// Dans team panel si hasflag alors border changer
-// Tester strength qui descend avec vie
-// Améliorer infos lors de la selection d'unités
-// Implémenter mouvement visuel des unités
-
-# regles
-
-- 3 unités par type max
-- Zone de danger en fonction du type d'unités
-- zone de non droit pour le joueur autour du drapeau
-- placement seulement sur la troisieme colonne
-
-0 1 2 3 4
-5 6 7 8 9
-10
-0 1 2
