@@ -270,7 +270,12 @@ function Board(props: BoardProps) {
       }
     });
 
-    return { unit: unitContained, unitNumber: unitNumber, display: display };
+    return {
+      unit: unitContained,
+      unitNumber: unitNumber,
+      playerNumber: player,
+      display: display,
+    };
   };
 
   const _containsFlag = (col: number, row: number) => {
@@ -315,21 +320,29 @@ function Board(props: BoardProps) {
         ? containsUnitsPlayer
         : containsUnitsOpponent.unit && containsUnitsOpponent.display
         ? containsUnitsOpponent
-        : { unit: null, unitNumber: null, display: false };
-    let containsGhostUnits = { unit: null, unitNumber: null, display: false };
+        : { unit: null, unitNumber: null, playerNumber: -1, display: false };
+    let containsGhostUnits = {
+      unit: null,
+      unitNumber: null,
+      playerNumber: -1,
+      display: false,
+    };
     let containsOpponentGhostUnits = {
       unit: null,
       unitNumber: null,
+      playerNumber: -1,
       display: false,
     };
     let containsGhostUnitsPlayer = {
       unit: null,
       unitNumber: null,
+      playerNumber: -1,
       display: false,
     };
     let containsGhostUnitsOpponent = {
       unit: null,
       unitNumber: null,
+      playerNumber: -1,
       display: false,
     };
 
@@ -353,21 +366,20 @@ function Board(props: BoardProps) {
       containsGhostUnits =
         containsGhostUnitsPlayer.unit && containsGhostUnitsPlayer.display
           ? containsGhostUnitsPlayer
-          : { unit: null, unitNumber: null, display: false };
+          : {
+              unit: null,
+              unitNumber: null,
+              playerNumber: -1,
+              display: false,
+            };
       containsOpponentGhostUnits = containsGhostUnitsOpponent || {
         unit: null,
         unitNumber: null,
+        playerNumber: -1,
         display: false,
       };
     }
 
-    // const containsPlayer = containsUnits1[0] || containsGhostUnits1[0] ? 0 : containsUnits2[0] || containsGhostUnits2[0] ? 1 : null
-    const containsPlayer =
-      containsUnitsOpponent?.unit || containsGhostUnitsOpponent?.unit
-        ? (isPlayer + 1) % 2
-        : containsUnitsPlayer?.unit || containsGhostUnitsPlayer?.unit
-        ? isPlayer
-        : null;
     const containsFlag = _containsFlag(col, row);
     const isReachable = _isReachable(unit, col, row, placement);
     const opponentCanReach = _opponentCanReach(
@@ -396,7 +408,6 @@ function Board(props: BoardProps) {
         isReachable={isReachable}
         opponentCanReach={opponentCanReach}
         key={`${col} ${row}`}
-        playerIndex={containsPlayer}
         row={row}
         selected={_isSelected(col, row, selectedUnit)}
         unit={containsUnits}

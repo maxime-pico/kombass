@@ -21,11 +21,13 @@ interface SquareProps {
   ghostUnit: {
     unit: IUnit | null;
     unitNumber: number | null;
+    playerNumber: number;
     display: boolean;
   };
   containsOpponentGhostUnits: {
     unit: IUnit | null;
     unitNumber: number | null;
+    playerNumber: number;
     display: boolean;
   };
   isFlagZone: boolean;
@@ -33,10 +35,14 @@ interface SquareProps {
   isInDanger: Array<boolean>;
   isReachable: boolean;
   opponentCanReach: boolean;
-  playerIndex: number | null;
   row: number;
   selected: boolean;
-  unit: { unit: IUnit | null; unitNumber: number | null; display: boolean };
+  unit: {
+    unit: IUnit | null;
+    unitNumber: number | null;
+    playerNumber: number;
+    display: boolean;
+  };
 }
 
 function Square(props: SquareProps) {
@@ -81,7 +87,6 @@ function Square(props: SquareProps) {
 
   const unit = props.unit;
   const ghostUnit = props.ghostUnit;
-  const playerIndex = props.playerIndex;
 
   if ((ghostUnit.unit || props.containsOpponentGhostUnits.unit) && !boom) {
     document.addEventListener("boom", (e: Event) => {
@@ -124,7 +129,7 @@ function Square(props: SquareProps) {
           {unit?.unit ? (
             <Unit
               unit={unit.unit}
-              playerIndex={playerIndex}
+              playerIndex={unit.playerNumber}
               displayUnitInfo={false}
               isGhost={false}
             />
@@ -134,7 +139,7 @@ function Square(props: SquareProps) {
           {ghostUnit?.unit ? (
             <Unit
               unit={ghostUnit.unit}
-              playerIndex={playerIndex}
+              playerIndex={ghostUnit.playerNumber}
               displayUnitInfo={false}
               isGhost={false}
             />
