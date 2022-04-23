@@ -1,7 +1,7 @@
 # Welcome to Kombass
 
-This is the frontend repo of a game that is currently running at: [kombass.herokuapp.com](https://kombass.herokuapp.com)
-The server is currently running at: [kombass-server.herokuapp.com](htttps://kombass-server.herokuapp.com)
+This is the frontend repo of a game that is currently running at: [kombass.herokuapp.com](https://kombass.herokuapp.com) \
+The server is currently running at: [kombass-server.herokuapp.com](https://kombass-server.herokuapp.com) \
 The server repo is at: [Kombass Server](https://github.com/maxime-pico/kombass-server)
 
 ## ROADMAP
