@@ -86,7 +86,7 @@ interface AppState {
   bufferOpponentUnits: Array<IUnit>;
   flags: Array<IFlag>;
   futureUnits: Array<Array<IUnit>>;
-  futureUnitsHistory: Array<Array<Array<IUnit>>>;
+  futureUnitsHistory: Array<Array<IUnit>>;
   gameStarted: boolean;
   isAdmin: boolean;
   isInRoom: boolean;
@@ -472,11 +472,13 @@ class App extends Component<AppProps, AppState> {
 
   _undoMove = () => {
     let futureUnits = [...this.state.futureUnits];
+    let myFutureUnits = [...futureUnits[this.state.isPlayer]];
     let futureUnitsHistory = [...this.state.futureUnitsHistory];
     futureUnitsHistory.pop();
-    futureUnits = futureUnitsHistory.length
+    myFutureUnits = futureUnitsHistory.length
       ? futureUnitsHistory[futureUnitsHistory.length - 1]
-      : Array(2).fill(Array(this.state.unitsCount).fill(null));
+      : Array(this.state.unitsCount).fill(null);
+    futureUnits[this.state.isPlayer] = [...myFutureUnits];
     this.setState({
       futureUnits: futureUnits,
       futureUnitsHistory: futureUnitsHistory,
@@ -531,7 +533,7 @@ class App extends Component<AppProps, AppState> {
     futureUnitsArray[playerNumber] = futurePlayerUnits;
 
     let futureUnitsHistory = [...this.state.futureUnitsHistory];
-    futureUnitsHistory.push(futureUnitsArray);
+    futureUnitsHistory.push(futurePlayerUnits);
 
     this.setState({
       futureUnits: futureUnitsArray,
