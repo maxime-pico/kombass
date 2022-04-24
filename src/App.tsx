@@ -1,6 +1,7 @@
 // import logo from './logo.svg';
 import "./App.css";
 import React, { Component } from "react";
+import Chat from "./components/Chat";
 import Settings from "./components/Settings";
 import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
@@ -738,6 +739,7 @@ class App extends Component<AppProps, AppState> {
               round={this.state.round}
             />
           )}
+          {this.state.step > -4 && <Chat />}
         </div>
       </GameContext.Provider>
     );

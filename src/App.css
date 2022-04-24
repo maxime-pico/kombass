@@ -71,6 +71,133 @@ button {
   font-size: 1.5em;
 }
 
+#chat{
+  z-index: 100;
+  position: fixed;
+  bottom: 0;
+  right: 5em;
+  width: 25em;
+  background-color: #012716;
+  border-radius: 2px;
+  color: #44bc86;
+}
+
+#chat .chat-header{
+  color: #cccccc;
+  height: 2.5em;
+  padding: 0.5em 1em;
+  width: 100%;
+  background-color: #6e6e6e;
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+#chat .collapsible{
+  border: 2px solid #61746b;
+  border-bottom: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 30em;
+  padding: 1em 0.5em 0.5em 0.5em;
+}
+
+#chat .collapsible.collapsed{
+  height: 0;
+  padding: 0;
+}
+
+#chat .collapsible.waiting:after{
+  content: 'Waiting for other player to connect...';
+  padding: 2em 1em;
+  text-align: center;
+  z-index: 42;
+  position: absolute;
+  top: 2.5em;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(55,55,55,0.8);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+#chat .bubble{
+  font-size: 1.1em;
+  color: green;
+}
+
+#chat .bubble.disconnected{
+  color: red;
+}
+
+#chat .chat-intro{
+  text-align: center;
+  font-size: 0.8em;
+}
+
+#chat .chat-content{
+  flex-grow:1;
+  padding: 1em 1em;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#chat .chat-footer{
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+#chat .input-container{
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+#chat input{
+  background-color: transparent;
+  border: none;
+  color:#44bc86;
+  cursor: none;
+  caret-color: transparent;
+}
+
+#chat input:focus-visible{
+  outline: none;
+}
+
+.caret{
+  background-color: #44bc86;
+  width: 1ch;
+  position: relative;
+  left: -1ch;
+}
+.caret.focused{
+  -webkit-animation: blink 1s step-end infinite;
+  animation: blink 1.5s step-end infinite;
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+@keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+#chat button{
+  color: #44bc86;
+  background-color: transparent;
+  border: none;
+}
+
 .settings-container {
   display: flex;
   flex-direction: column;
