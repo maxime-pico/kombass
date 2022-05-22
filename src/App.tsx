@@ -336,9 +336,9 @@ class App extends Component<AppProps, AppState> {
       currentType === 0 && direction === -1 ? 2 : (currentType + direction) % 3;
     currentPlayerUnit = {
       ...currentPlayerUnit,
-      strength: UNITS[newIndex].strength,
-      speed: UNITS[newIndex].speed,
-      life: UNITS[newIndex].life,
+      strength: UNITS[newIndex]?.strength,
+      speed: UNITS[newIndex]?.speed,
+      life: UNITS[newIndex]?.life,
     };
     currentPlayerUnits[unitIndex] = currentPlayerUnit;
     units[playerIndex] = currentPlayerUnits;
@@ -452,7 +452,7 @@ class App extends Component<AppProps, AppState> {
       let selectedUnit = [];
       if (nextStep !== this.state.unitsCount) {
         selectedUnit = [this.state.isPlayer, nextStep % this.state.unitsCount];
-        if (this.state.units[selectedUnit[0]][selectedUnit[1]].life > 0) {
+        if (this.state.units[selectedUnit[0]][selectedUnit[1]]?.life > 0) {
           this._setSelectedUnit(selectedUnit[0], selectedUnit[1], nextStep);
         } else {
           this._changeStep(nextStep, direction);
@@ -501,7 +501,7 @@ class App extends Component<AppProps, AppState> {
     y: number
   ) => {
     // initialise vars..
-    const life = this.state.units[playerNumber][unitNumber].life;
+    const life = this.state.units[playerNumber][unitNumber]?.life;
     let currentPlayerUnit = this.state.units[playerNumber][unitNumber];
     let futureUnits = [...this.state.futureUnits];
     let futurePlayerUnits = [...futureUnits[playerNumber]];
@@ -552,8 +552,8 @@ class App extends Component<AppProps, AppState> {
       let flags = [...this.state.flags];
       myFutureUnits.forEach((myUnit, my_unit_index) => {
         // for each of my units
-        let life = myUnit.life;
-        let strength = myUnit.strength;
+        let life = myUnit?.life;
+        let strength = myUnit?.strength;
         let embuscade = false;
         let embuscadeBack = false;
         let damageTaken = 0;
@@ -566,7 +566,7 @@ class App extends Component<AppProps, AppState> {
             let inFlagZone = false;
             let a = opponentUnit.x;
             let b = opponentUnit.y;
-            let opponentStrength = opponentUnit.strength;
+            let opponentStrength = opponentUnit?.strength;
             // Handle special case where one or two of the units is a light unit and has different range
             // TODO: There might be a more sexy way to handle that if tree
             if (opponentStrength === 1 && strength === 1) {
@@ -606,7 +606,7 @@ class App extends Component<AppProps, AppState> {
                   ...opponentUnit,
                   x: a,
                   y: b,
-                  life: opponentUnit.life - strength,
+                  life: opponentUnit?.life - strength,
                 };
                 futureOpponentUnits[unit_index] = opponentUnit;
                 dispatchCustomEvent("boom", { x: a, y: b });
@@ -660,8 +660,8 @@ class App extends Component<AppProps, AppState> {
             flags[(playerIndex + 1) % 2] = opponentFlag;
           } else if (
             !hadFlag &&
-            newFutureUnits[playerIndex][index].hasFlag &&
-            newFutureUnits[playerIndex][index].life > 0
+            newFutureUnits[playerIndex][index]?.hasFlag &&
+            newFutureUnits[playerIndex][index]?.life > 0
           ) {
             opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: false };
             flags[(playerIndex + 1) % 2] = opponentFlag;

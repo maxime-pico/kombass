@@ -40,7 +40,7 @@ function Chat() {
 
   const _sendMessage = () => {
     if (socketService.socket) {
-      let newMessage = { who: `${isPlayer}`, content: message };
+      let newMessage = { who: `${isPlayer + 1}`, content: message };
       chatService.sendMessage(socketService.socket, newMessage).then(() => {
         let newHistory = [...history, newMessage];
         updateHistory(newHistory);
