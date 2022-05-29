@@ -557,15 +557,15 @@ class App extends Component<AppProps, AppState> {
         let embuscade = false;
         let embuscadeBack = false;
         let damageTaken = 0;
-        let x = myUnit.x;
-        let y = myUnit.y;
+        let x = myUnit?.x;
+        let y = myUnit?.y;
         // Go throught the opponent's units and see if there is a potential fight with current moved unit
         futureOpponentUnits.forEach((opponentUnit, unit_index) => {
           // Only consider living units at beginning of turn
           if (this.state.units[opponentNumber][unit_index]?.life > 0) {
             let inFlagZone = false;
-            let a = opponentUnit.x;
-            let b = opponentUnit.y;
+            let a = opponentUnit?.x;
+            let b = opponentUnit?.y;
             let opponentStrength = opponentUnit?.strength;
             // Handle special case where one or two of the units is a light unit and has different range
             // TODO: There might be a more sexy way to handle that if tree
