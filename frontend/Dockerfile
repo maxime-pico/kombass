@@ -5,6 +5,7 @@ RUN npm ci --legacy-peer-deps
 COPY frontend/src ./src
 COPY frontend/public ./public
 COPY frontend/tsconfig.json ./
+ENV REACT_APP_BACKEND_URL=""
 RUN npm run build && test -d build && test -f build/index.html || (echo "Build failed or index.html missing" && exit 1)
 
 FROM nginx:alpine
