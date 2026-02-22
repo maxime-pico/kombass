@@ -5,7 +5,6 @@ RUN npm ci --legacy-peer-deps
 COPY frontend/src ./src
 COPY frontend/public ./public
 COPY frontend/tsconfig.json ./
-COPY frontend/.env ./
 RUN npm run build
 
 FROM nginx:alpine
