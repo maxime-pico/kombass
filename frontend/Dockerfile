@@ -5,7 +5,7 @@ RUN npm ci --legacy-peer-deps
 COPY frontend/src ./src
 COPY frontend/public ./public
 COPY frontend/tsconfig.json ./
-RUN npm run build
+RUN npm run build && test -d build && test -f build/index.html || (echo "Build failed or index.html missing" && exit 1)
 
 FROM nginx:alpine
 COPY --from=builder /app/build /usr/share/nginx/html
