@@ -103,9 +103,8 @@ app.use(function (err: any, req: Request, res: Response, next: NextFunction) {
   res.locals.message = err.message;
   res.locals.error = req.app.get("env") === "development" ? err : {};
 
-  // render the error page
-  res.status(err.status || 500);
-  res.render("error");
+  // return JSON error response
+  res.status(err.status || 500).json({ error: res.locals.message });
 } as ErrorRequestHandler);
 
 export default app;

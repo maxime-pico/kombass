@@ -246,7 +246,7 @@ class App extends Component<AppProps, AppState> {
   connectSocket = async () => {
     const socket = await socketService
       // .connect("https://kombass-server.herokuapp.com/")
-      .connect(process.env.REACT_APP_BACKEND_URL || "http://localhost:9000", "test")
+      .connect(process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000", "test")
       .catch((e: string) => console.log("Error on connect: ", e));
 
     if (socket) {
@@ -262,7 +262,7 @@ class App extends Component<AppProps, AppState> {
 
   checkAndJoinRoom = async (roomId: string) => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:9000";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
       const resp = await fetch(`${backendUrl}/api/room/${roomId}/join`, { method: "POST" });
       if (!resp.ok) {
         const data = await resp.json();
@@ -288,7 +288,7 @@ class App extends Component<AppProps, AppState> {
 
   createAndJoinRoom = async () => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:9000";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
       const resp = await fetch(`${backendUrl}/api/room`, { method: "POST" });
       if (!resp.ok) {
         alert("Failed to create room");
@@ -1175,7 +1175,7 @@ class App extends Component<AppProps, AppState> {
       this.setState({ isSyncing: true });
 
       // Connect socket
-      const backendUrl = process.env.REACT_APP_BACKEND_URL || "http://localhost:9000";
+      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
       const socket = await socketService.connect(backendUrl, "test");
 
       if (socket) {
