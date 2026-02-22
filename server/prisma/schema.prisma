@@ -1,0 +1,77 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "darwin-arm64", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Game {
+  id            String   @id @default(uuid())
+  roomId        String   @unique
+
+  // Configuration (set once during settings phase)
+  boardWidth    Int      @default(22)
+  boardLength   Int      @default(21)
+  placementZone Int      @default(5)
+  unitsCount    Int      @default(5)
+
+  // Current game state
+  currentRound  Int      @default(0)
+  currentStep   Int      @default(-5)
+  status        GameStatus @default(LOBBY)
+
+  // Timestamps
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  lastActivity  DateTime @default(now())
+
+  // Relations
+  players       Player[]
+
+  @@index([roomId])
+  @@index([status, lastActivity])
+}
+
+model Player {
+  id            String   @id @default(uuid())
+  gameId        String
+  playerNumber  Int      // 0 or 1
+  sessionToken  String   @unique // For reconnection
+  socketId      String?  // Current connection (null if disconnected)
+
+  // Player state
+  isReady       Boolean  @default(false)
+  isAdmin       Boolean  @default(false)
+
+  // Game data (stored as JSON for flexibility)
+  units         Json     // Array<IUnit> - current positions/life
+  futureUnits   Json?    // Array<IUnit> - pending moves (null if not submitted)
+  flag          Json     // { x: number, y: number, inZone: boolean }
+
+  // Metadata
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  game          Game     @relation(fields: [gameId], references: [id])
+
+  @@unique([gameId, playerNumber])
+  @@index([sessionToken])
+  @@index([socketId])
+}
+
+enum GameStatus {
+  LOBBY
+  PLACEMENT
+  ACTIVE
+  COMPLETED
+  ABANDONED
+}

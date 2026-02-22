@@ -1,0 +1,49 @@
+{
+  "name": "server",
+  "version": "0.0.0",
+  "private": true,
+  "engines": {
+    "node": "20.x",
+    "npm": "10.x"
+  },
+  "scripts": {
+    "start": "node dist/server.js",
+    "postinstall": "tsc",
+    "watch-node": "nodemon dist/server.js",
+    "watch-ts": "tsc -w",
+    "deploy": "git add . && git commit -m Heroku && git push heroku master"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "cookie-parser": "~1.4.4",
+    "cors": "^2.8.6",
+    "debug": "~2.6.9",
+    "express": "~4.21.2",
+    "glob": "^10.4.5",
+    "http-errors": "~1.6.3",
+    "jade": "^0.29.0",
+    "morgan": "~1.9.1",
+    "prisma": "^5.22.0",
+    "reflect-metadata": "^0.2.2",
+    "socket-controllers": "^0.0.5",
+    "socket.io": "^4.8.3",
+    "ts-node": "^10.9.2"
+  },
+  "devDependencies": {
+    "@types/cookie-parser": "^1.4.7",
+    "@types/debug": "^4.1.12",
+    "@types/express": "^4.17.21",
+    "@types/morgan": "^1.9.9",
+    "@types/node": "^20.17.10",
+    "@types/nodemon": "^1.19.1",
+    "@types/socket.io": "^3.0.2",
+    "nodemon": "^3.1.11",
+    "typescript": "^5.7.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  }
+}

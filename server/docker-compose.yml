@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: kombass
+      POSTGRES_USER: kombass
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: .
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://kombass:${DB_PASSWORD}@db:5432/kombass
+      NODE_ENV: production
+      PORT: 9000
+      FRONTEND_URL: ${FRONTEND_URL}
+    depends_on:
+      - db
+    ports:
+      - "127.0.0.1:9000:9000"   # only accessible via localhost (nginx)
+
+volumes:
+  postgres_data:
