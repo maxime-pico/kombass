@@ -30,16 +30,6 @@ function Settings(props: SettingsProps) {
     unitsCount: unitsCount,
   };
 
-  const handleGameStart = () => {
-    if (socketService.socket) {
-      gameService.onJoinedGame(socketService.socket, (options) => {
-        _setIsAdmin(options.admin);
-        _setIsPlayer(options.player);
-        _setGameStarted();
-      });
-    }
-  };
-
   const settingsReady = () => {
     if (socketService.socket) {
       gameService.onSettingsReady(socketService.socket, settings).then(() => {
@@ -48,21 +38,31 @@ function Settings(props: SettingsProps) {
     }
   };
 
-  const updateSettings = () => {
-    if (socketService.socket) {
-      gameService.updateSettings(socketService.socket, (settings) => {
-        _setBoardSize(settings.boardLength, settings.boardWidth);
-        _setPlacementZone(settings.placementZone);
-        _setUnitCount(settings.unitsCount);
-        props._selectUnits();
-      });
-    }
-  };
-
   useEffect(() => {
+    const handleGameStart = () => {
+      if (socketService.socket) {
+        gameService.onJoinedGame(socketService.socket, (options) => {
+          _setIsAdmin(options.admin);
+          _setIsPlayer(options.player);
+          _setGameStarted();
+        });
+      }
+    };
+
+    const updateSettings = () => {
+      if (socketService.socket) {
+        gameService.updateSettings(socketService.socket, (settings) => {
+          _setBoardSize(settings.boardLength, settings.boardWidth);
+          _setPlacementZone(settings.placementZone);
+          _setUnitCount(settings.unitsCount);
+          props._selectUnits();
+        });
+      }
+    };
+
     handleGameStart();
     updateSettings();
-  }, [handleGameStart, updateSettings]);
+  }, [_setIsAdmin, _setIsPlayer, _setGameStarted, _setBoardSize, _setPlacementZone, _setUnitCount, props]);
 
   return (
     <div>
