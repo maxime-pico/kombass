@@ -1,5 +1,9 @@
 FROM node:20-alpine
 WORKDIR /app
+
+# Install OpenSSL for Prisma
+RUN apk add --no-cache openssl
+
 COPY server/package*.json ./
 COPY server/tsconfig.json ./
 COPY server/prisma ./prisma/
