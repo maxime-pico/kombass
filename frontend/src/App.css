@@ -1,0 +1,1035 @@
+@import url(https://fonts.googleapis.com/css?family=Press+Start+2P);
+
+#root {
+  background-color: black;
+  display: flex;
+  min-height: 100vh;
+}
+
+button {
+  text-transform: uppercase;
+  font-weight: 800;
+  border-radius: 0;
+}
+
+.justify-center {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.align-center {
+  align-self: center;
+}
+
+.triangle {
+  width: 0;
+  height: 0;
+  border-color: black;
+  border-left: 1rem solid transparent;
+  border-right: 1rem solid transparent;
+}
+
+.triangle.up {
+  border-bottom: 1rem solid;
+}
+
+.triangle.down {
+  border-top: 1rem solid;
+}
+
+.App {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: "Press Start 2P", "Courier New", Courier, monospace;
+  font-weight: bold;
+  font-size: 12px;
+  position: relative;
+  z-index: 0;
+  width: 100%;
+}
+
+.introScreen-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  margin: auto;
+  height: 50vh;
+  color: white;
+}
+
+.title {
+  font-size: 3em;
+}
+
+.subtitle {
+  font-size: 1.5em;
+}
+
+#chat{
+  z-index: 100;
+  position: fixed;
+  bottom: 0;
+  right: 5em;
+  width: 25em;
+  background-color: #012716;
+  border-radius: 2px;
+  color: #44bc86;
+}
+
+#chat .chat-header{
+  color: #cccccc;
+  height: 2.5em;
+  padding: 0.5em 1em;
+  width: 100%;
+  background-color: #6e6e6e;
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+#chat .collapsible{
+  border: 2px solid #61746b;
+  border-bottom: none;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 30em;
+  padding: 1em 0.5em 0.5em 0.5em;
+}
+
+#chat .collapsible.collapsed{
+  height: 0;
+  padding: 0;
+}
+
+#chat .collapsible.waiting:after{
+  content: 'Waiting for other player to connect...';
+  padding: 2em 1em;
+  text-align: center;
+  z-index: 42;
+  position: absolute;
+  top: 2.5em;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(55,55,55,0.8);
+  justify-content: center;
+  align-items: center;
+  display: flex;
+}
+
+#chat .bubble{
+  font-size: 1.1em;
+  color: green;
+}
+
+#chat .bubble.disconnected{
+  color: red;
+}
+
+#chat .chat-intro{
+  text-align: center;
+  font-size: 0.8em;
+}
+
+#chat .chat-content{
+  flex-grow:1;
+  padding: 1em 1em;
+  overflow: auto;
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+#chat .chat-footer{
+  display: inline-flex;
+  justify-content: space-between;
+}
+
+#chat .input-container{
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+#chat input{
+  background-color: transparent;
+  border: none;
+  color:#44bc86;
+  cursor: none;
+  caret-color: transparent;
+}
+
+#chat input:focus-visible{
+  outline: none;
+}
+
+.caret{
+  background-color: #44bc86;
+  width: 1ch;
+  position: relative;
+  left: -1ch;
+}
+.caret.focused{
+  -webkit-animation: blink 1s step-end infinite;
+  animation: blink 1.5s step-end infinite;
+}
+
+@-webkit-keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+@keyframes blink {
+  0% { opacity: 1.0; }
+  50% { opacity: 0.0; }
+  100% { opacity: 1.0; }
+}
+
+#chat button{
+  color: #44bc86;
+  background-color: transparent;
+  border: none;
+}
+
+.settings-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 2rem;
+  padding: 2rem;
+  color: white;
+}
+
+#settings input {
+  width: 5vw;
+  text-align: center;
+}
+
+#settings input[type="number"]::-webkit-inner-spin-button,
+#settings input[type="number"]::-webkit-outer-spin-button {
+  opacity: 1;
+}
+
+#settings .button-container {
+  text-align: center;
+}
+
+#settings .button {
+  margin-bottom: 1rem;
+}
+
+#settings .button.disabled {
+  background-color: hsl(0deg 0% 73%);
+  color: rgba(16, 16, 16, 0.3);
+  margin-top: 1rem;
+  height: 2.5rem;
+  margin-right: 1rem;
+}
+
+#settings .hint {
+  font-size: 0.9em;
+}
+
+.unitSelection-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  background-color: white;
+  margin: 1rem 2rem;
+  padding: 2rem;
+}
+
+.taskForceSelector-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin: 7vh 0 0 0;
+}
+
+.taskForceSelector-unit {
+  width: 5vw;
+  margin: 0 2.5vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+}
+
+.error {
+  color: red;
+  font-size: 1.2em;
+  margin: 1rem 0;
+  min-height: 1.5em;
+}
+
+.unit-box {
+  background-color: white;
+  width: 150%;
+  padding: 0.5rem 0;
+}
+
+.unit-box > .unit > .unit-info {
+  width: 160%;
+}
+
+.unitPlacement {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  margin: 1rem 0rem;
+  padding: 2rem;
+  width: 50%;
+  position: absolute;
+  z-index: 100;
+  pointer-events: none;
+}
+
+.unitPlacement > .title {
+  position: relative;
+  background-color: white;
+  padding: 0.5rem 2rem;
+  font-size: 1em;
+}
+
+.unitPlacement.right {
+  transform: translate(30%, 0);
+}
+
+.unitPlacement.left {
+  transform: translate(-30%, 0);
+}
+
+.unitPlacement-container {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  width: 100%;
+  margin-top: 2rem;
+  margin-bottom: 3rem;
+}
+
+.unitPlacement.left > .unitPlacement-container {
+  flex-direction: row-reverse;
+  justify-content: end;
+}
+
+.unitPlacement-box {
+  position: relative;
+  width: 16%;
+  margin: 2% 2%;
+  padding: 0 1.4%;
+  background-color: white;
+}
+
+.unitPlacement-box > .unit {
+  opacity: 0.5;
+}
+
+.unitPlacement-box > .unit > .unit-sprite {
+  width: 120%;
+}
+
+.unitPlacement-box.selected {
+  opacity: 1;
+  box-shadow: 0px 0px 0px 0.7rem green;
+}
+
+@media only screen and (max-width: 800px) {
+  .unitPlacement-box.selected {
+    box-shadow: 0px 0px 0px 0.3rem green;
+  }
+}
+
+.unitPlacement-box.selected > .unit {
+  opacity: 1;
+}
+
+.main {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.teamPanel-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 0 3rem;
+  position: relative;
+  z-index: 0;
+}
+
+.teamPanel {
+  display: flex;
+  justify-content: space-evenly;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  /* background-color: gray; */
+}
+
+.teamPanel > .teamPanel-box {
+  margin: 0.5rem 0;
+  width: 80%;
+  z-index: 3;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.unitPanel-background {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  padding-top: 100%;
+  background-color: white;
+  outline: 0.5rem solid;
+}
+
+.unitPanel-foreground {
+  position: absolute;
+  width: 100%;
+  padding-top: 100%;
+  z-index: 200;
+  background-color: rgba(10, 10, 10, 0.5);
+}
+
+.unitPanel-foreground:before,
+.unitPanel-foreground:after {
+  position: absolute;
+  left: 2.2rem;
+  top: 0.9rem;
+  content: " ";
+  height: 3rem;
+  width: 0.5rem;
+  background-color: red;
+  z-index: 200;
+}
+.unitPanel-foreground:before {
+  transform: rotate(-45deg);
+}
+
+.unitPanel-foreground:after {
+  transform: rotate(45deg);
+}
+
+.unitPanel-background.p1 {
+  outline-color: #dce2ff;
+}
+
+.unitPanel-background.p2 {
+  outline-color: #ffdcdc;
+}
+
+.unitPanel-background.selected.p1 {
+  background-color: aquamarine;
+}
+
+.unitPanel-background.selected.p2 {
+  background-color: gold;
+}
+
+.game-container {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board {
+  position: relative;
+  width: 50%;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  background-color: #c3ffbd;
+  box-shadow: 0px 0px 0px 1.5rem white;
+}
+
+@media only screen and (max-width: 800px) {
+  .board {
+    box-shadow: 0px 0px 0px 0.8rem white;
+  }
+}
+
+.main.fight {
+  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+@keyframes shake {
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
+}
+
+.panel {
+  position: fixed;
+  transform: translate(-50%, 0);
+  top: 0;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+}
+
+.undo-button {
+  margin-top: 1rem;
+  height: 2.5rem;
+  background-color: lightslategrey;
+  color: white;
+}
+
+.fight-button{
+    margin-top: 1rem;
+    height: 2.5rem;
+    margin-right: 1rem;
+}
+
+.fight-button.inactive {
+  background-color: grey;
+  color: lightgray;
+}
+
+.fight-button.confirm {
+  background-color: #06a12f;
+  color: white;
+}
+
+.square {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 0;
+  padding-top: 91%;
+  /* height: 1.8rem;
+  width: 1.8rem; */
+  border: 0.06rem solid #f1fff0;
+  font-size: 0.7rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: 0.5s;
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+
+.board.p1 > .square-container > .square > .square-inside.opponent-can-reach {
+  background: repeating-linear-gradient(135deg, #ffd9004d, #ffd9004d 5px, #fce7724d 5px, #fce7724d 10px);
+}
+
+.board.p2 > .square-container > .square > .square-inside.opponent-can-reach {
+  background: repeating-linear-gradient(135deg, #5dfec880, #5dfec880 5px, #93ffdb80 5px, #93ffdb80 10px);
+}
+
+.square.active {
+  color: white;
+  z-index: 3;
+  border: 0;
+}
+
+.square.selected {
+  background-color: white;
+}
+
+.square.flag-zone {
+  background-color: #8bd475;
+}
+
+.square-inside {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.board.p1 > .square-container > .square > .square-inside.reachable {
+  background-color: aquamarine;
+}
+
+.board.p2 > .square-container > .square > .square-inside.reachable {
+  background-color: gold;
+}
+
+.board > .square-container > .square.selected > .square-inside.reachable {
+  background-color: white;
+}
+
+.square.forbidden {
+  background: repeating-linear-gradient(
+    45deg,
+    #cecece,
+    #cecece 5px,
+    #949494 5px,
+    #949494 10px
+  );
+}
+
+.board.p1 > .square.forbidden > .square-inside.reachable,
+.board.p2 > .square.forbidden > .square-inside.reachable {
+  background-color: transparent;
+}
+
+@media (hover: hover) {
+  .board.p1 > .square-container > .square > .square-inside.reachable:hover,
+  .board.p2 > .square-container > .square > .square-inside.reachable:hover,
+  .board.p1 > .square-container > .square > .square-inside.opponent-can-reach:hover,
+  .board.p2 > .square-container > .square > .square-inside.opponent-can-reach:hover,
+  .square-inside:hover {
+    background-color: hsl(114deg 80% 60% / 80%);
+    z-index: 4;
+  }
+}
+
+.square.contains-flag {
+  z-index: 3;
+  color: white;
+  padding: 0.2rem;
+  height: 100%;
+}
+
+.flag {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flag-image {
+  display: relative;
+  top: 0;
+  left: 0;
+  width: 200%;
+  height: 200%;
+  margin-bottom: 1rem;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.flag-image.with-player {
+  position: absolute;
+  top: -62%;
+  width: 150%;
+  z-index: -1;
+}
+
+.teamPanel > .teamPanel-box > .unit > .flag-image.with-player {
+  top: -22%;
+  left: 34%;
+  width: 67%;
+  z-index: -1;
+  margin: 0;
+  height: 100%;
+}
+
+.danger {
+  width: 40%;
+  height: 40%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0.7;
+  border-radius: 30px;
+}
+
+.danger.ghost {
+  opacity: 0;
+}
+
+.unit.ghost {
+  opacity: 0;
+  transition: 0.1s;
+}
+
+.unit {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.mirror {
+  -webkit-transform: scaleX(-1);
+  transform: scaleX(-1);
+}
+
+.unit-sprite {
+  position: relative;
+  z-index: 4;
+  width: 100%;
+  transition: 0.5s;
+}
+
+.square-inside > .unit > .unit-sprite {
+  width: 180%;
+}
+
+.unit-sprite > img {
+  position: relative;
+  z-index: 5;
+}
+
+.unit-info {
+  flex-shrink: 1;
+  font-size: 8px;
+  line-height: 0.9;
+  text-align: center;
+  background-color: white;
+  color: black;
+  font-weight: 800;
+}
+
+.infobar {
+  background-color: white;
+  margin: 1rem 3rem;
+  width: 50rem;
+}
+
+.info-container {
+  margin: 1rem;
+}
+
+button.active {
+  background-color: rgb(252, 0, 0);
+  color: white;
+  margin-top: 1rem;
+  height: 2.5rem;
+  margin-right: 1rem;
+}
+
+.gameOver-container {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  backdrop-filter: blur(5px);
+}
+
+.modal-container {
+  position: absolute;
+  z-index: 99;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  backdrop-filter: blur(5px);
+}
+
+.gameOver {
+  position: absolute;
+  width: 50%;
+  padding: 3rem;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+  background-color: white;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+
+.modalComponent {
+  position: absolute;
+  width: 50%;
+  padding: 3rem;
+  top: 50%;
+  right: 50%;
+  transform: translate(50%, -50%);
+  background-color: white;
+  z-index: 100;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-direction: column;
+}
+
+.gameOver > .question-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.modalComponent > .content-container {
+  display: flex;
+  flex-direction: column;
+}
+
+.question {
+  margin: 1rem 0;
+}
+
+.square.boom {
+  z-index: 10;
+}
+
+.square::after {
+  opacity: 0;
+  content: " ";
+  position: absolute;
+  transform: scale(1) rotate(0deg);
+  background-color: red;
+  height: 100%;
+  width: 100%;
+  transition: 0.5s;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.square::before {
+  opacity: 0;
+  content: " ";
+  position: absolute;
+  transform: scale(1) rotate(0deg);
+  background-color: red;
+  height: 100%;
+  width: 100%;
+  transform: scale(2) translate(-5px, -5px);
+  pointer-events: none;
+  z-index: 1000;
+}
+
+.square.boom::after {
+  animation: boom 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  opacity: 1;
+  transform: scale(3);
+}
+
+.square.boom::before {
+  animation: boom2 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  opacity: 1;
+  transform: translate(1px, 1px);
+}
+
+@keyframes boom {
+  10%,
+  90% {
+    transform: scale(2) translate3d(-5px, -5px, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 5px red;
+  }
+
+  20%,
+  80% {
+    transform: scale(8) translate(2px, 2px, 3rem);
+    background-color: orange;
+    box-shadow: 0 0 0 10px red;
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: scale(4) translate(0, 0, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 0 orange;
+  }
+
+  40%,
+  60% {
+    transform: scale(12) translate(-2px, 0, 4rem);
+    background-color: red;
+  }
+}
+
+@keyframes boom2 {
+  10%,
+  90% {
+    transform: scale(2) translate3d(2px, 2px, 1rem);
+    background-color: white;
+    box-shadow: 0 0 0 5px red;
+  }
+
+  20%,
+  80% {
+    transform: scale(3) translate(0px, 1px, 3rem);
+    background-color: orange;
+    box-shadow: 0 0 0 5px red;
+  }
+
+  30%,
+  50%,
+  70% {
+    transform: scale(10) translate(-1px, -1px, 2rem);
+    background-color: white;
+    box-shadow: 0 0 0 14px orange;
+  }
+
+  40%,
+  60% {
+    transform: scale(7) translate(-1px, 0, 5rem);
+    background-color: white;
+    box-shadow: 0 0 0 10px red;
+  }
+}
+
+/* Reconnection syncing overlay */
+.syncing-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.syncing-modal {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.syncing-modal h2 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+.syncing-modal p {
+  margin: 0 0 20px 0;
+  color: #666;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Room message screen - for blocked access */
+.room-message-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9998;
+}
+
+.room-message-content {
+  background: white;
+  padding: 40px;
+  border-radius: 8px;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  max-width: 400px;
+}
+
+.room-message-content p {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 18px;
+}
+
+.room-message-content .button {
+  margin-top: 10px;
+}
+
+.abandon-button {
+  position: fixed;
+  top: 12px;
+  right: 16px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+}
+
+.abandon-button:hover {
+  border-color: rgba(255, 80, 80, 0.6);
+  color: rgba(255, 80, 80, 0.8);
+}
+
+.abandon-confirm-buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 16px;
+}
+
+.abandon-confirm-buttons button {
+  height: 2.5rem;
+  margin-right: 1rem;
+  margin-top: 1rem;
+  color: white;
+}
+
+.abandon-confirm-buttons button.active {
+  background-color: rgb(252, 0, 0);
+}
+
+.abandon-confirm-buttons button:not(.active) {
+  background-color: lightslategrey;
+}

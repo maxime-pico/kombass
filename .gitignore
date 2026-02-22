@@ -1,0 +1,28 @@
+# Frontend
+frontend/node_modules
+frontend/build
+frontend/.env
+frontend/dist
+frontend/.DS_Store
+
+# Backend
+server/node_modules
+server/dist
+server/.env
+server/.DS_Store
+
+# Root
+node_modules/
+.DS_Store
+*.log
+.vscode/
+.claude/
+
+# IDE
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db

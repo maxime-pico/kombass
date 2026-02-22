@@ -1,0 +1,36 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_DB: kombass
+      POSTGRES_USER: kombass
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    restart: always
+    environment:
+      DATABASE_URL: postgresql://kombass:${DB_PASSWORD}@db:5432/kombass
+      NODE_ENV: production
+      PORT: 3000
+      FRONTEND_URL: https://kombass.maximepico.com
+    depends_on:
+      - db
+    expose:
+      - "3000"
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    restart: always
+    expose:
+      - "80"
+
+volumes:
+  postgres_data:
