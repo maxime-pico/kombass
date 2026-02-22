@@ -122,4 +122,5 @@ class GameService {
   }
 }
 
-export default new GameService();
+const gameService = new GameService();
+export default gameService;

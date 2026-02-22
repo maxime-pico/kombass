@@ -62,7 +62,7 @@ function Settings(props: SettingsProps) {
   useEffect(() => {
     handleGameStart();
     updateSettings();
-  }, []);
+  }, [handleGameStart, updateSettings]);
 
   return (
     <div>

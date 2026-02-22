@@ -1,4 +1,4 @@
-import React, { Component } from "react";
+import React from "react";
 import { UNITS } from "../utilities/dict";
 import Flag from "./Flag";
 import { IUnit } from "../App";

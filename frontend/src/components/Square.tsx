@@ -82,7 +82,7 @@ function Square(props: SquareProps) {
   useEffect(() => {
     const handleAnimateUnit = (e: Event) => {
       if (!isCustomEvent(e)) throw new Error("not a custom event");
-      const { player, unitIndex, fromX, fromY, toX, toY } = e.detail;
+      const { player, unitIndex, toX, toY } = e.detail;
 
       // Check if this unit is at the current square (original position)
       if (unit?.unit && player === unit.playerNumber && unitIndex === unit.unitNumber) {
@@ -115,7 +115,7 @@ function Square(props: SquareProps) {
     if (!animationPhase.isAnimating && animatedUnit) {
       setAnimatedUnit(null);
     }
-  }, [animationPhase.isAnimating]);
+  }, [animationPhase.isAnimating, animatedUnit]);
 
   // Add boom event listener with proper cleanup
   useEffect(() => {

@@ -36,7 +36,7 @@ function Panel(props: PanelProps) {
     }
   };
 
-  const _updateMoves = () => {
+  useEffect(() => {
     if (socketService.socket) {
       gameService.onUpdateMoves(
         socketService.socket,
@@ -45,11 +45,7 @@ function Panel(props: PanelProps) {
         }
       );
     }
-  };
-
-  useEffect(() => {
-    _updateMoves();
-  }, []);
+  }, [_updateMovesListener]);
 
   return (
     <div className="panel">

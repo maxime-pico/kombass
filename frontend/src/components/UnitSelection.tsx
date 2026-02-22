@@ -1,5 +1,4 @@
-import React, { useContext } from "react";
-import gameContext from "../gameContext";
+import React from "react";
 import TaskForceSelector from "./TaskForceSelector";
 
 interface UnitSelectionProps {
