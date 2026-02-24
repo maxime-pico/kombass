@@ -7,10 +7,14 @@ import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
+import TestHarness from "./components/TestHarness";
 import { UNITS, SPRITES } from "./utilities/dict";
 import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
+import { calculateCombatResults } from "./engine";
+import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
+import { loadScenario, scenarios } from "./engine/scenarioLoader";
 
 export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
@@ -131,6 +135,7 @@ interface AppState {
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
   isSyncing: boolean;
+  isTestScenario: boolean;
 }
 
 class App extends Component<AppProps, AppState> {
@@ -205,6 +210,7 @@ class App extends Component<AppProps, AppState> {
         deadUnits: new Set(),
       },
       isSyncing: false,
+      isTestScenario: false,
     };
 
     this._applyBufferedMoves = this._applyBufferedMoves.bind(this);
@@ -650,296 +656,39 @@ class App extends Component<AppProps, AppState> {
   };
 
   _buildAnimationQueue = (): Array<IAnimationItem> => {
-    const myUnits = this.state.units[this.state.isPlayer];
-    const myFutureUnits = this.state.futureUnits[this.state.isPlayer];
-    const opponentNumber = (this.state.isPlayer + 1) % 2;
-    const opponentUnits = this.state.units[opponentNumber];
-    const opponentFutureUnits = this.state.futureUnits[opponentNumber];
-
-    // Build arrays for each player
-    const player1Animations: Array<IAnimationItem> = myUnits
-      .map((unit, index) => ({
-        player: this.state.isPlayer,
-        unitIndex: index,
-        unit: myFutureUnits[index],
-        fromX: unit.x,
-        fromY: unit.y,
-        toX: myFutureUnits[index]?.x ?? unit.x,
-        toY: myFutureUnits[index]?.y ?? unit.y,
-      }))
-      .filter((item) => item.unit && item.unit.life > 0) // Dead units don't animate
-      .sort((a, b) => {
-        if (a.fromY !== b.fromY) return a.fromY - b.fromY; // y ascending
-        return a.fromX - b.fromX; // then x ascending
-      });
-
-    const player2Animations: Array<IAnimationItem> = opponentUnits
-      .map((unit, index) => ({
-        player: opponentNumber as 0 | 1,
-        unitIndex: index,
-        unit: opponentFutureUnits[index],
-        fromX: unit.x,
-        fromY: unit.y,
-        toX: opponentFutureUnits[index]?.x ?? unit.x,
-        toY: opponentFutureUnits[index]?.y ?? unit.y,
-      }))
-      .filter((item) => item.unit && item.unit.life > 0)
-      .sort((a, b) => {
-        if (a.fromY !== b.fromY) return a.fromY - b.fromY;
-        return a.fromX - b.fromX;
-      });
-
-    // Interleave arrays: P1[0], P2[0], P1[1], P2[1], ...
-    const queue: Array<IAnimationItem> = [];
-    const maxLength = Math.max(player1Animations.length, player2Animations.length);
-    for (let i = 0; i < maxLength; i++) {
-      if (player1Animations[i]) queue.push(player1Animations[i]);
-      if (player2Animations[i]) queue.push(player2Animations[i]);
-    }
-
-    console.log("Animation queue built:", queue);
-    return queue;
+    return buildAnimationQueue({
+      units: this.state.units,
+      futureUnits: this.state.futureUnits,
+      flags: this.state.flags,
+      isPlayer: this.state.isPlayer,
+      unitsCount: this.state.unitsCount,
+    });
   };
 
   _calculateCombatResults = () => {
-    let futureUnits = [...this.state.futureUnits];
-    let myFutureUnits = [...futureUnits[this.state.isPlayer]];
-    let opponentNumber = (this.state.isPlayer + 1) % 2;
-    let futureOpponentUnits = [...futureUnits[opponentNumber]];
-    let flags = [...this.state.flags];
-
-    myFutureUnits.forEach((myUnit, my_unit_index) => {
-      // for each of my units
-      let life = myUnit?.life;
-      let strength = myUnit?.strength;
-      let embuscade = false;
-      let embuscadeBack = false;
-      let damageTaken = 0;
-      let x = myUnit?.x;
-      let y = myUnit?.y;
-      // Go through the opponent's units and see if there is a potential fight with current moved unit
-      futureOpponentUnits.forEach((opponentUnit, unit_index) => {
-        // Only consider living units at beginning of turn
-        if (this.state.units[opponentNumber][unit_index]?.life > 0) {
-          let inFlagZone = false;
-          let a = opponentUnit?.x;
-          let b = opponentUnit?.y;
-          let opponentStrength = opponentUnit?.strength;
-          // Handle special case where one or two of the units is a light unit and has different range
-          if (opponentStrength === 1 && strength === 1) {
-            embuscadeBack = Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= 2;
-            embuscade = Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= 2;
-          } else {
-            if (strength === 1) {
-              embuscadeBack =
-                Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <= strength ** 2;
-            } else {
-              embuscadeBack = Math.abs(x - a) + Math.abs(y - b) <= strength;
-            }
-            if (opponentStrength === 1) {
-              embuscade =
-                Math.abs(x - a) ** 2 + Math.abs(y - b) ** 2 <=
-                opponentStrength ** 2;
-            } else {
-              embuscade =
-                Math.abs(x - a) + Math.abs(y - b) <= opponentStrength;
-            }
-          }
-
-          // Now check if any of the units is in a flag zone, as they would then be invincible
-          flags.forEach((flag, flag_index) => {
-            inFlagZone =
-              inFlagZone ||
-              Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3 ||
-              Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3;
-          });
-
-          // if that is not the case, then process damages
-          if (!inFlagZone) {
-            // for the opposing unit
-            if (embuscadeBack) {
-              console.log("EMBUSCADE BACK!!");
-              opponentUnit = {
-                ...opponentUnit,
-                x: a,
-                y: b,
-                life: opponentUnit?.life - strength,
-              };
-              futureOpponentUnits[unit_index] = opponentUnit;
-              // NOTE: boom events now handled by animation system
-            }
-            // as well as for our own unit
-            if (embuscade) {
-              console.log("EMBUSCADE!!");
-              damageTaken = damageTaken + opponentStrength;
-              // NOTE: boom events now handled by animation system
-            }
-          }
-        } else {
-          opponentUnit = { ...this.state.units[opponentNumber][unit_index] };
-          futureOpponentUnits[unit_index] = opponentUnit;
-        }
-      });
-      // Build the updated information
-      myUnit = {
-        ...myUnit,
-        life: life - damageTaken,
-      };
-      myFutureUnits[my_unit_index] = myUnit;
-    });
-
-    // make sure no units end up missing
-    this.state.units[this.state.isPlayer].forEach((myUnit, myUnit_index) => {
-      if (myUnit?.life < 1) myFutureUnits[myUnit_index] = myUnit;
-      if (myUnit === null)
-        myFutureUnits[myUnit_index] = {
-          x: -1,
-          y: -1,
-          life: -1,
-          strength: 0,
-          speed: 0,
-          hasFlag: false,
-        };
-    });
-
-    // log new units positions
-    let newFutureUnits: Array<Array<IUnit>> = [];
-    newFutureUnits[this.state.isPlayer] = myFutureUnits;
-    newFutureUnits[opponentNumber] = futureOpponentUnits;
-
-    // check how to update flags as a result
-    this.state.units.forEach((playerUnits, playerIndex) => {
-      playerUnits.forEach((element, index) => {
-        let hadFlag = element.hasFlag;
-        let opponentFlag = flags[(playerIndex + 1) % 2];
-        if (hadFlag && newFutureUnits[playerIndex][index]?.life < 1) {
-          opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: true };
-          flags[(playerIndex + 1) % 2] = opponentFlag;
-        } else if (
-          !hadFlag &&
-          newFutureUnits[playerIndex][index]?.hasFlag &&
-          newFutureUnits[playerIndex][index]?.life > 0
-        ) {
-          opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: false };
-          flags[(playerIndex + 1) % 2] = opponentFlag;
-        }
-      });
-    });
-
-    // Find first living unit to start next round
-    let firstLivingUnitIndex = 0;
-    for (let i = 0; i < this.state.unitsCount; i++) {
-      if (myFutureUnits[i]?.life > 0) {
-        firstLivingUnitIndex = i;
-        break;
-      }
-    }
-
-    console.log("newFutureUnits (result):", JSON.stringify(newFutureUnits));
     console.log(`=== COMBAT CALC END (Player ${this.state.isPlayer}, Round ${this.state.round}) ===`);
-
-    return {
-      newFutureUnits,
-      flags,
-      firstLivingUnitIndex,
-    };
+    const result = calculateCombatResults({
+      units: this.state.units,
+      futureUnits: this.state.futureUnits,
+      flags: this.state.flags,
+      isPlayer: this.state.isPlayer,
+      unitsCount: this.state.unitsCount,
+    });
+    console.log("newFutureUnits (result):", JSON.stringify(result.newFutureUnits));
+    return result;
   };
 
   _buildBoomQueue = (animationQueue: Array<IAnimationItem>): Array<IBoomEvent> => {
-    const myFutureUnits = this.state.futureUnits[this.state.isPlayer];
-    const opponentNumber = (this.state.isPlayer + 1) % 2;
-    const opponentFutureUnits = this.state.futureUnits[opponentNumber];
-    const flags = this.state.flags;
-
-    // Helper: Find animation index for a unit
-    const findAnimationIndex = (player: number, unitIndex: number): number => {
-      return animationQueue.findIndex(
-        (anim) => anim.player === player && anim.unitIndex === unitIndex
-      );
-    };
-
-    // Temporary map to collect booms by location
-    // Key: "x_y", Value: Array of trigger indices for booms at that location
-    const boomsByLocation = new Map<string, Array<number>>();
-
-    // Helper: Add boom to map
-    const addBoom = (x: number, y: number, triggerIndex: number) => {
-      const key = `${x}_${y}`;
-      if (!boomsByLocation.has(key)) {
-        boomsByLocation.set(key, []);
-      }
-      boomsByLocation.get(key)!.push(triggerIndex);
-    };
-
-    // ORIGINAL PAIR-BASED LOGIC: Iterate through all unit pairs
-    myFutureUnits.forEach((myUnit, my_unit_index) => {
-      if (!myUnit || myUnit.life <= 0) return;
-
-      const myAnimIndex = findAnimationIndex(this.state.isPlayer, my_unit_index);
-      if (myAnimIndex === -1) return;
-
-      opponentFutureUnits.forEach((opponentUnit, opponent_unit_index) => {
-        if (!opponentUnit || opponentUnit.life <= 0) return;
-
-        const opponentAnimIndex = findAnimationIndex(opponentNumber, opponent_unit_index);
-        if (opponentAnimIndex === -1) return;
-
-        const a = myUnit.x;
-        const b = myUnit.y;
-        const x = opponentUnit.x;
-        const y = opponentUnit.y;
-
-        // Check if in flag zone (invincible)
-        let inFlagZone = false;
-        flags.forEach((flag) => {
-          inFlagZone = inFlagZone || Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3;
-          inFlagZone = inFlagZone || Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3;
-        });
-
-        if (inFlagZone) return;
-
-        // Calculate distance
-        const xdistance = Math.abs(a - x);
-        const ydistance = Math.abs(b - y);
-        let inRange = false;
-
-        // Combat range logic (original)
-        if (myUnit.strength === 1 && opponentUnit.strength === 1) {
-          inRange = xdistance * xdistance + ydistance * ydistance <= 2;
-        } else if (myUnit.strength === 1) {
-          inRange = xdistance * xdistance + ydistance * ydistance <= 2;
-        } else if (opponentUnit.strength === 1) {
-          inRange = xdistance * xdistance + ydistance * ydistance <= 2;
-        } else {
-          inRange = (xdistance + ydistance) <= Math.max(myUnit.strength, opponentUnit.strength);
-        }
-
-        if (inRange) {
-          // Boom trigger index is max of both units' animation indices
-          const triggerIndex = Math.max(myAnimIndex, opponentAnimIndex);
-
-          // Add booms at both units' locations
-          addBoom(a, b, triggerIndex);
-          addBoom(x, y, triggerIndex);
-        }
-      });
-    });
-
-    // DEDUPLICATION: For each location, create single boom with max trigger index
-    const boomQueue: Array<IBoomEvent> = [];
-    boomsByLocation.forEach((triggerIndices, locationKey) => {
-      const [x, y] = locationKey.split('_').map(Number);
-      const maxTriggerIndex = Math.max(...triggerIndices);
-
-      boomQueue.push({
-        afterAnimationIndex: maxTriggerIndex,
-        x,
-        y
-      });
-    });
-
-    console.log("Boom queue built:", boomQueue);
-    return boomQueue;
+    return buildBoomQueue(
+      {
+        units: this.state.units,
+        futureUnits: this.state.futureUnits,
+        flags: this.state.flags,
+        isPlayer: this.state.isPlayer,
+        unitsCount: this.state.unitsCount,
+      },
+      animationQueue
+    );
   };
 
   _runAnimationSequence = async () => {
@@ -1101,6 +850,16 @@ class App extends Component<AppProps, AppState> {
       // Build animation queue
       const animationQueue = this._buildAnimationQueue();
       const boomQueue = this._buildBoomQueue(animationQueue);
+
+      // [LOCATION D] Log queue sizes (test mode only)
+      if (process.env.REACT_APP_TEST_MODE === "true") {
+        console.log(`[APPLY] animationQueue size: ${animationQueue.length}, boomQueue size: ${boomQueue.length}`);
+        if (boomQueue.length === 0) {
+          console.warn(
+            "[APPLY] ⚠ Boom queue is EMPTY — no combat animations will fire"
+          );
+        }
+      }
 
       // Calculate combat results (but don't apply yet)
       const combatResults = this._calculateCombatResults();
@@ -1347,6 +1106,46 @@ class App extends Component<AppProps, AppState> {
       sprite.forEach((url) => preloading(url));
     });
 
+    if (process.env.REACT_APP_TEST_MODE === "true") {
+      (window as any).__KOMBASS_TEST_API__ = {
+        loadScenario: (scenarioNameOrIndex: string | number) => {
+          const scenario =
+            typeof scenarioNameOrIndex === "number"
+              ? scenarios[scenarioNameOrIndex]
+              : scenarios.find((s) => s.name === scenarioNameOrIndex);
+          if (!scenario) {
+            console.error("Unknown scenario:", scenarioNameOrIndex);
+            return;
+          }
+          const loaded = loadScenario(scenario);
+          this.setState({
+            units: loaded.units,
+            futureUnits: loaded.futureUnits,
+            flags: loaded.flags,
+            unitsCount: loaded.unitsCount,
+            isPlayer: loaded.isPlayer,
+            step: loaded.step,
+            gameStarted: true,
+            ready: [true, true],
+            isTestScenario: loaded.isTestScenario || false,
+          });
+        },
+        getState: () => ({ ...this.state }),
+        triggerCombat: () => this._calculateCombatResults(),
+        setStep: (step: number) => this.setState({ step }),
+        getScenarios: () => scenarios.map((s, i) => ({ index: i, name: s.name, description: s.description })),
+      };
+
+      // Auto-load scenario from sessionStorage if present
+      const storedScenario = sessionStorage.getItem("KOMBASS_TEST_SCENARIO");
+      if (storedScenario) {
+        sessionStorage.removeItem("KOMBASS_TEST_SCENARIO");
+        setTimeout(() => {
+          (window as any).__KOMBASS_TEST_API__.loadScenario(storedScenario);
+        }, 0);
+      }
+    }
+
     // Check for room ID in URL
     const roomId = this.extractRoomIdFromUrl();
     if (roomId) {
@@ -1371,6 +1170,11 @@ class App extends Component<AppProps, AppState> {
   }
 
   render() {
+    // Render test harness if in test mode and on /test route
+    if (process.env.REACT_APP_TEST_MODE === "true" && window.location.pathname === "/test") {
+      return <TestHarness />;
+    }
+
     return (
       <GameContext.Provider value={this.state}>
         <div className="App">
@@ -1397,6 +1201,19 @@ class App extends Component<AppProps, AppState> {
                 <p>Restoring game state</p>
                 <div className="spinner"></div>
               </div>
+            </div>
+          )}
+
+          {/* Test scenario play button */}
+          {this.state.isTestScenario && this.state.step === this.state.unitsCount && (
+            <div style={{ position: "fixed", top: "20px", right: "20px", zIndex: 1000 }}>
+              <button
+                className="button active"
+                onClick={() => this._applyMoves()}
+                style={{ padding: "10px 20px", fontSize: "16px" }}
+              >
+                ▶ Play Combat
+              </button>
             </div>
           )}
 
