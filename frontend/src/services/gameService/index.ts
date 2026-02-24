@@ -1,5 +1,6 @@
 import { Socket } from "socket.io-client";
 import { IUnit } from "../../App";
+import type { UnitConfig } from "../../utilities/dict";
 
 class GameService {
   public authenticate(socket: Socket, sessionToken: string): void {
@@ -35,6 +36,7 @@ class GameService {
       boardLength: number;
       placementZone: number;
       unitsCount: number;
+      unitConfig?: UnitConfig;
     }
   ) {
     socket.emit("update_settings", settings);
@@ -47,6 +49,7 @@ class GameService {
       boardLength: number;
       placementZone: number;
       unitsCount: number;
+      unitConfig?: UnitConfig;
     }) => void
   ) {
     socket.on(
@@ -56,6 +59,7 @@ class GameService {
         boardLength: number;
         placementZone: number;
         unitsCount: number;
+        unitConfig?: UnitConfig;
       }) => listener(settings)
     );
   }

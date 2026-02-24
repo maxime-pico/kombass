@@ -8,7 +8,7 @@ import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
 import TestHarness from "./components/TestHarness";
-import { UNITS, SPRITES } from "./utilities/dict";
+import { UNITS, SPRITES, defaultUnitConfig, UnitConfig } from "./utilities/dict";
 import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
@@ -25,6 +25,7 @@ export type IUnit = {
   y: number;
   life: number;
   hasFlag: boolean;
+  unitType: number; // 0=light, 1=medium, 2=heavy (sprite/cycling index, decoupled from stats)
 };
 export type ISelectedUnit = {
   playerNumber: number;
@@ -37,6 +38,7 @@ export type IGameSettings = {
   boardLength: number;
   placementZone: number;
   unitsCount: number;
+  unitConfig?: UnitConfig;
 };
 
 export type IAnimationItem = {
@@ -95,6 +97,7 @@ interface AppState {
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
+  _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setSelectedUnit: (
     playerNumber: number,
     unitNumber: number,
@@ -132,6 +135,7 @@ interface AppState {
   step: number;
   units: Array<Array<IUnit>>;
   unitsCount: number;
+  unitConfig: UnitConfig;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
   isSyncing: boolean;
@@ -155,6 +159,7 @@ class App extends Component<AppProps, AppState> {
       _setIsAdmin: this._setIsAdmin,
       _setIsPlayer: this._setIsPlayer,
       _setPlacementZone: this._setPlacementZone,
+      _setUnitConfig: this._setUnitConfig,
       _setSelectedUnit: this._setSelectedUnit,
       _setUnitCount: this._setUnitCount,
       _setWaitingForMoves: this._setWaitingForMoves,
@@ -198,9 +203,11 @@ class App extends Component<AppProps, AppState> {
           y: 6,
           life: 1,
           hasFlag: false,
+          unitType: 0,
         })
       ),
       unitsCount: 5,
+      unitConfig: defaultUnitConfig(),
       waitingForMoves: [false, false],
       animationPhase: {
         isAnimating: false,
@@ -230,6 +237,7 @@ class App extends Component<AppProps, AppState> {
     this._setIsAdmin = this._setIsAdmin.bind(this);
     this._setIsPlayer = this._setIsPlayer.bind(this);
     this._setPlacementZone = this._setPlacementZone.bind(this);
+    this._setUnitConfig = this._setUnitConfig.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
     this._setUnitCount = this._setUnitCount.bind(this);
     this._startGame = this._startGame.bind(this);
@@ -353,6 +361,7 @@ class App extends Component<AppProps, AppState> {
           y: 6,
           life: 1,
           hasFlag: false,
+          unitType: 0,
         })
       ),
       futureUnits: [Array(count).fill(null), Array(count).fill(null)],
@@ -383,6 +392,23 @@ class App extends Component<AppProps, AppState> {
   _setPlacementZone = (width: number) => {
     this.setState({
       placementZone: width,
+    });
+  };
+
+  _setUnitConfig = (unitConfig: UnitConfig) => {
+    console.log("[_setUnitConfig] Custom unit config set:", unitConfig);
+    const unitNames = ["light", "medium", "heavy"] as const;
+    const updatedUnits = this.state.units.map((playerUnits) =>
+      playerUnits.map((unit) => {
+        if (!unit) return unit;
+        const unitName = unitNames[unit.unitType ?? 0] as keyof UnitConfig;
+        const stats = unitConfig[unitName];
+        return { ...unit, strength: stats.strength, speed: stats.speed, life: stats.life };
+      })
+    );
+    this.setState({
+      unitConfig: unitConfig,
+      units: updatedUnits,
     });
   };
 
@@ -445,11 +471,16 @@ class App extends Component<AppProps, AppState> {
     let currentPlayerUnit = currentPlayerUnits[unitIndex];
     let newIndex =
       currentType === 0 && direction === -1 ? 2 : (currentType + direction) % 3;
+    const unitNames = ["light", "medium", "heavy"] as const;
+    const unitName = unitNames[newIndex] as keyof UnitConfig;
+    const unitStats = this.state.unitConfig[unitName];
+    console.log(`[_circleUnit] Player ${playerIndex}, Unit ${unitIndex}: changing to ${unitName}`, unitStats);
     currentPlayerUnit = {
       ...currentPlayerUnit,
-      strength: UNITS[newIndex]?.strength,
-      speed: UNITS[newIndex]?.speed,
-      life: UNITS[newIndex]?.life,
+      unitType: newIndex,
+      strength: unitStats.strength,
+      speed: unitStats.speed,
+      life: unitStats.life,
     };
     currentPlayerUnits[unitIndex] = currentPlayerUnit;
     units[playerIndex] = currentPlayerUnits;

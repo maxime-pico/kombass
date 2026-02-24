@@ -18,11 +18,12 @@ function Unit(props: UnitProps) {
     y: 0,
     life: 0,
     hasFlag: false,
+    unitType: 0,
   };
   let isGhost = props.isGhost ? " ghost" : "";
   const playerIndex = props.playerIndex || 0;
   const hasFlag = unit?.hasFlag;
-  const unitSprite = UNITS[unit ? unit.strength - 1 : 0]?.svg[playerIndex || 0];
+  const unitSprite = UNITS[unit ? (unit.unitType ?? 0) : 0]?.svg[playerIndex || 0];
   const displayUnitInfo = props.displayUnitInfo ? true : false;
   let containsFlag = [];
   containsFlag[(playerIndex + 1) % 2] = hasFlag;

@@ -14,7 +14,7 @@ function UnitSelector(props: UnitSelectorProps) {
   const unit = props.unit;
   const playerIndex = props.playerIndex;
   const unitIndex = props.unitIndex;
-  const currentType = unit.strength - 1;
+  const currentType = unit.unitType ?? 0;
   return unit ? (
     <div className="taskForceSelector-unit">
       <div

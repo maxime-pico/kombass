@@ -12,6 +12,7 @@ function unit(overrides: Partial<IUnit> = {}): IUnit {
     speed: 3,
     life: 1,
     hasFlag: false,
+    unitType: 0,
     ...overrides,
   };
 }

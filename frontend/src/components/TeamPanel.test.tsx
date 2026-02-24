@@ -5,10 +5,10 @@ import { IUnit, ISelectedUnit } from '../App';
 
 describe('TeamPanel Component', () => {
   const mockUnits: Array<IUnit> = [
-    { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false }, // Heavy - alive
-    { x: 1, y: 1, life: 2, strength: 2, speed: 2, hasFlag: true },  // Medium - alive with flag
-    { x: 2, y: 2, life: 0, strength: 1, speed: 3, hasFlag: false }, // Light - dead
-    { x: 3, y: 3, life: 1, strength: 1, speed: 3, hasFlag: false }, // Light - alive
+    { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false, unitType: 2 }, // Heavy - alive
+    { x: 1, y: 1, life: 2, strength: 2, speed: 2, hasFlag: true, unitType: 1 },  // Medium - alive with flag
+    { x: 2, y: 2, life: 0, strength: 1, speed: 3, hasFlag: false, unitType: 0 }, // Light - dead
+    { x: 3, y: 3, life: 1, strength: 1, speed: 3, hasFlag: false, unitType: 0 }, // Light - alive
   ];
 
   const defaultSelectedUnit: ISelectedUnit = {
@@ -67,9 +67,9 @@ describe('TeamPanel Component', () => {
   describe('Null Unit Handling', () => {
     test('skips rendering null units', () => {
       const unitsWithNull: Array<IUnit | null> = [
-        { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false },
+        { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false, unitType: 2 },
         null,
-        { x: 2, y: 2, life: 2, strength: 2, speed: 2, hasFlag: false },
+        { x: 2, y: 2, life: 2, strength: 2, speed: 2, hasFlag: false, unitType: 1 },
         null,
       ];
 
@@ -162,9 +162,9 @@ describe('TeamPanel Component', () => {
 
     test('does not show overlay for alive units', () => {
       const aliveUnits: Array<IUnit> = [
-        { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false },
-        { x: 1, y: 1, life: 2, strength: 2, speed: 2, hasFlag: false },
-        { x: 2, y: 2, life: 1, strength: 1, speed: 3, hasFlag: false },
+        { x: 0, y: 0, life: 3, strength: 3, speed: 1, hasFlag: false, unitType: 2 },
+        { x: 1, y: 1, life: 2, strength: 2, speed: 2, hasFlag: false, unitType: 1 },
+        { x: 2, y: 2, life: 1, strength: 1, speed: 3, hasFlag: false, unitType: 0 },
       ];
 
       const { container } = render(

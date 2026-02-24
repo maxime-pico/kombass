@@ -1,5 +1,7 @@
 import React from "react";
 import { IUnit, ISelectedUnit, IFlag, IPlayers, IAnimationPhase } from "./App";
+import type { UnitConfig } from "./utilities/dict";
+import { defaultUnitConfig } from "./utilities/dict";
 
 export function dispatchCustomEvent(eventType: string, data: any) {
   const event = new CustomEvent(eventType, { detail: data });
@@ -35,6 +37,7 @@ export interface IGameContextProps {
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
+  _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setSelectedUnit: (
     playerNumber: number,
     unitNumber: number,
@@ -69,6 +72,7 @@ export interface IGameContextProps {
   step: number;
   units: Array<Array<IUnit>>;
   unitsCount: number;
+  unitConfig: UnitConfig;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
 }
@@ -88,6 +92,7 @@ const defaultState: IGameContextProps = {
   _setIsAdmin: () => {},
   _setIsPlayer: () => {},
   _setPlacementZone: () => {},
+  _setUnitConfig: () => {},
   _setSelectedUnit: () => {},
   _setUnitCount: () => {},
   _setWaitingForMoves: () => {},
@@ -127,9 +132,11 @@ const defaultState: IGameContextProps = {
       y: 6,
       life: 1,
       hasFlag: false,
+      unitType: 0,
     })
   ),
   unitsCount: 5,
+  unitConfig: defaultUnitConfig(),
   waitingForMoves: [false, false],
   animationPhase: {
     isAnimating: false,
