@@ -25,6 +25,9 @@ interface GameStates {
   shake: boolean;
   abandonConfirm: boolean;
   opponentAbandoned: number | null;
+  rating: number | null;
+  ratingHover: number | null;
+  modalStep: 1 | 2 | 3 | null;
 }
 
 class Game extends Component<GameProps, GameStates> {
@@ -35,6 +38,9 @@ class Game extends Component<GameProps, GameStates> {
       shake: false,
       abandonConfirm: false,
       opponentAbandoned: null,
+      rating: null,
+      ratingHover: null,
+      modalStep: null,
     };
     this._screenShake = this._screenShake.bind(this);
     this._confirmAbandon = this._confirmAbandon.bind(this);
@@ -131,6 +137,7 @@ class Game extends Component<GameProps, GameStates> {
       window.setTimeout(() => {
         this.setState({
           gameOver: gameOver,
+          modalStep: 1,
         });
         if (socketService.socket) {
           gameService.gameWin(socketService.socket, gameOver);
@@ -140,7 +147,7 @@ class Game extends Component<GameProps, GameStates> {
   }
 
   render() {
-    if (!this.state.gameOver) {
+    if (!this.state.modalStep) {
       this._isGameOver();
     }
 
@@ -155,21 +162,76 @@ class Game extends Component<GameProps, GameStates> {
 
     return (
       <div className="game-container">
-        {this.state.gameOver && (
-          <Modal
-            title={"Game Over"}
-            subtitle={this.state.gameOver}
-            content={
-              "Don't tell me you think war is cool and you want to play again..."
-            }
-            action={() => {
-              const match = window.location.pathname.match(/^\/game\/([a-z0-9]+)$/i);
-              if (match) {
-                localStorage.removeItem(`kombass_session_token_${match[1]}`);
-              }
-              window.location.assign("/");
-            }}
-          />
+        {this.state.modalStep !== null && (
+          <div className="modal-container">
+            <div className="modalComponent">
+              {this.state.modalStep === 1 && (
+                <>
+                  <div className="title">Game Over</div>
+                  <div className="subtitle">{this.state.gameOver}</div>
+                  <button
+                    className="button active"
+                    onClick={() => this.setState({ modalStep: 2 })}
+                  >
+                    Next
+                  </button>
+                </>
+              )}
+              {this.state.modalStep === 2 && (
+                <>
+                  <div className="rating-label">How fun was that?</div>
+                  <div className="rating-stars">
+                    {[1,2,3,4,5,6,7,8,9,10].map((n) => {
+                      const filled = (this.state.ratingHover ?? this.state.rating ?? 0) >= n;
+                      return (
+                        <span
+                          key={n}
+                          className={`rating-heart${filled ? " filled" : ""}`}
+                          onMouseEnter={() => this.setState({ ratingHover: n })}
+                          onMouseLeave={() => this.setState({ ratingHover: null })}
+                          onClick={() => this.setState({ rating: n })}
+                          role="button"
+                          aria-label={`Rate ${n} out of 10`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <button
+                    className="button active"
+                    onClick={() => {
+                      if (this.state.rating !== null && socketService.socket) {
+                        gameService.submitRating(socketService.socket, this.state.rating, this.props.playerNumber);
+                      }
+                      this.setState({ modalStep: 3 });
+                    }}
+                  >
+                    {this.state.rating !== null ? "Submit" : "Skip"}
+                  </button>
+                </>
+              )}
+              {this.state.modalStep === 3 && (
+                <>
+                  <div className="subtitle">
+                    {this.state.rating !== null
+                      ? `Thanks for the ${this.state.rating}/10!`
+                      : "See you next time!"}
+                  </div>
+                  <button
+                    className="button active"
+                    onClick={() => {
+                      const match = window.location.pathname.match(/^\/game\/([a-z0-9]+)$/i);
+                      if (match) {
+                        localStorage.removeItem(`kombass_session_token_${match[1]}`);
+                      }
+                      window.location.assign("/");
+                    }}
+                  >
+                    Go Home
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         )}
         {!this.props.ready.reduce((a, b) => a && b) && (
           <Modal
@@ -226,7 +288,7 @@ class Game extends Component<GameProps, GameStates> {
             selectedUnit={this.props.selectedUnit}
           />
         </div>
-        {!this.state.gameOver && this.state.opponentAbandoned === null && (
+        {this.state.modalStep === null && this.state.opponentAbandoned === null && (
           <button
             className="abandon-button"
             onClick={() => this.setState({ abandonConfirm: true })}
