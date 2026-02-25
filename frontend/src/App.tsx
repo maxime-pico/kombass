@@ -20,6 +20,7 @@ export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
 export type IUnit = {
   strength: number;
+  range: number;
   speed: number;
   x: number;
   y: number;
@@ -198,6 +199,7 @@ class App extends Component<AppProps, AppState> {
       units: Array(2).fill(
         Array(5).fill({
           strength: 1,
+          range: 1,
           speed: 3,
           x: 12,
           y: 6,
@@ -266,6 +268,7 @@ class App extends Component<AppProps, AppState> {
     if (socket) {
       this._handlePlayerReady();
       this._handleGameStart();
+      this._handleSettingsUpdated();
     }
   };
 
@@ -356,6 +359,7 @@ class App extends Component<AppProps, AppState> {
       units: Array(2).fill(
         Array(count).fill({
           strength: 1,
+          range: 1,
           speed: 3,
           x: 12,
           y: 6,
@@ -398,17 +402,16 @@ class App extends Component<AppProps, AppState> {
   _setUnitConfig = (unitConfig: UnitConfig) => {
     console.log("[_setUnitConfig] Custom unit config set:", unitConfig);
     const unitNames = ["light", "medium", "heavy"] as const;
-    const updatedUnits = this.state.units.map((playerUnits) =>
-      playerUnits.map((unit) => {
-        if (!unit) return unit;
-        const unitName = unitNames[unit.unitType ?? 0] as keyof UnitConfig;
-        const stats = unitConfig[unitName];
-        return { ...unit, strength: stats.strength, speed: stats.speed, life: stats.life };
-      })
-    );
-    this.setState({
-      unitConfig: unitConfig,
-      units: updatedUnits,
+    this.setState((prevState) => {
+      const updatedUnits = prevState.units.map((playerUnits) =>
+        playerUnits.map((unit) => {
+          if (!unit) return unit;
+          const unitName = unitNames[unit.unitType ?? 0] as keyof UnitConfig;
+          const stats = unitConfig[unitName];
+          return { ...unit, strength: stats.strength, speed: stats.speed, life: stats.life };
+        })
+      );
+      return { unitConfig, units: updatedUnits };
     });
   };
 
@@ -479,6 +482,7 @@ class App extends Component<AppProps, AppState> {
       ...currentPlayerUnit,
       unitType: newIndex,
       strength: unitStats.strength,
+      range: unitStats.range,
       speed: unitStats.speed,
       life: unitStats.life,
     };
@@ -955,6 +959,19 @@ class App extends Component<AppProps, AppState> {
 
         // Register opponent reconnection listener
         this._handleOpponentReconnected();
+      });
+    }
+  };
+
+  _handleSettingsUpdated = () => {
+    if (socketService.socket) {
+      gameService.updateSettings(socketService.socket, (settings) => {
+        this._setBoardSize(settings.boardLength, settings.boardWidth);
+        this._setPlacementZone(settings.placementZone);
+        this._setUnitCount(settings.unitsCount);
+        if (settings.unitConfig) {
+          this._setUnitConfig(settings.unitConfig);
+        }
       });
     }
   };
