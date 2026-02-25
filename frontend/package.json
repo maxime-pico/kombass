@@ -1,6 +1,6 @@
 {
   "name": "kombass",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^6.9.1",
@@ -23,8 +23,10 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "start:test": "REACT_APP_TEST_MODE=true react-scripts start",
+    "build": "REACT_APP_VERSION=$npm_package_version react-scripts build",
     "test": "react-scripts test",
+    "test:e2e": "cd ../e2e && npx playwright test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {

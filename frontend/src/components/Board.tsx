@@ -177,12 +177,12 @@ function Board(props: BoardProps) {
             isPlayer === player_index
           ) {
             // In that case, for each type of unit check if it's in range of current square
-            if (unit.strength > 1) {
+            if (unit.range > 1) {
               // normal unit
               isInDanger[player_index] =
                 isInDanger[player_index] ||
                 Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                  unit.strength;
+                  unit.range;
             } else {
               // infantry unit with different range mechanism
               isInDanger[player_index] =
@@ -210,12 +210,12 @@ function Board(props: BoardProps) {
               ready[player_index]
             ) {
               // In that case, for each type of unit check if it's in range of current square
-              if (unit.strength > 1) {
+              if (unit.range > 1) {
                 // normal unit
                 isInDanger[player_index] =
                   isInDanger[player_index] ||
                   Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                    unit.strength;
+                    unit.range;
               } else {
                 // infantry unit with different range mechanism
                 isInDanger[player_index] =

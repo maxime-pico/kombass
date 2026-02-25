@@ -7,7 +7,10 @@ import { defaultUnitConfig } from "../utilities/dict";
 
 interface SettingsProps {
   _selectUnits: () => void;
+  roomId: string;
 }
+
+const backendUrl = process.env.REACT_APP_BACKEND_URL || "";
 
 function Settings(props: SettingsProps) {
   const {
@@ -34,7 +37,7 @@ function Settings(props: SettingsProps) {
 
   const handleUnitConfigChange = (
     unitType: keyof UnitConfig,
-    property: "strength" | "speed" | "life",
+    property: "strength" | "range" | "speed" | "life",
     value: number
   ) => {
     const updated = { ...localUnitConfig };
@@ -51,42 +54,50 @@ function Settings(props: SettingsProps) {
   };
 
   const settingsReady = () => {
-    if (socketService.socket) {
-      _setUnitConfig(localUnitConfig);
-      gameService.onSettingsReady(socketService.socket, settings).then(() => {
-        props._selectUnits();
-      });
-    }
+    _setUnitConfig(localUnitConfig);
+    fetch(`${backendUrl}/api/room/${props.roomId}/settings`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(settings),
+    }).catch((err) => console.error("Error confirming settings:", err));
   };
 
   useEffect(() => {
-    const handleGameStart = () => {
-      if (socketService.socket) {
-        gameService.onJoinedGame(socketService.socket, (options) => {
-          _setIsAdmin(options.admin);
-          _setIsPlayer(options.player);
-          _setGameStarted();
-        });
-      }
-    };
+    if (!socketService.socket) return;
+    const socket = socketService.socket;
 
-    const updateSettings = () => {
-      if (socketService.socket) {
-        gameService.updateSettings(socketService.socket, (settings) => {
-          _setBoardSize(settings.boardLength, settings.boardWidth);
-          _setPlacementZone(settings.placementZone);
-          _setUnitCount(settings.unitsCount);
-          if (settings.unitConfig) {
-            _setUnitConfig(settings.unitConfig);
-            setLocalUnitConfig(settings.unitConfig);
-          }
-          props._selectUnits();
-        });
-      }
-    };
+    gameService.onJoinedGame(socket, (options) => {
+      _setIsAdmin(options.admin);
+      _setIsPlayer(options.player);
+      _setGameStarted();
+    });
 
-    handleGameStart();
-    updateSettings();
+    gameService.updateSettings(socket, (incoming) => {
+      _setBoardSize(incoming.boardLength, incoming.boardWidth);
+      _setPlacementZone(incoming.placementZone);
+      _setUnitCount(incoming.unitsCount);
+      if (incoming.unitConfig) {
+        _setUnitConfig(incoming.unitConfig);
+        setLocalUnitConfig(incoming.unitConfig);
+      }
+      // No _selectUnits() here — settings_updated is only for syncing values
+    });
+
+    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig }) => {
+      _setBoardSize(settings.boardLength, settings.boardWidth);
+      _setPlacementZone(settings.placementZone);
+      _setUnitCount(settings.unitsCount);
+      if (settings.unitConfig) {
+        _setUnitConfig(settings.unitConfig);
+        setLocalUnitConfig(settings.unitConfig);
+      }
+      props._selectUnits();
+    };
+    gameService.onSettingsConfirmed(socket, onConfirmed);
+
+    return () => {
+      socket.off("settings_confirmed", onConfirmed);
+    };
   }, [_setIsAdmin, _setIsPlayer, _setGameStarted, _setBoardSize, _setPlacementZone, _setUnitCount, _setUnitConfig, props]);
 
   return (
@@ -173,6 +184,7 @@ function Settings(props: SettingsProps) {
                     <th style={{ padding: "8px", textAlign: "left" }}>
                       Strength
                     </th>
+                    <th style={{ padding: "8px", textAlign: "left" }}>Range</th>
                     <th style={{ padding: "8px", textAlign: "left" }}>Speed</th>
                     <th style={{ padding: "8px", textAlign: "left" }}>Life</th>
                   </tr>
@@ -193,6 +205,22 @@ function Settings(props: SettingsProps) {
                             handleUnitConfigChange(
                               unitType,
                               "strength",
+                              parseInt(e.target.value)
+                            )
+                          }
+                          style={{ width: "50px" }}
+                        />
+                      </td>
+                      <td style={{ padding: "8px" }}>
+                        <input
+                          type="number"
+                          min="1"
+                          max="10"
+                          value={localUnitConfig[unitType].range}
+                          onChange={(e) =>
+                            handleUnitConfigChange(
+                              unitType,
+                              "range",
                               parseInt(e.target.value)
                             )
                           }

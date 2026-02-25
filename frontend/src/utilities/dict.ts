@@ -16,6 +16,7 @@ const UNITS = [
   {
     name: "light",
     strength: 1,
+    range: 1,
     speed: 3,
     life: 1,
     svg: ["/sprites/light-p1.svg", "/sprites/light-p2.svg"],
@@ -23,6 +24,7 @@ const UNITS = [
   {
     name: "medium",
     strength: 2,
+    range: 2,
     speed: 2,
     life: 2,
     svg: ["/sprites/medium-p1.svg", "/sprites/medium-p2.svg"],
@@ -30,6 +32,7 @@ const UNITS = [
   {
     name: "heavy",
     strength: 3,
+    range: 3,
     speed: 1,
     life: 3,
     svg: ["/sprites/heavy-p1.svg", "/sprites/heavy-p2.svg"],
@@ -45,24 +48,27 @@ const AUDIO = {
 };
 
 export type UnitConfig = {
-  light: { strength: number; speed: number; life: number };
-  medium: { strength: number; speed: number; life: number };
-  heavy: { strength: number; speed: number; life: number };
+  light: { strength: number; range: number; speed: number; life: number };
+  medium: { strength: number; range: number; speed: number; life: number };
+  heavy: { strength: number; range: number; speed: number; life: number };
 };
 
 export const defaultUnitConfig = (): UnitConfig => ({
   light: {
     strength: UNITS[0].strength,
+    range: UNITS[0].range,
     speed: UNITS[0].speed,
     life: UNITS[0].life,
   },
   medium: {
     strength: UNITS[1].strength,
+    range: UNITS[1].range,
     speed: UNITS[1].speed,
     life: UNITS[1].life,
   },
   heavy: {
     strength: UNITS[2].strength,
+    range: UNITS[2].range,
     speed: UNITS[2].speed,
     life: UNITS[2].life,
   },

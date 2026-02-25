@@ -166,6 +166,7 @@ function Square(props: SquareProps) {
     <div
       className="square-container"
       style={{ width: `${100 / props.boardWidth}%` }}
+      data-testid={`square-${col}-${row}`}
     >
       <div
         className={`square${

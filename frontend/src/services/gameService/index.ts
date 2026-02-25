@@ -29,19 +29,6 @@ class GameService {
     socket.on("start_game", listener);
   }
 
-  public async onSettingsReady(
-    socket: Socket,
-    settings: {
-      boardWidth: number;
-      boardLength: number;
-      placementZone: number;
-      unitsCount: number;
-      unitConfig?: UnitConfig;
-    }
-  ) {
-    socket.emit("update_settings", settings);
-  }
-
   public async updateSettings(
     socket: Socket,
     listener: (settings: {
@@ -62,6 +49,13 @@ class GameService {
         unitConfig?: UnitConfig;
       }) => listener(settings)
     );
+  }
+
+  public onSettingsConfirmed(
+    socket: Socket,
+    listener: (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig }) => void
+  ) {
+    socket.on("settings_confirmed", listener);
   }
 
   public async setReady(
@@ -116,6 +110,10 @@ class GameService {
 
   public abandonGame(socket: Socket, playerNumber: number): void {
     socket.emit("abandon_game", { playerNumber });
+  }
+
+  public submitRating(socket: Socket, rating: number, playerNumber: number): void {
+    socket.emit("submit_rating", { rating, playerNumber });
   }
 
   public onOpponentAbandoned(
