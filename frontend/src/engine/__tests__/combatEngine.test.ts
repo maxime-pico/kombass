@@ -3,36 +3,36 @@ import { scenarios, unit, farFlags } from "../scenarios";
 
 describe("isInCombatRange", () => {
   test("Medium uses Manhattan distance", () => {
-    // Medium (strength=2) at (0,0), target at (1,1): Manhattan = 2 ≤ 2
-    expect(isInCombatRange(0, 0, 2, 1, 1, 2)).toBe(true);
+    // Medium (strength=2, range=2) at (0,0), target at (1,1): Manhattan = 2 ≤ 2
+    expect(isInCombatRange(0, 0, 2, 2, 1, 1, 2, 2)).toBe(true);
     // Medium at (0,0), target at (2,1): Manhattan = 3 > 2
-    expect(isInCombatRange(0, 0, 2, 2, 1, 2)).toBe(false);
+    expect(isInCombatRange(0, 0, 2, 2, 2, 1, 2, 2)).toBe(false);
   });
 
-  test("Heavy uses Manhattan distance with strength 3", () => {
-    // Heavy (strength=3) at (0,0), target at (2,1): Manhattan = 3 ≤ 3
-    expect(isInCombatRange(0, 0, 3, 2, 1, 2)).toBe(true);
+  test("Heavy uses Manhattan distance with range 3", () => {
+    // Heavy (strength=3, range=3) at (0,0), target at (2,1): Manhattan = 3 ≤ 3
+    expect(isInCombatRange(0, 0, 3, 3, 2, 1, 2, 2)).toBe(true);
     // Heavy at (0,0), target at (2,2): Manhattan = 4 > 3
-    expect(isInCombatRange(0, 0, 3, 2, 2, 2)).toBe(false);
+    expect(isInCombatRange(0, 0, 3, 3, 2, 2, 2, 2)).toBe(false);
   });
 
   test("Light uses Euclidean squared when both are Light", () => {
-    // Two Lights: (0,0) and (1,1): Euclidean² = 2 ≤ 2
-    expect(isInCombatRange(0, 0, 1, 1, 1, 1)).toBe(true);
+    // Two Lights (range=1): (0,0) and (1,1): Euclidean² = 2 ≤ 2
+    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 1, 1)).toBe(true);
     // Two Lights: (0,0) and (2,0): Euclidean² = 4 > 2
-    expect(isInCombatRange(0, 0, 1, 2, 0, 1)).toBe(false);
+    expect(isInCombatRange(0, 0, 1, 1, 2, 0, 1, 1)).toBe(false);
   });
 
   test("Light vs non-Light uses Euclidean squared for Light attacker", () => {
-    // Light (strength=1) attacks Heavy: (0,0) to (1,0): Euclidean² = 1 ≤ 1
-    expect(isInCombatRange(0, 0, 1, 1, 0, 3)).toBe(true);
+    // Light (range=1) attacks Heavy: (0,0) to (1,0): Euclidean² = 1 ≤ 1
+    expect(isInCombatRange(0, 0, 1, 1, 1, 0, 3, 3)).toBe(true);
     // Light attacks Heavy: (0,0) to (1,1): Euclidean² = 2 > 1
-    expect(isInCombatRange(0, 0, 1, 1, 1, 3)).toBe(false);
+    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 3, 3)).toBe(false);
   });
 
   test("non-Light vs Light uses Manhattan for non-Light attacker", () => {
-    // Heavy (strength=3) attacks Light: Manhattan = |2| + |1| = 3 ≤ 3
-    expect(isInCombatRange(0, 0, 3, 2, 1, 1)).toBe(true);
+    // Heavy (range=3) attacks Light: Manhattan = |2| + |1| = 3 ≤ 3
+    expect(isInCombatRange(0, 0, 3, 3, 2, 1, 1, 1)).toBe(true);
   });
 });
 
@@ -121,6 +121,7 @@ describe("calculateCombatResults", () => {
       y: -1,
       life: -1,
       strength: 0,
+      range: 0,
       speed: 0,
       hasFlag: false,
       unitType: 0,
