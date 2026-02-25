@@ -137,8 +137,8 @@ export function buildBoomQueue(
       const ydistance = Math.abs(b - y);
 
       // Combat range logic — match isInCombatRange from combatEngine.ts exactly
-      // Both Light: symmetric Euclidean squared ≤ 2
-      if (myUnit.strength === 1 && opponentUnit.strength === 1) {
+      // Both Light (range=1): symmetric Euclidean squared ≤ 2
+      if (myUnit.range === 1 && opponentUnit.range === 1) {
         const inRange = xdistance ** 2 + ydistance ** 2 <= 2;
         if (inRange) {
           const triggerIndex = Math.max(myAnimIndex, opponentAnimIndex);
@@ -148,16 +148,16 @@ export function buildBoomQueue(
         return;
       }
 
-      // Attacker is Light: Euclidean squared ≤ strength²
-      // Medium/Heavy: Manhattan distance ≤ strength
+      // Attacker is Light (range=1): Euclidean squared ≤ 1
+      // Medium/Heavy: Manhattan distance ≤ range
       const myHitsOpp =
-        myUnit.strength === 1
-          ? xdistance ** 2 + ydistance ** 2 <= myUnit.strength ** 2
-          : xdistance + ydistance <= myUnit.strength;
+        myUnit.range === 1
+          ? xdistance ** 2 + ydistance ** 2 <= 1
+          : xdistance + ydistance <= myUnit.range;
       const oppHitsMe =
-        opponentUnit.strength === 1
-          ? xdistance ** 2 + ydistance ** 2 <= opponentUnit.strength ** 2
-          : xdistance + ydistance <= opponentUnit.strength;
+        opponentUnit.range === 1
+          ? xdistance ** 2 + ydistance ** 2 <= 1
+          : xdistance + ydistance <= opponentUnit.range;
       const inRange = myHitsOpp || oppHitsMe;
 
       if (inRange) {

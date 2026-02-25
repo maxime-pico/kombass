@@ -9,6 +9,7 @@ function unit(overrides: Partial<IUnit> = {}): IUnit {
     x: 0,
     y: 0,
     strength: 1,
+    range: 1,
     speed: 3,
     life: 1,
     hasFlag: false,
@@ -60,12 +61,12 @@ export const scenarios: TestScenario[] = [
     description: "2 Mediums adjacent — both deal 2 damage, both die",
     input: {
       units: [
-        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
       isPlayer: 0,
@@ -82,12 +83,12 @@ export const scenarios: TestScenario[] = [
     description: "Heavy (3/3) vs Medium (2/2) adjacent — Heavy survives at 1 life, Medium dies",
     input: {
       units: [
-        [unit({ x: 5, y: 5, strength: 3, speed: 1, life: 3 })],
-        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 3, speed: 1, life: 3, unitType: 2 })],
+        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 5, y: 5, strength: 3, speed: 1, life: 3 })],
-        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 3, speed: 1, life: 3, unitType: 2 })],
+        [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
       isPlayer: 0,
@@ -126,12 +127,12 @@ export const scenarios: TestScenario[] = [
     description: "Both units adjacent but one is in flag zone — no damage dealt to either",
     input: {
       units: [
-        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 2, y: 20, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 2, y: 20, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 2, y: 20, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 2, y: 20, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       // Flag at (0,20) — unit at (1,20) is Manhattan distance 1 from flag
       flags: [
@@ -174,19 +175,19 @@ export const scenarios: TestScenario[] = [
     description: "3 Mediums surround 1 Heavy — Heavy takes 6 cumulative damage (dies), each Medium takes 3 (dies)",
     input: {
       units: [
-        [unit({ x: 10, y: 10, strength: 3, speed: 1, life: 3 })],
+        [unit({ x: 10, y: 10, strength: 3, speed: 1, life: 3, unitType: 2 })],
         [
-          unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 }),
-          unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2 }),
-          unit({ x: 9, y: 10, strength: 2, speed: 2, life: 2 }),
+          unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, unitType: 1 }),
+          unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2, unitType: 1 }),
+          unit({ x: 9, y: 10, strength: 2, speed: 2, life: 2, unitType: 1 }),
         ],
       ],
       futureUnits: [
-        [unit({ x: 10, y: 10, strength: 3, speed: 1, life: 3 })],
+        [unit({ x: 10, y: 10, strength: 3, speed: 1, life: 3, unitType: 2 })],
         [
-          unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 }),
-          unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2 }),
-          unit({ x: 9, y: 10, strength: 2, speed: 2, life: 2 }),
+          unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, unitType: 1 }),
+          unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2, unitType: 1 }),
+          unit({ x: 9, y: 10, strength: 2, speed: 2, life: 2, unitType: 1 }),
         ],
       ],
       flags: farFlags,
@@ -204,12 +205,12 @@ export const scenarios: TestScenario[] = [
     description: "Unit with hasFlag near own flag — flag.inZone becomes false (captured)",
     input: {
       units: [
-        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false })],
-        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false })],
+        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, hasFlag: true })],
-        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false })],
+        [unit({ x: 1, y: 20, strength: 2, speed: 2, life: 2, hasFlag: true, unitType: 1 })],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       flags: [
         { x: 0, y: 20, inZone: true },
@@ -230,12 +231,12 @@ export const scenarios: TestScenario[] = [
     description: "Unit with hasFlag dies — opponent flag returns to zone (inZone = true)",
     input: {
       units: [
-        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
-        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false })],
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
-        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false })],
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       flags: [
         { x: 0, y: 20, inZone: true },
@@ -256,12 +257,12 @@ export const scenarios: TestScenario[] = [
     description: "Light at (5,5) vs Heavy at (7,5) — Manhattan distance 2 ≤ 3 (Heavy hits), Euclidean² = 4 > 1 (Light misses)",
     input: {
       units: [
-        [unit({ x: 5, y: 5, strength: 1, speed: 3, life: 1 })],
-        [unit({ x: 7, y: 5, strength: 3, speed: 1, life: 3 })],
+        [unit({ x: 5, y: 5, strength: 1, range: 1, speed: 3, life: 1, unitType: 0 })],
+        [unit({ x: 7, y: 5, strength: 3, range: 3, speed: 1, life: 3, unitType: 2 })],
       ],
       futureUnits: [
-        [unit({ x: 5, y: 5, strength: 1, speed: 3, life: 1 })],
-        [unit({ x: 7, y: 5, strength: 3, speed: 1, life: 3 })],
+        [unit({ x: 5, y: 5, strength: 1, range: 1, speed: 3, life: 1, unitType: 0 })],
+        [unit({ x: 7, y: 5, strength: 3, range: 3, speed: 1, life: 3, unitType: 2 })],
       ],
       flags: farFlags,
       isPlayer: 0,
@@ -278,12 +279,12 @@ export const scenarios: TestScenario[] = [
     description: "Two Mediums far apart (distance 5) — no combat, no damage",
     input: {
       units: [
-        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 10, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 10, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       futureUnits: [
-        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2 })],
-        [unit({ x: 10, y: 5, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 10, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
       isPlayer: 0,
