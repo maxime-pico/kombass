@@ -46,29 +46,7 @@ export class GameController {
     }
   }
 
-  @OnMessage("update_settings")
-  public async updateSettings(
-    @SocketIO() io: Server,
-    @ConnectedSocket() socket: Socket,
-    @MessageBody() settings: any
-  ) {
-    console.log("Settings updated: ", settings);
-    const gameRoom = this.getSocketGameRoom(socket);
-
-    try {
-      // Persist settings to database
-      const gameId = await this.getGameIdFromRoom(gameRoom);
-      if (gameId) {
-        await gameService.updateGameConfig(gameId, settings);
-        await gameService.updateGameState(gameId, { status: "PLACEMENT" });
-      }
-    } catch (error) {
-      console.error("Error persisting settings:", error);
-      // Continue with relay even if persistence fails
-    }
-
-    socket.to(gameRoom).emit("settings_updated", settings);
-  }
+  // update_settings deprecated — settings confirmation now goes through POST /api/room/:roomId/settings
 
   @OnMessage("player_ready")
   public async playerReady(
@@ -225,6 +203,33 @@ export class GameController {
     }
 
     socket.to(gameRoom).emit("on_game_win", message);
+  }
+
+  @OnMessage("submit_rating")
+  public async submitRating(
+    @SocketIO() io: Server,
+    @ConnectedSocket() socket: Socket,
+    @MessageBody() message: any
+  ) {
+    const { rating, playerNumber } = message;
+    if (!Number.isInteger(rating) || rating < 1 || rating > 10) {
+      console.warn(`submit_rating: invalid rating value: ${rating}`);
+      return;
+    }
+
+    const gameRoom = this.getSocketGameRoom(socket);
+    try {
+      const gameId = await this.getGameIdFromRoom(gameRoom);
+      if (gameId && playerNumber !== undefined) {
+        const player = await this.getPlayerFromSocket(socket, playerNumber, gameId);
+        if (player) {
+          await gameService.submitPlayerRating(player.id, rating);
+          console.log(`Player ${playerNumber} rated game ${gameId}: ${rating}/10`);
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    }
   }
 
   @OnMessage("abandon_game")

@@ -48,6 +48,14 @@ export class RoomController {
     socket.data.playerNumber = session.playerNumber;
     socket.data.isAdmin = session.playerNumber === 0;
 
+    // Send current game configuration to this player (in case they joined after settings were changed)
+    socket.emit("settings_updated", {
+      boardWidth: game.boardWidth,
+      boardLength: game.boardLength,
+      placementZone: game.placementZone,
+      unitsCount: game.unitsCount,
+    });
+
     // If both players authenticated: emit start_game to each
     const connectedSockets = io.sockets.adapter.rooms.get(game.roomId);
     if (connectedSockets && connectedSockets.size === 2) {

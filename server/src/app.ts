@@ -92,6 +92,39 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
   }
 });
 
+// Admin confirms settings — saves config, advances status, broadcasts settings_confirmed
+app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
+  try {
+    const { roomId } = req.params;
+    const { boardWidth, boardLength, placementZone, unitsCount, unitConfig } = req.body;
+
+    const game = await gameService.getGame(roomId);
+    if (!game) {
+      return res.status(404).json({ error: "room not found" });
+    }
+
+    await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, unitConfig });
+
+    const appVersion = process.env.npm_package_version || null;
+    if (appVersion) {
+      await gameService.updateGameAppVersion(game.id, appVersion);
+    }
+
+    await gameService.updateGameState(game.id, { status: "PLACEMENT" });
+
+    // Broadcast to all sockets in the room (including admin)
+    const io = req.app.get("io") as import("socket.io").Server;
+    if (io) {
+      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig });
+    }
+
+    return res.json({ ok: true });
+  } catch (error) {
+    console.error("Error confirming settings:", error);
+    return res.status(500).json({ error: "Failed to confirm settings" });
+  }
+});
+
 // catch 404 and forward to error handler
 app.use(function (req: Request, res: Response, next: NextFunction) {
   next(createError(404));

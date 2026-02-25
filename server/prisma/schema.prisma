@@ -29,6 +29,10 @@ model Game {
   currentStep   Int      @default(-5)
   status        GameStatus @default(LOBBY)
 
+  // Custom unit configuration (light/medium/heavy × strength/speed/life)
+  unitConfig    Json?
+  appVersion    String?
+
   // Timestamps
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -56,6 +60,9 @@ model Player {
   units         Json     // Array<IUnit> - current positions/life
   futureUnits   Json?    // Array<IUnit> - pending moves (null if not submitted)
   flag          Json     // { x: number, y: number, inZone: boolean }
+
+  // Post-game feedback
+  rating        Int?     // 1–10 fun rating submitted at end of game
 
   // Metadata
   createdAt     DateTime @default(now())

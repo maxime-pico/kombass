@@ -11,6 +11,7 @@ export interface BoardConfig {
   boardLength?: number;
   placementZone?: number;
   unitsCount?: number;
+  unitConfig?: any;
 }
 
 export interface GameStateUpdate {
@@ -94,8 +95,33 @@ export async function updateGameConfig(gameId: string, config: BoardConfig): Pro
       ...(config.boardLength !== undefined && { boardLength: config.boardLength }),
       ...(config.placementZone !== undefined && { placementZone: config.placementZone }),
       ...(config.unitsCount !== undefined && { unitsCount: config.unitsCount }),
+      ...(config.unitConfig !== undefined && { unitConfig: config.unitConfig }),
       lastActivity: new Date(),
     },
+  });
+}
+
+/**
+ * Stamp the app version on the game record
+ * @param gameId - The game ID
+ * @param appVersion - Version string from package.json
+ */
+export async function updateGameAppVersion(gameId: string, appVersion: string): Promise<void> {
+  await prisma.game.update({
+    where: { id: gameId },
+    data: { appVersion },
+  });
+}
+
+/**
+ * Submit a player's fun rating (1–10) for the game
+ * @param playerId - The player ID
+ * @param rating - Integer 1–10
+ */
+export async function submitPlayerRating(playerId: string, rating: number): Promise<void> {
+  await prisma.player.update({
+    where: { id: playerId },
+    data: { rating },
   });
 }
 

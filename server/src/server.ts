@@ -34,6 +34,7 @@ server.on("error", onError);
 server.on("listening", onListening);
 
 const io = socketServer(server);
+app.set("io", io);
 
 /**
  * Normalize a port into a number, string, or false.
