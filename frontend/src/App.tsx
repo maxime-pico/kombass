@@ -7,14 +7,12 @@ import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
-import TestHarness from "./components/TestHarness";
 import { UNITS, SPRITES, defaultUnitConfig, UnitConfig } from "./utilities/dict";
 import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
 import { calculateCombatResults } from "./engine";
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
-import { loadScenario, scenarios } from "./engine/scenarioLoader";
 
 export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
@@ -1155,12 +1153,14 @@ class App extends Component<AppProps, AppState> {
     });
 
     if (process.env.REACT_APP_TEST_MODE === "true") {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { loadScenario, scenarios } = require("./engine/scenarioLoader");
       (window as any).__KOMBASS_TEST_API__ = {
         loadScenario: (scenarioNameOrIndex: string | number) => {
           const scenario =
             typeof scenarioNameOrIndex === "number"
               ? scenarios[scenarioNameOrIndex]
-              : scenarios.find((s) => s.name === scenarioNameOrIndex);
+              : scenarios.find((s: any) => s.name === scenarioNameOrIndex);
           if (!scenario) {
             console.error("Unknown scenario:", scenarioNameOrIndex);
             return;
@@ -1181,7 +1181,7 @@ class App extends Component<AppProps, AppState> {
         getState: () => ({ ...this.state }),
         triggerCombat: () => this._calculateCombatResults(),
         setStep: (step: number) => this.setState({ step }),
-        getScenarios: () => scenarios.map((s, i) => ({ index: i, name: s.name, description: s.description })),
+        getScenarios: () => scenarios.map((s: any, i: number) => ({ index: i, name: s.name, description: s.description })),
       };
 
       // Auto-load scenario from sessionStorage if present
@@ -1220,6 +1220,8 @@ class App extends Component<AppProps, AppState> {
   render() {
     // Render test harness if in test mode and on /test route
     if (process.env.REACT_APP_TEST_MODE === "true" && window.location.pathname === "/test") {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const TestHarness = require("./components/TestHarness").default;
       return <TestHarness />;
     }
 
@@ -1268,7 +1270,7 @@ class App extends Component<AppProps, AppState> {
           {this.state.step === -5 ? (
             <IntroScreen />
           ) : this.state.step === -3 ? (
-            <Settings _selectUnits={this._selectUnits} />
+            <Settings _selectUnits={this._selectUnits} roomId={this.state.roomId} />
           ) : this.state.step === -2 ? (
             <UnitSelection _placeUnits={this._placeUnits} />
           ) : this.state.step === -1 ? (
