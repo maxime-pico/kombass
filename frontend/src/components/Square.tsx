@@ -32,6 +32,7 @@ interface SquareProps {
   };
   isFlagZone: boolean;
   isForbidden: boolean;
+  isTerrain: boolean;
   isInDanger: Array<boolean>;
   isReachable: boolean;
   opponentCanReach: boolean;
@@ -174,8 +175,8 @@ function Square(props: SquareProps) {
             ? " active"
             : ""
         }${props.selected && unit.unit ? " selected" : ""}${
-          isForbidden && !animationPhase.isAnimating ? " forbidden" : ""
-        }${bgcol ? " contains-flag" : ""}${isFlagZone ? " flag-zone" : ""}${
+          isForbidden && !animationPhase.isAnimating && !props.isTerrain ? " forbidden" : ""
+        }${props.isTerrain ? " terrain" : ""}${bgcol ? " contains-flag" : ""}${isFlagZone ? " flag-zone" : ""}${
           boom ? " boom" : ""
         }`}
         onClick={() => _clickedSquare()}

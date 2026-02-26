@@ -16,6 +16,7 @@ function UnitPlacement(props: UnitPlacementProps) {
   const { units, isPlayer, selectedUnit } = useContext(gameContext);
   const selectedUnitNumber = selectedUnit.unitNumber;
   return (
+    <div className="game-container">
     <div className="main">
       <Board placement={true} _screenShake={() => {}} />
       <div className={`unitPlacement${isPlayer ? " left" : " right"}`}>
@@ -35,6 +36,7 @@ function UnitPlacement(props: UnitPlacementProps) {
           })}
         </div>
       </div>
+    </div>
     </div>
   );
 }

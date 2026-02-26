@@ -209,7 +209,8 @@ button {
 }
 
 #settings input {
-  width: 5vw;
+  width: 4em;
+  min-width: 4em;
   text-align: center;
 }
 
@@ -364,6 +365,7 @@ button {
   justify-content: center;
   align-items: center;
   position: relative;
+  width: 80%;
 }
 
 .teamPanel-container {
@@ -447,6 +449,7 @@ button {
 
 .game-container {
   height: 100%;
+  width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -591,6 +594,14 @@ button {
 
 .board > .square-container > .square.selected > .square-inside.reachable {
   background-color: white;
+}
+
+.square.terrain {
+  background-color: #3a3a3a;
+  background-image: repeating-linear-gradient(
+    45deg, transparent, transparent 3px, rgba(0,0,0,0.15) 3px, rgba(0,0,0,0.15) 6px
+  );
+  pointer-events: none;
 }
 
 .square.forbidden {

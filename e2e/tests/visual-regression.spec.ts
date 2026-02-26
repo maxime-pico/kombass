@@ -30,6 +30,48 @@ test.describe("Visual Regression", () => {
     });
   });
 
+  test("unit placement step board screenshot", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForFunction(() => !!(window as any).__KOMBASS_TEST_API__, { timeout: 15000 });
+
+    // Load a scenario to populate units, flags, and board size
+    await page.evaluate(() =>
+      (window as any).__KOMBASS_TEST_API__.loadScenario("basic_melee")
+    );
+
+    // Force placement phase
+    await page.evaluate(() =>
+      (window as any).__KOMBASS_TEST_API__.setStep(-1)
+    );
+
+    await page.waitForTimeout(300);
+
+    await expect(page).toHaveScreenshot("placement-phase-board.png", {
+      maxDiffPixelRatio: 0.05,
+    });
+  });
+
+  test("game movement step board screenshot", async ({ page }) => {
+    await page.goto("/");
+    await page.waitForFunction(() => !!(window as any).__KOMBASS_TEST_API__, { timeout: 15000 });
+
+    // Load same scenario
+    await page.evaluate(() =>
+      (window as any).__KOMBASS_TEST_API__.loadScenario("basic_melee")
+    );
+
+    // Force movement phase (step 0 = first unit moving)
+    await page.evaluate(() =>
+      (window as any).__KOMBASS_TEST_API__.setStep(0)
+    );
+
+    await page.waitForTimeout(300);
+
+    await expect(page).toHaveScreenshot("game-movement-phase-board.png", {
+      maxDiffPixelRatio: 0.05,
+    });
+  });
+
   test("scenario loaded — combat phase board screenshot", async ({ page }) => {
     await page.goto("/");
     await page.waitForFunction(() => !!(window as any).__KOMBASS_TEST_API__, { timeout: 15000 });

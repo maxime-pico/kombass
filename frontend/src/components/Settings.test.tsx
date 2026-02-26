@@ -13,7 +13,6 @@ jest.mock('../services/gameService', () => ({
   __esModule: true,
   default: {
     onJoinedGame: jest.fn(),
-    updateSettings: jest.fn(),
     onSettingsConfirmed: jest.fn(),
   },
 }));
@@ -67,21 +66,6 @@ describe("Settings component socket events", () => {
     );
   });
 
-  it("does NOT call _selectUnits when settings_updated is received", () => {
-    const mockSelectUnits = jest.fn();
-    renderSettings(mockSelectUnits);
-
-    act(() => {
-      mockEmitter.emit("settings_updated", {
-        boardWidth: 20,
-        boardLength: 20,
-        placementZone: 5,
-        unitsCount: 5,
-      });
-    });
-
-    expect(mockSelectUnits).not.toHaveBeenCalled();
-  });
 
   it("calls _selectUnits when settings_confirmed is received", () => {
     const mockSelectUnits = jest.fn();

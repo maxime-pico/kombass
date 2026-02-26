@@ -48,27 +48,13 @@ export class RoomController {
     socket.data.playerNumber = session.playerNumber;
     socket.data.isAdmin = session.playerNumber === 0;
 
-    // Send current game configuration to this player (in case they joined after settings were changed)
-    socket.emit("settings_updated", {
-      boardWidth: game.boardWidth,
-      boardLength: game.boardLength,
-      placementZone: game.placementZone,
-      unitsCount: game.unitsCount,
-    });
 
-    // If both players authenticated: emit start_game to each
-    const connectedSockets = io.sockets.adapter.rooms.get(game.roomId);
-    if (connectedSockets && connectedSockets.size === 2) {
-      for (const sid of Array.from(connectedSockets)) {
-        const s = io.sockets.sockets.get(sid);
-        if (s) {
-          s.emit("start_game", {
-            player: s.data.playerNumber,
-            admin: s.data.isAdmin,
-          });
-        }
-      }
-    }
+    // Emit start_game immediately to the authenticating player
+    console.log("[authenticate] emitting start_game to socket", socket.id, "player:", socket.data.playerNumber, "admin:", socket.data.isAdmin);
+    socket.emit("start_game", {
+      player: socket.data.playerNumber,
+      admin: socket.data.isAdmin,
+    });
   }
 
   // lists rooms and how full it is, not used at the moment as I do not know

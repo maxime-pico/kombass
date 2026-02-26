@@ -11,7 +11,9 @@ export interface BoardConfig {
   boardLength?: number;
   placementZone?: number;
   unitsCount?: number;
+  terrainPercentage?: number;
   unitConfig?: any;
+  terrain?: Array<{ x: number; y: number }>;
 }
 
 export interface GameStateUpdate {
@@ -95,6 +97,7 @@ export async function updateGameConfig(gameId: string, config: BoardConfig): Pro
       ...(config.boardLength !== undefined && { boardLength: config.boardLength }),
       ...(config.placementZone !== undefined && { placementZone: config.placementZone }),
       ...(config.unitsCount !== undefined && { unitsCount: config.unitsCount }),
+      ...(config.terrainPercentage !== undefined && { terrainPercentage: config.terrainPercentage }),
       ...(config.unitConfig !== undefined && { unitConfig: config.unitConfig }),
       lastActivity: new Date(),
     },

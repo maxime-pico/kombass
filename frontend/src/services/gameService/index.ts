@@ -29,27 +29,6 @@ class GameService {
     socket.on("start_game", listener);
   }
 
-  public async updateSettings(
-    socket: Socket,
-    listener: (settings: {
-      boardWidth: number;
-      boardLength: number;
-      placementZone: number;
-      unitsCount: number;
-      unitConfig?: UnitConfig;
-    }) => void
-  ) {
-    socket.on(
-      "settings_updated",
-      (settings: {
-        boardWidth: number;
-        boardLength: number;
-        placementZone: number;
-        unitsCount: number;
-        unitConfig?: UnitConfig;
-      }) => listener(settings)
-    );
-  }
 
   public onSettingsConfirmed(
     socket: Socket,

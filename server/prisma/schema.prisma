@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider      = "prisma-client-js"
   binaryTargets = ["native", "darwin-arm64", "linux-musl-openssl-3.0.x"]
@@ -15,60 +9,42 @@ datasource db {
 }
 
 model Game {
-  id            String   @id @default(uuid())
-  roomId        String   @unique
-
-  // Configuration (set once during settings phase)
-  boardWidth    Int      @default(22)
-  boardLength   Int      @default(21)
-  placementZone Int      @default(5)
-  unitsCount    Int      @default(5)
-
-  // Current game state
-  currentRound  Int      @default(0)
-  currentStep   Int      @default(-5)
-  status        GameStatus @default(LOBBY)
-
-  // Custom unit configuration (light/medium/heavy × strength/speed/life)
-  unitConfig    Json?
-  appVersion    String?
-
-  // Timestamps
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  lastActivity  DateTime @default(now())
-
-  // Relations
-  players       Player[]
+  id                String     @id @default(uuid())
+  roomId            String     @unique
+  boardWidth        Int        @default(22)
+  boardLength       Int        @default(21)
+  placementZone     Int        @default(5)
+  unitsCount        Int        @default(5)
+  currentRound      Int        @default(0)
+  currentStep       Int        @default(-5)
+  status            GameStatus @default(LOBBY)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+  lastActivity      DateTime   @default(now())
+  appVersion        String?
+  unitConfig        Json?
+  terrainPercentage Int        @default(0)
+  players           Player[]
 
   @@index([roomId])
   @@index([status, lastActivity])
 }
 
 model Player {
-  id            String   @id @default(uuid())
-  gameId        String
-  playerNumber  Int      // 0 or 1
-  sessionToken  String   @unique // For reconnection
-  socketId      String?  // Current connection (null if disconnected)
-
-  // Player state
-  isReady       Boolean  @default(false)
-  isAdmin       Boolean  @default(false)
-
-  // Game data (stored as JSON for flexibility)
-  units         Json     // Array<IUnit> - current positions/life
-  futureUnits   Json?    // Array<IUnit> - pending moves (null if not submitted)
-  flag          Json     // { x: number, y: number, inZone: boolean }
-
-  // Post-game feedback
-  rating        Int?     // 1–10 fun rating submitted at end of game
-
-  // Metadata
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  game          Game     @relation(fields: [gameId], references: [id])
+  id           String   @id @default(uuid())
+  gameId       String
+  playerNumber Int
+  sessionToken String   @unique
+  socketId     String?
+  isReady      Boolean  @default(false)
+  isAdmin      Boolean  @default(false)
+  units        Json
+  futureUnits  Json?
+  flag         Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  rating       Int?
+  game         Game     @relation(fields: [gameId], references: [id])
 
   @@unique([gameId, playerNumber])
   @@index([sessionToken])

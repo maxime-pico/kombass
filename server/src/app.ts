@@ -96,14 +96,14 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
 app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
-    const { boardWidth, boardLength, placementZone, unitsCount, unitConfig } = req.body;
+    const { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain } = req.body;
 
     const game = await gameService.getGame(roomId);
     if (!game) {
       return res.status(404).json({ error: "room not found" });
     }
 
-    await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, unitConfig });
+    await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain });
 
     const appVersion = process.env.npm_package_version || null;
     if (appVersion) {
@@ -115,7 +115,7 @@ app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
     // Broadcast to all sockets in the room (including admin)
     const io = req.app.get("io") as import("socket.io").Server;
     if (io) {
-      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig });
+      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig, terrain });
     }
 
     return res.json({ ok: true });

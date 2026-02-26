@@ -25,10 +25,14 @@ function Board(props: BoardProps) {
     ready,
     selectedUnit,
     step,
+    terrain,
     units,
     unitsCount,
     waitingForMoves,
   } = useContext(gameContext);
+
+  const terrainSet = new Set(terrain.map((t: { x: number; y: number }) => `${t.x},${t.y}`));
+  const isTerrainSquare = (col: number, row: number) => terrainSet.has(`${col},${row}`);
 
   const _isReachable = (
     unit: IUnit,
@@ -37,6 +41,7 @@ function Board(props: BoardProps) {
     placement: boolean
   ) => {
     let isReachable = false;
+    if (isTerrainSquare(col, row)) return false;
     const ownFlag = flags[isPlayer];
     if (placement) {
       const flagZone = ownFlag
@@ -97,6 +102,8 @@ function Board(props: BoardProps) {
     const unitNumber = selectedUnit?.unitNumber;
     const ownFlag = flags[isPlayer];
     let isForbidden = false;
+
+    if (isTerrainSquare(col, row)) return true;
 
     if (placement) {
       units[isPlayer].forEach((unit, unit_index) => {
@@ -430,6 +437,7 @@ function Board(props: BoardProps) {
         containsOpponentGhostUnits={containsOpponentGhostUnits}
         isFlagZone={isFlagZone}
         isForbidden={isForbidden}
+        isTerrain={isTerrainSquare(col, row)}
         isInDanger={isInDanger}
         isReachable={isReachable}
         opponentCanReach={opponentCanReach}

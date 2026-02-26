@@ -4,6 +4,7 @@ import socketService from "../services/socketService";
 import gameService from "../services/gameService";
 import type { UnitConfig } from "../utilities/dict";
 import { defaultUnitConfig } from "../utilities/dict";
+import { generateTerrain } from "../engine/terrainGenerator";
 
 interface SettingsProps {
   _selectUnits: () => void;
@@ -28,8 +29,11 @@ function Settings(props: SettingsProps) {
     _setUnitCount,
     unitConfig,
     _setUnitConfig,
+    _setTerrain,
+    flags,
   } = useContext(gameContext);
 
+  const [terrainPercentage, setTerrainPercentage] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [localUnitConfig, setLocalUnitConfig] = useState<UnitConfig>(
     unitConfig || defaultUnitConfig()
@@ -55,10 +59,16 @@ function Settings(props: SettingsProps) {
 
   const settingsReady = () => {
     _setUnitConfig(localUnitConfig);
+    let terrain: Array<{ x: number; y: number }> = [];
+    if (terrainPercentage > 0) {
+      terrain = generateTerrain(boardWidth, boardLength, flags, placementZone, terrainPercentage);
+      _setTerrain(terrain);
+    }
+    const body = { ...settings, terrain, terrainPercentage, randomTerrain: terrainPercentage > 0 };
     fetch(`${backendUrl}/api/room/${props.roomId}/settings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(settings),
+      body: JSON.stringify(body),
     }).catch((err) => console.error("Error confirming settings:", err));
   };
 
@@ -72,24 +82,17 @@ function Settings(props: SettingsProps) {
       _setGameStarted();
     });
 
-    gameService.updateSettings(socket, (incoming) => {
-      _setBoardSize(incoming.boardLength, incoming.boardWidth);
-      _setPlacementZone(incoming.placementZone);
-      _setUnitCount(incoming.unitsCount);
-      if (incoming.unitConfig) {
-        _setUnitConfig(incoming.unitConfig);
-        setLocalUnitConfig(incoming.unitConfig);
-      }
-      // No _selectUnits() here — settings_updated is only for syncing values
-    });
 
-    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig }) => {
+    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }> }) => {
       _setBoardSize(settings.boardLength, settings.boardWidth);
       _setPlacementZone(settings.placementZone);
       _setUnitCount(settings.unitsCount);
       if (settings.unitConfig) {
         _setUnitConfig(settings.unitConfig);
         setLocalUnitConfig(settings.unitConfig);
+      }
+      if (settings.terrain) {
+        _setTerrain(settings.terrain);
       }
       props._selectUnits();
     };
@@ -157,6 +160,20 @@ function Settings(props: SettingsProps) {
               value={unitsCount}
               onChange={(e) => _setUnitCount(parseInt(e.target.value))}
             />
+          </div>
+          <br />
+          <div className="subtitle">How much destroyed terrain? (%)</div>
+          <div style={{ display: "flex", alignItems: "center", width: "260px" }}>
+            <input
+              type="number"
+              min="0"
+              max="30"
+              value={terrainPercentage}
+              onChange={(e) => setTerrainPercentage(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)))}
+            />
+            <span style={{ marginLeft: "8px", opacity: 0.6 }}>
+              {terrainPercentage === 0 ? "no destroyed terrain" : `~${terrainPercentage}% of squares destroyed`}
+            </span>
           </div>
           <br />
           <div className="subtitle">

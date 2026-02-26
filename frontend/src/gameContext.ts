@@ -37,6 +37,7 @@ export interface IGameContextProps {
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
+  _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setSelectedUnit: (
     playerNumber: number,
@@ -72,6 +73,7 @@ export interface IGameContextProps {
   step: number;
   units: Array<Array<IUnit>>;
   unitsCount: number;
+  terrain: Array<{ x: number; y: number }>;
   unitConfig: UnitConfig;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
@@ -92,6 +94,7 @@ const defaultState: IGameContextProps = {
   _setIsAdmin: () => {},
   _setIsPlayer: () => {},
   _setPlacementZone: () => {},
+  _setTerrain: () => {},
   _setUnitConfig: () => {},
   _setSelectedUnit: () => {},
   _setUnitCount: () => {},
@@ -135,6 +138,7 @@ const defaultState: IGameContextProps = {
       unitType: 0,
     })
   ),
+  terrain: [],
   unitsCount: 5,
   unitConfig: defaultUnitConfig(),
   waitingForMoves: [false, false],

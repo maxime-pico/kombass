@@ -38,6 +38,8 @@ export type IGameSettings = {
   placementZone: number;
   unitsCount: number;
   unitConfig?: UnitConfig;
+  terrain?: Array<{ x: number; y: number }>;
+  randomTerrain?: boolean;
 };
 
 export type IAnimationItem = {
@@ -96,6 +98,7 @@ interface AppState {
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
+  _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setSelectedUnit: (
     playerNumber: number,
@@ -134,6 +137,7 @@ interface AppState {
   step: number;
   units: Array<Array<IUnit>>;
   unitsCount: number;
+  terrain: Array<{ x: number; y: number }>;
   unitConfig: UnitConfig;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
@@ -158,6 +162,7 @@ class App extends Component<AppProps, AppState> {
       _setIsAdmin: this._setIsAdmin,
       _setIsPlayer: this._setIsPlayer,
       _setPlacementZone: this._setPlacementZone,
+      _setTerrain: this._setTerrain,
       _setUnitConfig: this._setUnitConfig,
       _setSelectedUnit: this._setSelectedUnit,
       _setUnitCount: this._setUnitCount,
@@ -178,7 +183,7 @@ class App extends Component<AppProps, AppState> {
       futureUnits: [Array(5).fill(null), Array(5).fill(null)],
       futureUnitsHistory: [],
       gameStarted: false,
-      isAdmin: true,
+      isAdmin: false,
       isInRoom: false,
       isPlayer: 0,
       placedUnits: [Array(5).fill(false), Array(5).fill(false)],
@@ -206,6 +211,7 @@ class App extends Component<AppProps, AppState> {
           unitType: 0,
         })
       ),
+      terrain: [],
       unitsCount: 5,
       unitConfig: defaultUnitConfig(),
       waitingForMoves: [false, false],
@@ -237,6 +243,7 @@ class App extends Component<AppProps, AppState> {
     this._setIsAdmin = this._setIsAdmin.bind(this);
     this._setIsPlayer = this._setIsPlayer.bind(this);
     this._setPlacementZone = this._setPlacementZone.bind(this);
+    this._setTerrain = this._setTerrain.bind(this);
     this._setUnitConfig = this._setUnitConfig.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
     this._setUnitCount = this._setUnitCount.bind(this);
@@ -266,7 +273,6 @@ class App extends Component<AppProps, AppState> {
     if (socket) {
       this._handlePlayerReady();
       this._handleGameStart();
-      this._handleSettingsUpdated();
     }
   };
 
@@ -395,6 +401,10 @@ class App extends Component<AppProps, AppState> {
     this.setState({
       placementZone: width,
     });
+  };
+
+  _setTerrain = (terrain: Array<{ x: number; y: number }>) => {
+    this.setState({ terrain });
   };
 
   _setUnitConfig = (unitConfig: UnitConfig) => {
@@ -952,6 +962,7 @@ class App extends Component<AppProps, AppState> {
           );
         }
 
+        console.log("[start_game] received:", options);
         this._setIsPlayer(options.player);
         this._setIsAdmin(options.admin);
 
@@ -961,18 +972,6 @@ class App extends Component<AppProps, AppState> {
     }
   };
 
-  _handleSettingsUpdated = () => {
-    if (socketService.socket) {
-      gameService.updateSettings(socketService.socket, (settings) => {
-        this._setBoardSize(settings.boardLength, settings.boardWidth);
-        this._setPlacementZone(settings.placementZone);
-        this._setUnitCount(settings.unitsCount);
-        if (settings.unitConfig) {
-          this._setUnitConfig(settings.unitConfig);
-        }
-      });
-    }
-  };
 
   reconnectToGame = async (sessionToken: string) => {
     try {
