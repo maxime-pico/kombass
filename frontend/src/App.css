@@ -1093,3 +1093,88 @@ button.active {
   color: #4a9;
   margin-top: 0.25rem;
 }
+
+/* Room code display */
+.room-code-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 1.5rem 0 0.5rem;
+  padding: 1rem 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.room-code-label {
+  font-size: 0.8em;
+  opacity: 0.6;
+  margin-bottom: 0.5rem;
+}
+
+.room-code-value {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 2em;
+  letter-spacing: 0.2em;
+  color: #44bc86;
+}
+
+.room-code-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.room-code-copy-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 4px 12px;
+  cursor: pointer;
+  font-size: 0.8em;
+  transition: all 0.2s;
+}
+
+.room-code-copy-btn:hover {
+  border-color: #44bc86;
+  color: #44bc86;
+}
+
+/* Join by code */
+.join-code-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.join-code-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.join-code-input {
+  font-family: "Courier New", Courier, monospace;
+  font-size: 1.2em;
+  letter-spacing: 0.1em;
+  text-align: center;
+  width: 12em;
+  padding: 0.4rem 0.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #44bc86;
+}
+
+.join-code-input:focus {
+  outline: none;
+  border-color: #44bc86;
+}
+
+.join-code-button {
+  margin-top: 0 !important;
+  height: 2.2rem !important;
+}
+
+.join-code-error {
+  color: rgb(252, 0, 0);
+  font-size: 0.8em;
+  margin-top: 0.5rem;
+}

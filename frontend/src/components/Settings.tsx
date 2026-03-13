@@ -35,6 +35,18 @@ function Settings(props: SettingsProps) {
 
   const [terrainPercentage, setTerrainPercentage] = useState(0);
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
+
+  const roomCode = props.roomId;
+  const roomUrl = window.location.origin + "/game/" + roomCode;
+
+  const copyToClipboard = (text: string, setCopied: (v: boolean) => void) => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
   const [localUnitConfig, setLocalUnitConfig] = useState<UnitConfig>(
     unitConfig || defaultUnitConfig()
   );
@@ -109,6 +121,18 @@ function Settings(props: SettingsProps) {
         <div id="settings" className="settings-container">
           <div className="title">
             {"//"} Define Game Rules {"//"}
+          </div>
+          <div className="room-code-display">
+            <div className="room-code-label">Room Code</div>
+            <div className="room-code-value">{roomCode}</div>
+            <div className="room-code-buttons">
+              <button className="room-code-copy-btn" onClick={() => copyToClipboard(roomCode, setCodeCopied)}>
+                {codeCopied ? "Copied!" : "Copy Code"}
+              </button>
+              <button className="room-code-copy-btn" onClick={() => copyToClipboard(roomUrl, setLinkCopied)}>
+                {linkCopied ? "Copied!" : "Copy Link"}
+              </button>
+            </div>
           </div>
           <br />
           <div className="subtitle">How large should the board be?</div>
@@ -309,6 +333,10 @@ function Settings(props: SettingsProps) {
           <div className="title">
             {"//"} Please wait while the other player defines the Game Rules...
             {" //"}
+          </div>
+          <div className="room-code-display">
+            <div className="room-code-label">Room Code</div>
+            <div className="room-code-value">{roomCode}</div>
           </div>
         </div>
       )}
