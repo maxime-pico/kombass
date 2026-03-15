@@ -29,8 +29,8 @@ function deadUnit(): IUnit {
  * Standard flags far from any combat (won't trigger flag zone).
  */
 const farFlags: IFlag[] = [
-  { x: 0, y: 20, inZone: true },
-  { x: 21, y: 20, inZone: true },
+  { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+  { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
 ];
 
 /**
@@ -136,8 +136,8 @@ export const scenarios: TestScenario[] = [
       ],
       // Flag at (0,20) — unit at (1,20) is Manhattan distance 1 from flag
       flags: [
-        { x: 0, y: 20, inZone: true },
-        { x: 21, y: 20, inZone: true },
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
       ],
       isPlayer: 0,
       unitsCount: 1,
@@ -213,8 +213,8 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       flags: [
-        { x: 0, y: 20, inZone: true },
-        { x: 21, y: 20, inZone: true },
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
       ],
       isPlayer: 0,
       unitsCount: 1,
@@ -239,8 +239,8 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
       ],
       flags: [
-        { x: 0, y: 20, inZone: true },
-        { x: 21, y: 20, inZone: false },
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
       isPlayer: 0,
       unitsCount: 1,
@@ -293,6 +293,123 @@ export const scenarios: TestScenario[] = [
     expected: {
       myUnitsLife: [2],
       opponentUnitsLife: [2],
+      expectedBoomCount: 0,
+    },
+  },
+  {
+    name: "flag_carrier_dies_stays_in_place",
+    description: "Flag carrier dies with flagStayInPlace=true — flag drops at death position, not origin",
+    input: {
+      units: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+      flagStayInPlace: true,
+    },
+    expected: {
+      myUnitsLife: [-1],
+      opponentUnitsLife: [1],
+      // Flag should be at (10,10) — the dead carrier's position — not back at origin (21,20)
+      flagsInZone: [true, true],
+      expectedBoomCount: 2,
+    },
+  },
+  {
+    name: "flag_carrier_dies_default_returns",
+    description: "Flag carrier dies with flagStayInPlace=false — flag returns to origin",
+    input: {
+      units: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true, unitType: 0 })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+      flagStayInPlace: false,
+    },
+    expected: {
+      myUnitsLife: [-1],
+      opponentUnitsLife: [1],
+      flagsInZone: [true, true],
+      expectedBoomCount: 2,
+    },
+  },
+  {
+    name: "flag_zone_stays_at_origin",
+    description: "Flag dropped at (10,10) with flagStayInPlace — combat near (10,10) has no flag zone protection",
+    input: {
+      units: [
+        [unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 10, y: 12, strength: 2, speed: 2, life: 2, unitType: 1 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 10, y: 12, strength: 2, speed: 2, life: 2, unitType: 1 })],
+      ],
+      // Flag 1 was dropped at (10,10) but origin is (21,20) — zone should be at origin, not (10,10)
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 10, y: 10, originX: 21, originY: 20, inZone: true },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+    },
+    expected: {
+      myUnitsLife: [0],
+      opponentUnitsLife: [0],
+      expectedBoomCount: 2,
+    },
+  },
+  {
+    name: "flag_pickup_after_drop_second_round",
+    description: "Dead flag carrier from prior round should not re-trigger flag drop when another unit already picked up the flag",
+    input: {
+      units: [
+        // Unit 0 died in a prior round while carrying flag (life < 1, hasFlag still true)
+        // Unit 1 picked up the dropped flag and is alive
+        [
+          unit({ x: 10, y: 10, strength: 1, speed: 3, life: -1, hasFlag: true, unitType: 0 }),
+          unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, hasFlag: true, unitType: 1 }),
+        ],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      futureUnits: [
+        [
+          unit({ x: 10, y: 10, strength: 1, speed: 3, life: -1, hasFlag: true, unitType: 0 }),
+          unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, hasFlag: true, unitType: 1 }),
+        ],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false }, // Flag was picked up
+      ],
+      isPlayer: 0,
+      unitsCount: 2,
+      flagStayInPlace: true,
+    },
+    expected: {
+      myUnitsLife: [-1, 2],
+      opponentUnitsLife: [2],
+      // Flag 1 should stay inZone: false because unit 1 is alive and carrying it
+      flagsInZone: [true, false],
       expectedBoomCount: 0,
     },
   },

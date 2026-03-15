@@ -9,6 +9,7 @@ export interface LoadedScenario {
   isPlayer: 0 | 1;
   step: number;
   isTestScenario?: boolean;
+  flagStayInPlace?: boolean;
 }
 
 /**
@@ -24,6 +25,7 @@ export function loadScenario(scenario: TestScenario): LoadedScenario {
     // step = unitsCount puts app in combat phase, ready to play
     step: scenario.input.unitsCount,
     isTestScenario: true,
+    flagStayInPlace: scenario.input.flagStayInPlace ?? false,
   };
 }
 

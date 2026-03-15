@@ -39,6 +39,7 @@ export interface IGameContextProps {
   _setPlacementZone: (zoneSize: number) => void;
   _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
+  _setFlagStayInPlace: (flagStayInPlace: boolean) => void;
   _setSelectedUnit: (
     playerNumber: number,
     unitNumber: number,
@@ -75,6 +76,7 @@ export interface IGameContextProps {
   unitsCount: number;
   terrain: Array<{ x: number; y: number }>;
   unitConfig: UnitConfig;
+  flagStayInPlace: boolean;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
 }
@@ -96,6 +98,7 @@ const defaultState: IGameContextProps = {
   _setPlacementZone: () => {},
   _setTerrain: () => {},
   _setUnitConfig: () => {},
+  _setFlagStayInPlace: () => {},
   _setSelectedUnit: () => {},
   _setUnitCount: () => {},
   _setWaitingForMoves: () => {},
@@ -108,8 +111,8 @@ const defaultState: IGameContextProps = {
   boardWidth: 22,
   bufferOpponentUnits: Array(5).fill(null),
   flags: [
-    { x: 0, y: 10, inZone: true },
-    { x: 21, y: 10, inZone: true },
+    { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
+    { x: 21, y: 10, originX: 21, originY: 10, inZone: true },
   ],
   futureUnits: [Array(5).fill(null), Array(5).fill(null)],
   gameStarted: false,
@@ -141,6 +144,7 @@ const defaultState: IGameContextProps = {
   terrain: [],
   unitsCount: 5,
   unitConfig: defaultUnitConfig(),
+  flagStayInPlace: false,
   waitingForMoves: [false, false],
   animationPhase: {
     isAnimating: false,

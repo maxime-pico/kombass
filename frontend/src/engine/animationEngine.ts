@@ -123,11 +123,13 @@ export function buildBoomQueue(
       const x = opponentUnit.x;
       const y = opponentUnit.y;
 
-      // Check if in flag zone (invincible)
+      // Check if in flag zone (invincible) — zone stays at origin
       let inFlagZone = false;
       flags.forEach((flag) => {
-        inFlagZone = inFlagZone || Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3;
-        inFlagZone = inFlagZone || Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3;
+        const fx = flag.originX ?? flag.x;
+        const fy = flag.originY ?? flag.y;
+        inFlagZone = inFlagZone || Math.abs(a - fx) + Math.abs(b - fy) <= 3;
+        inFlagZone = inFlagZone || Math.abs(x - fx) + Math.abs(y - fy) <= 3;
       });
 
       if (inFlagZone) return;

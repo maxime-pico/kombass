@@ -3,8 +3,8 @@ import { unit } from "../scenarios";
 import { IFlag } from "../../App";
 
 const defaultFlags: IFlag[] = [
-  { x: 0, y: 10, inZone: true },
-  { x: 21, y: 10, inZone: true },
+  { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
+  { x: 21, y: 10, originX: 21, originY: 10, inZone: true },
 ];
 
 describe("checkWinCondition", () => {

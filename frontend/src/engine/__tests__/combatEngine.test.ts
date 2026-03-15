@@ -38,8 +38,8 @@ describe("isInCombatRange", () => {
 
 describe("isInFlagZone", () => {
   const flags = [
-    { x: 0, y: 10, inZone: true },
-    { x: 21, y: 10, inZone: true },
+    { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
+    { x: 21, y: 10, originX: 21, originY: 10, inZone: true },
   ];
 
   test("position within Manhattan distance 3 of any flag", () => {
@@ -152,5 +152,108 @@ describe("calculateCombatResults", () => {
 
     expect(resultP0.newFutureUnits[0][0]?.life).toBe(resultP1.newFutureUnits[0][0]?.life);
     expect(resultP0.newFutureUnits[1][0]?.life).toBe(resultP1.newFutureUnits[1][0]?.life);
+  });
+
+  test("flagStayInPlace: flag drops at dead carrier position, not origin", () => {
+    const result = calculateCombatResults({
+      units: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+      flagStayInPlace: true,
+    });
+
+    expect(result.flags[1].x).toBe(10);
+    expect(result.flags[1].y).toBe(10);
+    expect(result.flags[1].inZone).toBe(true);
+    expect(result.flags[1].originX).toBe(21);
+    expect(result.flags[1].originY).toBe(20);
+  });
+
+  test("flagStayInPlace=false: flag returns to origin", () => {
+    const result = calculateCombatResults({
+      units: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 10, strength: 1, speed: 3, life: 1, hasFlag: true })],
+        [unit({ x: 11, y: 10, strength: 2, speed: 2, life: 2 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+      flagStayInPlace: false,
+    });
+
+    expect(result.flags[1].x).toBe(21);
+    expect(result.flags[1].y).toBe(20);
+    expect(result.flags[1].inZone).toBe(true);
+  });
+
+  test("dead flag carrier from prior round does not re-trigger flag drop", () => {
+    const result = calculateCombatResults({
+      units: [
+        // Unit 0: dead from prior round, still has hasFlag: true
+        // Unit 1: alive, picked up the dropped flag
+        [
+          unit({ x: 10, y: 10, strength: 1, speed: 3, life: -1, hasFlag: true, unitType: 0 }),
+          unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, hasFlag: true, unitType: 1 }),
+        ],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      futureUnits: [
+        [
+          unit({ x: 10, y: 10, strength: 1, speed: 3, life: -1, hasFlag: true, unitType: 0 }),
+          unit({ x: 5, y: 5, strength: 2, speed: 2, life: 2, hasFlag: true, unitType: 1 }),
+        ],
+        [unit({ x: 20, y: 20, strength: 2, speed: 2, life: 2, hasFlag: false, unitType: 1 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
+      ],
+      isPlayer: 0,
+      unitsCount: 2,
+      flagStayInPlace: true,
+    });
+
+    // Flag should remain NOT in zone — unit 1 is alive and carrying it
+    expect(result.flags[1].inZone).toBe(false);
+  });
+
+  test("flag zone protection uses origin, not current flag position", () => {
+    const result = calculateCombatResults({
+      units: [
+        [unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 10, y: 12, strength: 2, speed: 2, life: 2 })],
+      ],
+      futureUnits: [
+        [unit({ x: 10, y: 11, strength: 2, speed: 2, life: 2 })],
+        [unit({ x: 10, y: 12, strength: 2, speed: 2, life: 2 })],
+      ],
+      flags: [
+        { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
+        { x: 10, y: 10, originX: 21, originY: 20, inZone: true },
+      ],
+      isPlayer: 0,
+      unitsCount: 1,
+    });
+
+    expect(result.newFutureUnits[0][0]?.life).toBe(0);
+    expect(result.newFutureUnits[1][0]?.life).toBe(0);
   });
 });

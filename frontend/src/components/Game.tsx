@@ -97,7 +97,7 @@ class Game extends Component<GameProps, GameStates> {
         let flagInZone =
           unit?.hasFlag &&
           unit?.life > 0 &&
-          Math.abs(unit.x - ownFlag.x) + Math.abs(unit.y - ownFlag.y) <= 3;
+          Math.abs(unit.x - (ownFlag.originX ?? ownFlag.x)) + Math.abs(unit.y - (ownFlag.originY ?? ownFlag.y)) <= 3;
         isFlagInZone[player_index] = isFlagInZone[player_index] || flagInZone;
       });
     });

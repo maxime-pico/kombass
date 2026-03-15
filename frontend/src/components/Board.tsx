@@ -45,7 +45,7 @@ function Board(props: BoardProps) {
     const ownFlag = flags[isPlayer];
     if (placement) {
       const flagZone = ownFlag
-        ? Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3
+        ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
         : false;
       isReachable = isPlayer
         ? col > boardWidth - placementZone - 1
@@ -57,7 +57,7 @@ function Board(props: BoardProps) {
       const speed = unit ? unit.speed : -1;
       const flagZone =
         ownFlag && !unit?.hasFlag
-          ? Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3
+          ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
           : false;
       isReachable = unit
         ? Math.abs(x - col) + Math.abs(y - row) <= speed && !flagZone
@@ -81,7 +81,7 @@ function Board(props: BoardProps) {
         let speed = unit ? unit.speed : -1;
         let life = unit ? unit.life : -1;
         let opponentFlagZone =
-          Math.abs(col - opponentFlag.x) + Math.abs(row - opponentFlag.y) <= 3;
+          Math.abs(col - (opponentFlag.originX ?? opponentFlag.x)) + Math.abs(row - (opponentFlag.originY ?? opponentFlag.y)) <= 3;
         opponentCanReach =
           opponentCanReach ||
           (Math.abs(x - col) + Math.abs(y - row) <= speed &&
@@ -114,7 +114,7 @@ function Board(props: BoardProps) {
       if (ownFlag && ownFlag.x !== -1) {
         isForbidden =
           isForbidden ||
-          Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3;
+          Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3;
       }
       isForbidden = isPlayer
         ? isForbidden || col <= boardWidth - placementZone - 1
@@ -129,7 +129,7 @@ function Board(props: BoardProps) {
         if (ownFlag && ownFlag.x !== -1) {
           isForbidden =
             isForbidden ||
-            Math.abs(col - ownFlag.x) + Math.abs(row - ownFlag.y) <= 3;
+            Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3;
         }
       }
     }
@@ -139,9 +139,11 @@ function Board(props: BoardProps) {
   const _isFlagZone = (col: number, row: number) => {
     let isFlagZone = false;
 
-    flags.forEach((flag, flag_index) => {
+    flags.forEach((flag) => {
+      const fx = flag.originX ?? flag.x;
+      const fy = flag.originY ?? flag.y;
       isFlagZone =
-        isFlagZone || Math.abs(col - flag.x) + Math.abs(row - flag.y) <= 3;
+        isFlagZone || Math.abs(col - fx) + Math.abs(row - fy) <= 3;
     });
 
     return isFlagZone;
@@ -165,12 +167,12 @@ function Board(props: BoardProps) {
       let notInReachFlag1 =
         flag1 &&
         flag1.x !== -1 &&
-        !(Math.abs(col - flag1.x) + Math.abs(row - flag1.y) <= 3);
+        !(Math.abs(col - (flag1.originX ?? flag1.x)) + Math.abs(row - (flag1.originY ?? flag1.y)) <= 3);
       const flag2 = flags[1];
       let notInReachFlag2 =
         flag2 &&
         flag2.x !== -1 &&
-        !(Math.abs(col - flag2.x) + Math.abs(row - flag2.y) <= 3);
+        !(Math.abs(col - (flag2.originX ?? flag2.x)) + Math.abs(row - (flag2.originY ?? flag2.y)) <= 3);
 
       // Future units are units already moved of the current player
       // For each unit, determine whether it creates a danger bubble or not for current square
@@ -314,9 +316,21 @@ function Board(props: BoardProps) {
   const _containsFlag = (col: number, row: number) => {
     const flag1 = flags[0];
     const flag2 = flags[1];
+    // Check if any future unit has picked up a dropped flag
+    const flagCarried = [false, false];
+    for (let p = 0; p < 2; p++) {
+      if (futureUnits[p]) {
+        for (const u of futureUnits[p]) {
+          if (u && u.hasFlag && u.life > 0) {
+            flagCarried[(p + 1) % 2] = true;
+            break;
+          }
+        }
+      }
+    }
     const containsFlag = [];
-    containsFlag[0] = flag1.x === col && flag1.y === row && flag1.inZone;
-    containsFlag[1] = flag2.x === col && flag2.y === row && flag2.inZone;
+    containsFlag[0] = flag1.x === col && flag1.y === row && flag1.inZone && !flagCarried[0];
+    containsFlag[1] = flag2.x === col && flag2.y === row && flag2.inZone && !flagCarried[1];
     return containsFlag;
   };
 

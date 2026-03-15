@@ -96,7 +96,7 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
 app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
-    const { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain } = req.body;
+    const { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain, flagStayInPlace } = req.body;
 
     const game = await gameService.getGame(roomId);
     if (!game) {
@@ -115,7 +115,7 @@ app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
     // Broadcast to all sockets in the room (including admin)
     const io = req.app.get("io") as import("socket.io").Server;
     if (io) {
-      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig, terrain });
+      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig, terrain, flagStayInPlace });
     }
 
     return res.json({ ok: true });

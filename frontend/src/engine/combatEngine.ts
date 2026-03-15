@@ -6,6 +6,7 @@ export interface CombatInput {
   flags: IFlag[];
   isPlayer: 0 | 1;
   unitsCount: number;
+  flagStayInPlace?: boolean;
 }
 
 export interface CombatResult {
@@ -52,9 +53,11 @@ export function isInCombatRange(
  * Check if a position is within any flag's protection zone (Manhattan distance ≤ 3).
  */
 export function isInFlagZone(x: number, y: number, flags: IFlag[]): boolean {
-  return flags.some(
-    (flag) => Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3
-  );
+  return flags.some((flag) => {
+    const fx = flag.originX ?? flag.x;
+    const fy = flag.originY ?? flag.y;
+    return Math.abs(x - fx) + Math.abs(y - fy) <= 3;
+  });
 }
 
 /**
@@ -69,7 +72,7 @@ export function isInFlagZone(x: number, y: number, flags: IFlag[]): boolean {
  * - Flag capture/return is tracked via hasFlag property
  */
 export function calculateCombatResults(input: CombatInput): CombatResult {
-  const { units, futureUnits, isPlayer, unitsCount } = input;
+  const { units, futureUnits, isPlayer, unitsCount, flagStayInPlace } = input;
   let flags = [...input.flags];
   const opponentNumber = ((isPlayer + 1) % 2) as 0 | 1;
 
@@ -97,13 +100,15 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
         // Check if I can hit opponent (embuscadeBack)
         const canIHitOpponent = isInCombatRange(x, y, strength, myRange, a, b, opponentStrength, opponentRange);
 
-        // Check if either unit is in a flag zone
+        // Check if either unit is in a flag zone (zone stays at origin)
         let inFlagZone = false;
         flags.forEach((flag) => {
+          const fx = flag.originX ?? flag.x;
+          const fy = flag.originY ?? flag.y;
           inFlagZone =
             inFlagZone ||
-            Math.abs(x - flag.x) + Math.abs(y - flag.y) <= 3 ||
-            Math.abs(a - flag.x) + Math.abs(b - flag.y) <= 3;
+            Math.abs(x - fx) + Math.abs(y - fy) <= 3 ||
+            Math.abs(a - fx) + Math.abs(b - fy) <= 3;
         });
 
         // Trace log for pair evaluation (test mode only)
@@ -174,10 +179,19 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
   units.forEach((playerUnits, playerIndex) => {
     playerUnits.forEach((element, index) => {
       if (!element) return;
+      if (element.life < 1) return;  // Skip already-dead units from prior rounds
       let hadFlag = element.hasFlag;
       let opponentFlag = flags[(playerIndex + 1) % 2];
       if (hadFlag && newFutureUnits[playerIndex][index]?.life < 1) {
-        opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: true };
+        if (flagStayInPlace) {
+          // Drop flag at the dead unit's future position
+          const deadUnit = newFutureUnits[playerIndex][index];
+          opponentFlag = { ...flags[(playerIndex + 1) % 2], x: deadUnit.x, y: deadUnit.y, inZone: true };
+        } else {
+          // Return flag to home base (origin)
+          const orig = flags[(playerIndex + 1) % 2];
+          opponentFlag = { ...orig, x: orig.originX ?? orig.x, y: orig.originY ?? orig.y, inZone: true };
+        }
         flags[(playerIndex + 1) % 2] = opponentFlag;
       } else if (
         !hadFlag &&

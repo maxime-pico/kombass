@@ -25,13 +25,15 @@ export function checkWinCondition(
 
   units.forEach((playerUnits, player_index) => {
     let ownFlag = flags[player_index];
+    const fx = ownFlag.originX ?? ownFlag.x;
+    const fy = ownFlag.originY ?? ownFlag.y;
     playerUnits.forEach((unit) => {
       deadUnits[player_index] =
         unit?.life > 0 ? deadUnits[player_index] : deadUnits[player_index] + 1;
       let flagInZone =
         unit?.hasFlag &&
         unit?.life > 0 &&
-        Math.abs(unit.x - ownFlag.x) + Math.abs(unit.y - ownFlag.y) <= 3;
+        Math.abs(unit.x - fx) + Math.abs(unit.y - fy) <= 3;
       isFlagInZone[player_index] = isFlagInZone[player_index] || flagInZone;
     });
   });

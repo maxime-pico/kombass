@@ -30,6 +30,8 @@ function Settings(props: SettingsProps) {
     unitConfig,
     _setUnitConfig,
     _setTerrain,
+    _setFlagStayInPlace,
+    flagStayInPlace,
     flags,
   } = useContext(gameContext);
 
@@ -67,6 +69,7 @@ function Settings(props: SettingsProps) {
     placementZone: placementZone,
     unitsCount: unitsCount,
     unitConfig: localUnitConfig,
+    flagStayInPlace: flagStayInPlace,
   };
 
   const settingsReady = () => {
@@ -95,7 +98,7 @@ function Settings(props: SettingsProps) {
     });
 
 
-    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }> }) => {
+    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }>; flagStayInPlace?: boolean }) => {
       _setBoardSize(settings.boardLength, settings.boardWidth);
       _setPlacementZone(settings.placementZone);
       _setUnitCount(settings.unitsCount);
@@ -106,6 +109,9 @@ function Settings(props: SettingsProps) {
       if (settings.terrain) {
         _setTerrain(settings.terrain);
       }
+      if (settings.flagStayInPlace !== undefined) {
+        _setFlagStayInPlace(settings.flagStayInPlace);
+      }
       props._selectUnits();
     };
     gameService.onSettingsConfirmed(socket, onConfirmed);
@@ -113,7 +119,7 @@ function Settings(props: SettingsProps) {
     return () => {
       socket.off("settings_confirmed", onConfirmed);
     };
-  }, [_setIsAdmin, _setIsPlayer, _setGameStarted, _setBoardSize, _setPlacementZone, _setUnitCount, _setUnitConfig, props]);
+  }, [_setIsAdmin, _setIsPlayer, _setGameStarted, _setBoardSize, _setPlacementZone, _setUnitCount, _setUnitConfig, _setFlagStayInPlace, props]);
 
   return (
     <div>
@@ -218,6 +224,16 @@ function Settings(props: SettingsProps) {
           </div>
           {showAdvanced && (
             <div className="advanced-section" style={{ marginLeft: "20px" }}>
+              <div style={{ marginBottom: "12px" }}>
+                <label style={{ cursor: "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <input
+                    type="checkbox"
+                    checked={flagStayInPlace}
+                    onChange={(e) => _setFlagStayInPlace(e.target.checked)}
+                  />
+                  Flag stays in place when carrier dies
+                </label>
+              </div>
               <table style={{ borderCollapse: "collapse", width: "100%" }}>
                 <thead>
                   <tr>

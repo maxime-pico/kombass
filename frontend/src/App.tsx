@@ -30,7 +30,7 @@ export type ISelectedUnit = {
   playerNumber: number;
   unitNumber: number;
 };
-export type IFlag = { x: number; y: number; inZone: boolean };
+export type IFlag = { x: number; y: number; originX: number; originY: number; inZone: boolean };
 
 export type IGameSettings = {
   boardWidth: number;
@@ -40,6 +40,7 @@ export type IGameSettings = {
   unitConfig?: UnitConfig;
   terrain?: Array<{ x: number; y: number }>;
   randomTerrain?: boolean;
+  flagStayInPlace?: boolean;
 };
 
 export type IAnimationItem = {
@@ -100,6 +101,7 @@ interface AppState {
   _setPlacementZone: (zoneSize: number) => void;
   _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
+  _setFlagStayInPlace: (flagStayInPlace: boolean) => void;
   _setSelectedUnit: (
     playerNumber: number,
     unitNumber: number,
@@ -139,6 +141,7 @@ interface AppState {
   unitsCount: number;
   terrain: Array<{ x: number; y: number }>;
   unitConfig: UnitConfig;
+  flagStayInPlace: boolean;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
   isSyncing: boolean;
@@ -164,6 +167,7 @@ class App extends Component<AppProps, AppState> {
       _setPlacementZone: this._setPlacementZone,
       _setTerrain: this._setTerrain,
       _setUnitConfig: this._setUnitConfig,
+      _setFlagStayInPlace: this._setFlagStayInPlace,
       _setSelectedUnit: this._setSelectedUnit,
       _setUnitCount: this._setUnitCount,
       _setWaitingForMoves: this._setWaitingForMoves,
@@ -177,9 +181,10 @@ class App extends Component<AppProps, AppState> {
       boardWidth: 22,
       bufferOpponentUnits: Array(5).fill(null),
       flags: [
-        { x: 0, y: 10, inZone: true },
-        { x: 21, y: 10, inZone: true },
+        { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
+        { x: 21, y: 10, originX: 21, originY: 10, inZone: true },
       ],
+      flagStayInPlace: false,
       futureUnits: [Array(5).fill(null), Array(5).fill(null)],
       futureUnitsHistory: [],
       gameStarted: false,
@@ -386,11 +391,15 @@ class App extends Component<AppProps, AppState> {
         {
           x: 0,
           y: Math.floor(length / 2),
+          originX: 0,
+          originY: Math.floor(length / 2),
           inZone: true,
         },
         {
           x: width - 1,
           y: Math.floor(length / 2),
+          originX: width - 1,
+          originY: Math.floor(length / 2),
           inZone: true,
         },
       ],
@@ -421,6 +430,10 @@ class App extends Component<AppProps, AppState> {
       );
       return { unitConfig, units: updatedUnits };
     });
+  };
+
+  _setFlagStayInPlace = (flagStayInPlace: boolean) => {
+    this.setState({ flagStayInPlace });
   };
 
   _setWaitingForMoves = (ready: boolean, player: number) => {
@@ -716,6 +729,7 @@ class App extends Component<AppProps, AppState> {
       flags: this.state.flags,
       isPlayer: this.state.isPlayer,
       unitsCount: this.state.unitsCount,
+      flagStayInPlace: this.state.flagStayInPlace,
     });
     console.log("newFutureUnits (result):", JSON.stringify(result.newFutureUnits));
     return result;
@@ -841,6 +855,10 @@ class App extends Component<AppProps, AppState> {
     const results = this.combatResultsBuffer;
 
     console.log(`=== FINALIZING COMBAT (Player ${this.state.isPlayer}, Round ${this.state.round}) ===`);
+    console.log("Combat result flags:", JSON.stringify(results.flags));
+    console.log("Combat result units hasFlag:", results.newFutureUnits.map((pu: any[], pi: number) =>
+      pu.map((u: any, ui: number) => `P${pi}U${ui}: hasFlag=${u?.hasFlag}, life=${u?.life}`)
+    ));
 
     this.setState({
       units: results.newFutureUnits,
@@ -863,9 +881,8 @@ class App extends Component<AppProps, AppState> {
         boomQueue: [],
         deadUnits: new Set(),
       },
+      flags: results.flags,
     });
-
-    this._updateFlags(results.flags);
 
     // Persist combat results to database
     // Send both players' units and flags so either player can update both in the database
@@ -1036,8 +1053,8 @@ class App extends Component<AppProps, AppState> {
 
     // Reconstruct flags array
     const flags: Array<IFlag> = [
-      { x: 0, y: Math.floor(game.boardLength / 2), inZone: false },
-      { x: game.boardWidth - 1, y: Math.floor(game.boardLength / 2), inZone: false },
+      { x: 0, y: Math.floor(game.boardLength / 2), originX: 0, originY: Math.floor(game.boardLength / 2), inZone: false },
+      { x: game.boardWidth - 1, y: Math.floor(game.boardLength / 2), originX: game.boardWidth - 1, originY: Math.floor(game.boardLength / 2), inZone: false },
     ];
     flags[playerNumber] = myPlayer.flag;
     flags[(playerNumber + 1) % 2] = opponentPlayer.flag;
@@ -1175,6 +1192,7 @@ class App extends Component<AppProps, AppState> {
             gameStarted: true,
             ready: [true, true],
             isTestScenario: loaded.isTestScenario || false,
+            flagStayInPlace: loaded.flagStayInPlace ?? false,
           });
         },
         getState: () => ({ ...this.state }),

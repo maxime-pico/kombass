@@ -32,7 +32,7 @@ class GameService {
 
   public onSettingsConfirmed(
     socket: Socket,
-    listener: (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig }) => void
+    listener: (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; flagStayInPlace?: boolean }) => void
   ) {
     socket.on("settings_confirmed", listener);
   }
