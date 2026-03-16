@@ -135,6 +135,48 @@ function TestHarness() {
         </tbody>
       </table>
 
+      <h2 style={{ marginTop: "30px" }}>Movement / Undo Scenarios</h2>
+      <p style={{ color: "#888", fontSize: "12px" }}>
+        These test step navigation with dead units. Load into app, then interact manually.
+      </p>
+      <table style={{ width: "100%", borderCollapse: "collapse", marginBottom: "20px" }}>
+        <thead>
+          <tr style={{ background: "#222", color: "white" }}>
+            <th style={{ padding: "8px", textAlign: "left" }}>Name</th>
+            <th style={{ padding: "8px", textAlign: "left" }}>Description</th>
+            <th style={{ padding: "8px", textAlign: "left" }}>How to Test</th>
+            <th style={{ padding: "8px", textAlign: "left" }}>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr style={{ borderBottom: "1px solid #333", background: "#1a1a1a" }}>
+            <td style={{ padding: "8px", fontWeight: "bold" }}>undo_skip_dead</td>
+            <td style={{ padding: "8px", color: "#aaa", fontSize: "12px" }}>
+              3 units, unit 1 is dead. Starts at confirm step. Undo twice should skip dead unit 1 and go to unit 0.
+            </td>
+            <td style={{ padding: "8px", color: "#aaa", fontSize: "12px" }}>
+              1. Click "Load in App"<br />
+              2. You see 2 blue units on board (confirm step)<br />
+              3. Click Undo → unit 2 selected (step 2)<br />
+              4. Click Undo again →<br />
+              &nbsp;&nbsp;<strong>Bug:</strong> Gets stuck on step 1 (dead unit)<br />
+              &nbsp;&nbsp;<strong>Fixed:</strong> Skips to step 0 (unit 0 selected)
+            </td>
+            <td style={{ padding: "8px" }}>
+              <button
+                onClick={() => {
+                  sessionStorage.setItem("KOMBASS_UNDO_SCENARIO", "true");
+                  window.location.href = "/";
+                }}
+                style={{ padding: "4px 10px", cursor: "pointer", background: "#ff9800", color: "white", border: "none", borderRadius: "4px", fontSize: "12px" }}
+              >
+                Load in App
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
       <div style={{ marginTop: "20px", color: "#888", fontSize: "12px" }}>
         <p><strong>Usage:</strong></p>
         <ul>

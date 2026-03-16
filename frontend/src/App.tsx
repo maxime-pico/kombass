@@ -13,6 +13,7 @@ import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
 import { calculateCombatResults } from "./engine";
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
+import { findNextAliveStep } from "./engine/stepLogic";
 
 export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
@@ -615,18 +616,10 @@ class App extends Component<AppProps, AppState> {
     if (step < 0) {
       nextStep = step + direction;
     } else {
-      nextStep = (step + direction) % (this.state.unitsCount + 1);
-      let selectedUnit = [];
+      const unitLives = this.state.units[this.state.isPlayer].map(u => u?.life ?? 0);
+      nextStep = findNextAliveStep(step, direction, unitLives, this.state.unitsCount);
       if (nextStep !== this.state.unitsCount) {
-        selectedUnit = [this.state.isPlayer, nextStep % this.state.unitsCount];
-        if (this.state.units[selectedUnit[0]][selectedUnit[1]]?.life > 0) {
-          this._setSelectedUnit(selectedUnit[0], selectedUnit[1], nextStep);
-        } else {
-          nextStep !== 0 &&
-            direction !== -1 &&
-            this._changeStep(nextStep, direction);
-          return true;
-        }
+        this._setSelectedUnit(this.state.isPlayer, nextStep, nextStep);
       } else {
         let selectedUnit = { playerNumber: -1, unitNumber: -1 };
         this.setState({
@@ -1199,6 +1192,57 @@ class App extends Component<AppProps, AppState> {
         triggerCombat: () => this._calculateCombatResults(),
         setStep: (step: number) => this.setState({ step }),
         getScenarios: () => scenarios.map((s: any, i: number) => ({ index: i, name: s.name, description: s.description })),
+        /**
+         * Load a confirm-step scenario for testing undo/step-skip with dead units.
+         * Sets up 3 units where unit 1 is dead. Starts at confirm step (step=unitsCount=3).
+         * Units 0 and 2 have already "moved" (futureUnits populated).
+         * Test: undo twice — second undo should skip dead unit 1 and go to unit 0.
+         */
+        loadUndoScenario: () => {
+          const aliveUnit = (x: number, y: number) => ({
+            x, y, strength: 2, range: 2, speed: 2, life: 2,
+            hasFlag: false, unitType: 1,
+          });
+          const dead = {
+            x: 5, y: 5, strength: 0, range: 0, speed: 0, life: -1,
+            hasFlag: false, unitType: 1,
+          };
+          const units: IUnit[][] = [
+            [aliveUnit(2, 2), dead, aliveUnit(8, 8)],
+            [aliveUnit(18, 18), aliveUnit(17, 17), aliveUnit(16, 16)],
+          ];
+          // Units 0 and 2 have "moved" — unit 0 moved to (3,3), unit 2 moved to (9,9)
+          const movedUnit0 = { ...aliveUnit(3, 3) };
+          const movedUnit2 = { ...aliveUnit(9, 9) };
+          const futureUnits: Array<Array<IUnit>> = [
+            [movedUnit0, null as any, movedUnit2],
+            Array(3).fill(null),
+          ];
+          // History: player's units snapshot after each move (unit 0, then unit 2)
+          const futureUnitsHistory: Array<Array<IUnit>> = [
+            [movedUnit0, null as any, null as any],  // after unit 0 moved
+            [movedUnit0, null as any, movedUnit2],    // after unit 2 moved
+          ];
+          this.setState({
+            units,
+            futureUnits,
+            futureUnitsHistory,
+            flags: [
+              { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
+              { x: 20, y: 10, originX: 20, originY: 10, inZone: true },
+            ],
+            unitsCount: 3,
+            isPlayer: 0,
+            step: 3,
+            gameStarted: true,
+            ready: [true, true],
+            isTestScenario: true,
+            boardLength: 21,
+            boardWidth: 21,
+            selectedUnit: { playerNumber: -1, unitNumber: -1 },
+            round: 2,
+          });
+        },
       };
 
       // Auto-load scenario from sessionStorage if present
@@ -1207,6 +1251,14 @@ class App extends Component<AppProps, AppState> {
         sessionStorage.removeItem("KOMBASS_TEST_SCENARIO");
         setTimeout(() => {
           (window as any).__KOMBASS_TEST_API__.loadScenario(storedScenario);
+        }, 0);
+      }
+
+      const undoScenario = sessionStorage.getItem("KOMBASS_UNDO_SCENARIO");
+      if (undoScenario) {
+        sessionStorage.removeItem("KOMBASS_UNDO_SCENARIO");
+        setTimeout(() => {
+          (window as any).__KOMBASS_TEST_API__.loadUndoScenario();
         }, 0);
       }
     }
