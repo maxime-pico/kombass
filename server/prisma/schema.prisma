@@ -24,6 +24,7 @@ model Game {
   appVersion        String?
   unitConfig        Json?
   terrainPercentage Int        @default(0)
+  terrain           Json?
   players           Player[]
 
   @@index([roomId])

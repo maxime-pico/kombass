@@ -1086,6 +1086,8 @@ class App extends Component<AppProps, AppState> {
         futureUnits,
         flags,
         ready,
+        terrain: game.terrain || [],
+        unitConfig: game.unitConfig || undefined,
         round: game.round,
         roomId: game.roomId || this.state.roomId,
         // If player has submitted moves (futureUnits populated), they're at confirmation phase (step = unitsCount)
@@ -1190,6 +1192,7 @@ class App extends Component<AppProps, AppState> {
             ready: [true, true],
             isTestScenario: loaded.isTestScenario || false,
             flagStayInPlace: loaded.flagStayInPlace ?? false,
+            terrain: loaded.terrain || [],
           });
         },
         getState: () => ({ ...this.state }),

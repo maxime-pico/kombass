@@ -40,6 +40,7 @@ export interface TestScenario {
   name: string;
   description: string;
   input: CombatInput;
+  terrain?: Array<{ x: number; y: number }>;
   expected: {
     /** Expected life values for player's units after combat */
     myUnitsLife: number[];
@@ -410,6 +411,33 @@ export const scenarios: TestScenario[] = [
       opponentUnitsLife: [2],
       // Flag 1 should stay inZone: false because unit 1 is alive and carrying it
       flagsInZone: [true, false],
+      expectedBoomCount: 0,
+    },
+  },
+  {
+    name: "terrain_reconnect",
+    description: "Scenario with terrain — verifies terrain persists through state restoration",
+    input: {
+      units: [
+        [unit({ x: 3, y: 3, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 15, y: 15, strength: 2, speed: 2, life: 2, unitType: 1 })],
+      ],
+      futureUnits: [
+        [unit({ x: 3, y: 3, strength: 2, speed: 2, life: 2, unitType: 1 })],
+        [unit({ x: 15, y: 15, strength: 2, speed: 2, life: 2, unitType: 1 })],
+      ],
+      flags: farFlags,
+      isPlayer: 0,
+      unitsCount: 1,
+    },
+    terrain: [
+      { x: 5, y: 5 },
+      { x: 6, y: 6 },
+      { x: 7, y: 7 },
+    ],
+    expected: {
+      myUnitsLife: [2],
+      opponentUnitsLife: [2],
       expectedBoomCount: 0,
     },
   },

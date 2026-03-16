@@ -99,6 +99,7 @@ export async function updateGameConfig(gameId: string, config: BoardConfig): Pro
       ...(config.unitsCount !== undefined && { unitsCount: config.unitsCount }),
       ...(config.terrainPercentage !== undefined && { terrainPercentage: config.terrainPercentage }),
       ...(config.unitConfig !== undefined && { unitConfig: config.unitConfig }),
+      ...(config.terrain !== undefined && { terrain: config.terrain }),
       lastActivity: new Date(),
     },
   });
@@ -215,6 +216,8 @@ export async function getGameState(gameId: string) {
       round: game.currentRound,
       step: game.currentStep,
       status: game.status,
+      terrain: game.terrain,
+      unitConfig: game.unitConfig,
     },
     players: game.players.map((p) => ({
       id: p.id,

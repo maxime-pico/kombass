@@ -10,6 +10,7 @@ export interface LoadedScenario {
   step: number;
   isTestScenario?: boolean;
   flagStayInPlace?: boolean;
+  terrain: Array<{ x: number; y: number }>;
 }
 
 /**
@@ -26,6 +27,7 @@ export function loadScenario(scenario: TestScenario): LoadedScenario {
     step: scenario.input.unitsCount,
     isTestScenario: true,
     flagStayInPlace: scenario.input.flagStayInPlace ?? false,
+    terrain: scenario.terrain ?? [],
   };
 }
 
