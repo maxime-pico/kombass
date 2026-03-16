@@ -81,6 +81,11 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
     if (game.status === "COMPLETED" || game.status === "ABANDONED") {
       return res.status(409).json({ reason: "game_over" });
     }
+    // Check if player 1 session already exists (e.g. React strict mode double-mount)
+    const existingP1 = game.players.find((p: any) => p.playerNumber === 1);
+    if (existingP1) {
+      return res.json({ sessionToken: existingP1.sessionToken });
+    }
     if (game.players.length >= 2) {
       return res.status(409).json({ reason: "game_in_progress" });
     }

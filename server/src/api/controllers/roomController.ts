@@ -49,12 +49,21 @@ export class RoomController {
     socket.data.isAdmin = session.playerNumber === 0;
 
 
-    // Emit start_game immediately to the authenticating player
-    console.log("[authenticate] emitting start_game to socket", socket.id, "player:", socket.data.playerNumber, "admin:", socket.data.isAdmin);
-    socket.emit("start_game", {
-      player: socket.data.playerNumber,
-      admin: socket.data.isAdmin,
-    });
+    // Only emit start_game when both players are connected
+    const roomSockets = io.sockets.adapter.rooms.get(game.roomId);
+    const roomSize = roomSockets?.size || 0;
+
+    if (roomSize >= 2) {
+      for (const sid of roomSockets!) {
+        const s = io.sockets.sockets.get(sid);
+        if (s && s.data.playerNumber !== undefined) {
+          s.emit("start_game", {
+            player: s.data.playerNumber,
+            admin: s.data.isAdmin,
+          });
+        }
+      }
+    }
   }
 
   // lists rooms and how full it is, not used at the moment as I do not know

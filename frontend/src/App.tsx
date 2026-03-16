@@ -306,6 +306,8 @@ class App extends Component<AppProps, AppState> {
       if (socketService.socket) {
         socketService.socket.emit("authenticate", { sessionToken });
         this._setInRoom();
+        this._setIsAdmin(false);
+        this._setIsPlayer(1);
         this.setState({ step: -3, roomMessage: "" });
       }
     } catch (_) {
@@ -329,6 +331,8 @@ class App extends Component<AppProps, AppState> {
       if (socketService.socket) {
         socketService.socket.emit("authenticate", { sessionToken });
         this._setInRoom();
+        this._setIsAdmin(true);
+        this._setIsPlayer(0);
         this.setState({ step: -3, roomMessage: "" });
       }
     } catch (_) {

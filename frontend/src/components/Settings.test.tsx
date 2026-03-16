@@ -55,6 +55,26 @@ function renderSettings(selectUnitsMock: jest.Mock) {
   );
 }
 
+describe("Settings READY button gating", () => {
+  it("READY button is disabled when gameStarted is false", () => {
+    const { getByText } = render(
+      <gameContext.Provider value={{ ...defaultContextValue, gameStarted: false, isAdmin: true } as any}>
+        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+      </gameContext.Provider>
+    );
+    expect(getByText("READY").closest("button")).toBeDisabled();
+  });
+
+  it("READY button is enabled when gameStarted is true", () => {
+    const { getByText } = render(
+      <gameContext.Provider value={{ ...defaultContextValue, gameStarted: true, isAdmin: true } as any}>
+        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+      </gameContext.Provider>
+    );
+    expect(getByText("READY").closest("button")).not.toBeDisabled();
+  });
+});
+
 describe("Settings component socket events", () => {
   beforeEach(() => {
     mockEmitter.removeAllListeners();
