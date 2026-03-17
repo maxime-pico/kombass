@@ -1087,6 +1087,7 @@ class App extends Component<AppProps, AppState> {
         flags,
         ready,
         terrain: game.terrain || [],
+        flagStayInPlace: game.flagStayInPlace ?? false,
         unitConfig: game.unitConfig || undefined,
         round: game.round,
         roomId: game.roomId || this.state.roomId,

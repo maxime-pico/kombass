@@ -14,6 +14,7 @@ export interface BoardConfig {
   terrainPercentage?: number;
   unitConfig?: any;
   terrain?: Array<{ x: number; y: number }>;
+  flagStayInPlace?: boolean;
 }
 
 export interface GameStateUpdate {
@@ -100,6 +101,7 @@ export async function updateGameConfig(gameId: string, config: BoardConfig): Pro
       ...(config.terrainPercentage !== undefined && { terrainPercentage: config.terrainPercentage }),
       ...(config.unitConfig !== undefined && { unitConfig: config.unitConfig }),
       ...(config.terrain !== undefined && { terrain: config.terrain }),
+      ...(config.flagStayInPlace !== undefined && { flagStayInPlace: config.flagStayInPlace }),
       lastActivity: new Date(),
     },
   });
@@ -218,6 +220,7 @@ export async function getGameState(gameId: string) {
       status: game.status,
       terrain: game.terrain,
       unitConfig: game.unitConfig,
+      flagStayInPlace: game.flagStayInPlace,
     },
     players: game.players.map((p) => ({
       id: p.id,

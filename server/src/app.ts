@@ -108,7 +108,7 @@ app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
       return res.status(404).json({ error: "room not found" });
     }
 
-    await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain });
+    await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain, flagStayInPlace });
 
     const appVersion = process.env.npm_package_version || null;
     if (appVersion) {
