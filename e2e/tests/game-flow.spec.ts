@@ -65,10 +65,11 @@ test.describe("Full Game Flow (2-player REST)", () => {
     });
     console.log(`[P1 debug] ${JSON.stringify(debug)}`);
 
-    // Intercept fetch to see what happens
+    // Intercept fetch AND add click listener to debug
     await player1.evaluate(() => {
       const origFetch = window.fetch;
       (window as any).__fetchLog = [];
+      (window as any).__clickLog = [];
       window.fetch = async (...args: any[]) => {
         (window as any).__fetchLog.push({ url: args[0], opts: args[1] });
         try {
@@ -80,6 +81,15 @@ test.describe("Full Game Flow (2-player REST)", () => {
           throw e;
         }
       };
+      // Listen for clicks on buttons
+      document.addEventListener('click', (e) => {
+        const target = e.target as HTMLElement;
+        (window as any).__clickLog.push({
+          tag: target.tagName,
+          text: target.textContent?.trim().substring(0, 50),
+          classes: target.className,
+        });
+      }, true);
     });
 
     await player1.click("text=PLAY");
@@ -89,6 +99,9 @@ test.describe("Full Game Flow (2-player REST)", () => {
     const afterDebug = await player1.evaluate(() => ({
       url: window.location.href,
       fetchLog: (window as any).__fetchLog,
+      clickLog: (window as any).__clickLog,
+      // Also try calling createRoom directly
+      backendUrl: (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__ ? 'devtools present' : 'no devtools',
     }));
     console.log(`[P1 after click] ${JSON.stringify(afterDebug)}`);
 
