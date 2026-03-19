@@ -1,5 +1,4 @@
 import { Socket } from "socket.io-client";
-import { IUnit } from "../../App";
 import type { UnitConfig } from "../../utilities/dict";
 
 class GameService {
@@ -37,50 +36,16 @@ class GameService {
     socket.on("settings_confirmed", listener);
   }
 
-  public async setReady(
-    socket: Socket,
-    player: 0 | 1,
-    units: Array<Array<IUnit>>,
-    flag?: { x: number; y: number; inZone: boolean }
-  ) {
-    socket.emit("player_ready", { player: player, units: units, flag: flag });
-  }
-
   public async onReady(socket: Socket, listener: (message: any) => void) {
     socket.on("player_ready", (message) => listener(message));
   }
 
-  public async sendMoves(socket: Socket, myUnits: Array<IUnit>, round: number) {
-    socket.emit("moves_sent", { units: myUnits, round: round });
+  public onCombatResults(socket: Socket, listener: (data: any) => void): void {
+    socket.on("combat_results", (data) => listener(data));
   }
 
-  public async onUpdateMoves(socket: Socket, listener: (update: any) => void) {
-    socket.on("moves_received", (update) => listener(update));
-  }
-
-  public async gameWin(socket: Socket, message: string) {
-    socket.emit("game_win", { message });
-  }
-
-  public async onGameWin(socket: Socket, listener: (message: string) => void) {
-    socket.on("on_game_win", ({ message }) => listener(message));
-  }
-
-  public async finalizeCombat(
-    socket: Socket,
-    playerNumber: number,
-    allUnits: Array<Array<IUnit>>,
-    allFlags: Array<{ x: number; y: number; inZone: boolean }>,
-    round: number,
-    step: number
-  ) {
-    socket.emit("combat_finalized", {
-      playerNumber,
-      allUnits,
-      allFlags,
-      round,
-      step,
-    });
+  public onMovesSubmitted(socket: Socket, listener: (data: any) => void): void {
+    socket.on("moves_submitted", (data) => listener(data));
   }
 
   public async onOpponentReconnected(socket: Socket, listener: () => void) {

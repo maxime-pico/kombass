@@ -24,6 +24,17 @@ class SocketService {
       }
 
       this.socket.on("connect", () => {
+        // On reconnect (not first connect), re-authenticate to rejoin server-side room
+        if (!this._connectingPromise) {
+          const roomId = window.location.pathname.split("/game/")[1];
+          const token = roomId
+            ? localStorage.getItem(`kombass_session_token_${roomId}`)
+            : null;
+          if (token && this.socket) {
+            this.socket.emit("authenticate", { sessionToken: token });
+          }
+          return;
+        }
         this._connectingPromise = null;
         rs(this.socket as Socket);
       });

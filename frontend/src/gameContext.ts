@@ -31,6 +31,7 @@ export interface IGameContextProps {
   ) => void;
   _createRoom: () => Promise<void>;
   _placeUnit: (unitNumber: number, col: number, row: number) => void;
+  _startGame: () => Promise<void>;
   _setBoardSize: (length: number, width: number) => void;
   _setGameStarted: () => void;
   _setInRoom: (inRoom: boolean) => void;
@@ -69,6 +70,7 @@ export interface IGameContextProps {
   player: 0 | 1;
   players: IPlayers;
   ready: Array<boolean>;
+  roomId: string;
   round: number;
   selectedUnit: ISelectedUnit;
   step: number;
@@ -90,6 +92,7 @@ const defaultState: IGameContextProps = {
   _circleUnit: () => {},
   _createRoom: async () => {},
   _placeUnit: () => {},
+  _startGame: async () => {},
   _setBoardSize: () => {},
   _setGameStarted: () => {},
   _setInRoom: () => {},
@@ -127,6 +130,7 @@ const defaultState: IGameContextProps = {
     { name: "P2", color: "red" },
   ],
   ready: [false, false],
+  roomId: "",
   round: 0,
   selectedUnit: { playerNumber: 0, unitNumber: 0 },
   step: -5,

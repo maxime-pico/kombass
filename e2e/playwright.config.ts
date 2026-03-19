@@ -15,12 +15,21 @@ export default defineConfig({
       use: { ...devices["Desktop Chrome"] },
     },
   ],
-  // Start frontend in test mode before running tests
-  webServer: {
-    command: "REACT_APP_TEST_MODE=true BROWSER=none npm start",
-    cwd: "../frontend",
-    url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
-    timeout: 120000,
-  },
+  // Start backend and frontend before running tests
+  webServer: [
+    {
+      command: "npm start",
+      cwd: "../server",
+      url: "http://localhost:9000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 30000,
+    },
+    {
+      command: "REACT_APP_TEST_MODE=true BROWSER=none npm start",
+      cwd: "../frontend",
+      url: "http://localhost:3000",
+      reuseExistingServer: !process.env.CI,
+      timeout: 120000,
+    },
+  ],
 });

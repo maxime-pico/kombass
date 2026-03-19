@@ -2,6 +2,7 @@ import React, { useContext, useEffect } from "react";
 import gameContext from "../gameContext";
 import socketService from "../services/socketService";
 import gameService from "../services/gameService";
+import { gamePost } from "../services/api";
 import { IUnit } from "../App";
 
 interface PanelProps {
@@ -13,6 +14,7 @@ function Panel(props: PanelProps) {
     animationPhase,
     bufferOpponentUnits,
     isPlayer,
+    roomId,
     step,
     futureUnits,
     unitsCount,
@@ -22,30 +24,54 @@ function Panel(props: PanelProps) {
     _setWaitingForMoves,
     _undoMove,
     _updateMovesListener,
+    _updateOpponentUnits,
     _waitingForMoves,
   } = useContext(gameContext);
 
-  const _sendMoves = () => {
-    if (socketService.socket) {
-      gameService
-        .sendMoves(socketService.socket, futureUnits[isPlayer], props.round)
-        .then(() => {
-          _setWaitingForMoves(true, isPlayer);
-          _applyBufferedMoves();
-        });
+  const _sendMoves = async () => {
+    try {
+      const res = await gamePost(roomId, "moves", {
+        futureUnits: futureUnits[isPlayer],
+        round: props.round,
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Submit moves failed:", data.error);
+        return;
+      }
+      const data = await res.json();
+
+      if (data.waiting) {
+        // First submitter — wait for combat_results socket event
+        _setWaitingForMoves(true, isPlayer);
+      } else {
+        // Second submitter — combat happened, set opponent's futureUnits from response
+        _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
+        _setWaitingForMoves(true, isPlayer);
+        _setWaitingForMoves(true, (isPlayer + 1) % 2);
+      }
+    } catch (error) {
+      console.error("Submit moves request failed:", error);
     }
   };
 
   useEffect(() => {
     if (socketService.socket) {
-      gameService.onUpdateMoves(
+      // Listen for combat_results (when we submitted first and opponent submits second)
+      gameService.onCombatResults(
         socketService.socket,
-        (update: { units: Array<IUnit>; round: number }) => {
-          _updateMovesListener(update);
+        (data: { futureUnits: Array<Array<IUnit>>; combatResult: any; winner?: number }) => {
+          _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
+          _setWaitingForMoves(true, (isPlayer + 1) % 2);
         }
       );
+
+      // Listen for moves_submitted (opponent submitted first, we haven't yet)
+      gameService.onMovesSubmitted(socketService.socket, () => {
+        // Opponent submitted — no action needed, we still need to submit our own
+      });
     }
-  }, [_updateMovesListener]);
+  }, [_updateOpponentUnits, _setWaitingForMoves, isPlayer]);
 
   return (
     <div className="panel">

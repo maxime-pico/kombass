@@ -12,6 +12,7 @@ import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
 import { calculateCombatResults } from "./engine";
+import { gamePost, gameGet } from "./services/api";
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
 import { findNextAliveStep } from "./engine/stepLogic";
 
@@ -94,6 +95,7 @@ interface AppState {
   ) => void;
   _createRoom: () => Promise<void>;
   _placeUnit: (unitNumber: number, col: number, row: number) => void;
+  _startGame: () => Promise<void>;
   _setBoardSize: (length: number, width: number) => void;
   _setGameStarted: () => void;
   _setInRoom: () => void;
@@ -160,6 +162,7 @@ class App extends Component<AppProps, AppState> {
       _circleUnit: this._circleUnit,
       _createRoom: this.createAndJoinRoom,
       _placeUnit: this._placeUnit,
+      _startGame: this._startGame,
       _setBoardSize: this._setBoardSize,
       _setGameStarted: this._setGameStarted,
       _setInRoom: this._setInRoom,
@@ -442,10 +445,10 @@ class App extends Component<AppProps, AppState> {
   };
 
   _setWaitingForMoves = (ready: boolean, player: number) => {
-    let waitingForMoves = [...this.state.waitingForMoves];
-    waitingForMoves[player] = ready;
-    this.setState({
-      waitingForMoves: waitingForMoves,
+    this.setState((prevState) => {
+      const waitingForMoves = [...prevState.waitingForMoves];
+      waitingForMoves[player] = ready;
+      return { waitingForMoves };
     });
   };
 
@@ -593,26 +596,33 @@ class App extends Component<AppProps, AppState> {
       placedUnits: placedUnits,
     });
 
-    if (unitNumber === this.state.unitsCount - 1) {
-      this._startGame();
-    }
+    // No auto-start — player must click CONFIRM PLACEMENT button
   };
 
-  _startGame = () => {
-    let player = this.state.isPlayer;
-    // reset selected Unit
+  _startGame = async () => {
+    const player = this.state.isPlayer;
     this._setSelectedUnit(player, 0, 0);
 
-    // set current player as ready and send info
+    try {
+      const res = await gamePost(this.state.roomId, "place", {
+        units: this.state.units[player],
+        flag: this.state.flags[player],
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        console.error("Placement failed:", data.error);
+        return;
+      }
+    } catch (error) {
+      console.error("Placement request failed:", error);
+      return;
+    }
+
+    // Mark self as ready — stay on placement screen showing "Waiting..."
+    // Transition to movement happens in _handlePlayerReady when /state shows ACTIVE
     const ready = [...this.state.ready];
     ready[player] = true;
-    if (socketService.socket) {
-      gameService.setReady(socketService.socket, player, this.state.units, this.state.flags[player]);
-    }
-    this.setState({
-      step: 0,
-      ready: ready,
-    });
+    this.setState({ ready });
   };
 
   _changeStep = (step: number, direction: -1 | 1) => {
@@ -881,19 +891,7 @@ class App extends Component<AppProps, AppState> {
       flags: results.flags,
     });
 
-    // Persist combat results to database
-    // Send both players' units and flags so either player can update both in the database
-    if (socketService.socket) {
-      gameService.finalizeCombat(
-        socketService.socket,
-        this.state.isPlayer,
-        results.newFutureUnits,
-        results.flags,
-        this.state.round + 1,
-        results.firstLivingUnitIndex
-      );
-    }
-
+    // Server already persisted combat results in /moves endpoint
     this.combatResultsBuffer = null;
 
     console.log(`=== COMBAT FINALIZED (Player ${this.state.isPlayer}, Round ${this.state.round + 1}) ===`);
@@ -947,20 +945,34 @@ class App extends Component<AppProps, AppState> {
     }
   };
 
-  // Upon receiving "player_ready" message, update ready state and opponent's units placement
+  // Upon receiving "player_ready" socket notification, fetch authoritative state via REST
   _handlePlayerReady = () => {
     if (socketService.socket) {
-      gameService.onReady(socketService.socket, (message) => {
-        const player = message.player;
-        const ready = [...this.state.ready];
-        const units = [...this.state.units];
-        const opponentUnits = [...message.units[player]];
-        units[player] = opponentUnits;
-        ready[player] = true;
-        this.setState({
-          ready: ready,
-          units: units,
-        });
+      gameService.onReady(socketService.socket, async () => {
+        try {
+          const res = await gameGet(this.state.roomId, "state");
+          if (!res.ok) return;
+          const data = await res.json();
+
+          if (data.phase === "ACTIVE" && data.units?.[0] && data.units?.[1]) {
+            // Both ready — load units and transition to movement
+            this.setState({
+              units: data.units,
+              flags: data.flags ?? this.state.flags,
+              ready: [true, true],
+              step: 0,
+            });
+            this._handleOpponentReconnected();
+          } else {
+            // Opponent placed but we haven't yet — just note they're ready
+            const opponent = ((this.state.isPlayer + 1) % 2) as 0 | 1;
+            const ready = [...this.state.ready];
+            ready[opponent] = true;
+            this.setState({ ready });
+          }
+        } catch (error) {
+          console.error("Failed to fetch state after player_ready:", error);
+        }
       });
     }
   };
@@ -987,27 +999,96 @@ class App extends Component<AppProps, AppState> {
   };
 
 
-  reconnectToGame = async (sessionToken: string) => {
+  reconnectToGame = async (sessionToken: string, roomIdOverride?: string) => {
     try {
-      // Block UI during reconnection
-      this.setState({ isSyncing: true });
+      const roomId = roomIdOverride || this.state.roomId;
+      this.setState({ isSyncing: true, roomId });
 
-      // Connect socket
-      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
-      const socket = await socketService.connect(backendUrl, "test");
-
-      if (socket) {
-        // Register listeners BEFORE emitting (prevent race condition)
-        // Use socket.once to ensure handlers fire at most once
-        socket.once("game_state_restored", this._handleGameStateRestored);
-        socket.once("reconnect_error", this._handleReconnectError);
-
-        // Emit reconnection request after listeners are ready
-        socket.emit("reconnect_game", { sessionToken });
+      const res = await gameGet(roomId, "state?full=true");
+      if (!res.ok) {
+        throw new Error("Failed to fetch game state");
       }
+      const data = await res.json();
+
+      // Connect socket for live notifications
+      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+      await socketService.connect(backendUrl, "test");
+      if (socketService.socket) {
+        socketService.socket.emit("authenticate", { sessionToken });
+      }
+
+      const playerNumber = data.playerNumber as 0 | 1;
+      const opponentNumber = (playerNumber === 0 ? 1 : 0) as 0 | 1;
+
+      // Reconstruct futureUnits
+      const futureUnits: Array<Array<IUnit>> = [
+        Array(data.unitsCount).fill(null),
+        Array(data.unitsCount).fill(null),
+      ];
+      if (data.futureUnits?.[playerNumber]) {
+        futureUnits[playerNumber] = data.futureUnits[playerNumber];
+      }
+      if (data.futureUnits?.[opponentNumber]) {
+        futureUnits[opponentNumber] = data.futureUnits[opponentNumber];
+      }
+
+      // Find first living unit
+      const myUnits = data.units?.[playerNumber] || [];
+      let firstLivingUnitIndex = 0;
+      for (let i = 0; i < data.unitsCount; i++) {
+        if (myUnits[i]?.life > 0) {
+          firstLivingUnitIndex = i;
+          break;
+        }
+      }
+
+      this.setState(
+        {
+          isPlayer: playerNumber,
+          isAdmin: data.isAdmin,
+          boardWidth: data.boardWidth,
+          boardLength: data.boardLength,
+          placementZone: data.placementZone,
+          unitsCount: data.unitsCount,
+          units: data.units,
+          futureUnits,
+          flags: data.flags,
+          ready: [true, true],
+          terrain: data.terrain || [],
+          flagStayInPlace: data.flagStayInPlace ?? false,
+          unitConfig: data.unitConfig || undefined,
+          round: data.round,
+          step: data.futureUnits?.[playerNumber] ? data.unitsCount : data.step,
+          isInRoom: true,
+          gameStarted: true,
+          selectedUnit: data.futureUnits?.[playerNumber]
+            ? { playerNumber: -1, unitNumber: -1 }
+            : { playerNumber, unitNumber: firstLivingUnitIndex },
+          waitingForMoves: (() => {
+            const wfm = [false, false];
+            wfm[playerNumber] = data.futureUnits?.[playerNumber] != null;
+            wfm[opponentNumber] = data.futureUnits?.[opponentNumber] != null;
+            return wfm;
+          })(),
+          bufferOpponentUnits: Array(data.unitsCount).fill(null),
+          futureUnitsHistory: [],
+          placedUnits: [
+            Array(data.unitsCount).fill(true),
+            Array(data.unitsCount).fill(true),
+          ],
+          isSyncing: false,
+        },
+        () => {
+          console.log(
+            `Reconnected to game at step ${this.state.step}, round ${this.state.round}`
+          );
+          // Register socket listeners for live events
+          this._handlePlayerReady();
+          this._handleOpponentReconnected();
+        }
+      );
     } catch (error) {
       console.error("Reconnection failed:", error);
-      // Fall back to normal flow
       if (this.state.roomId) {
         localStorage.removeItem(`kombass_session_token_${this.state.roomId}`);
       }
@@ -1099,11 +1180,10 @@ class App extends Component<AppProps, AppState> {
         isInRoom: true,
         gameStarted: true,
 
-        // Selected unit
-        selectedUnit: {
-          playerNumber,
-          unitNumber: firstLivingUnitIndex,
-        },
+        // Selected unit — deselect if player already submitted moves
+        selectedUnit: myPlayer.futureUnits !== null
+          ? { playerNumber: -1, unitNumber: -1 }
+          : { playerNumber, unitNumber: firstLivingUnitIndex },
 
         // Restore transient state based on futureUnits presence
         // If a player has futureUnits, they've submitted moves and are waiting
@@ -1278,19 +1358,15 @@ class App extends Component<AppProps, AppState> {
       const sessionToken = localStorage.getItem(`kombass_session_token_${roomId}`);
       if (sessionToken) {
         // Reconnect to existing game
-        this.reconnectToGame(sessionToken);
+        this.reconnectToGame(sessionToken, roomId);
       } else {
         // New player joining room
         this.checkAndJoinRoom(roomId);
       }
     } else {
-      // Fresh start at root (/)
-      const sessionToken = localStorage.getItem('kombass_session_token');
-      if (sessionToken) {
-        this.reconnectToGame(sessionToken);
-      } else {
-        this.connectSocket();
-      }
+      // Fresh start at root (/) — no roomId means no game to reconnect to
+      localStorage.removeItem('kombass_session_token'); // clear stale legacy token
+      this.connectSocket();
     }
   }
 

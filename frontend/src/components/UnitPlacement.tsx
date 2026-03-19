@@ -13,8 +13,9 @@ interface UnitPlacementProps {
 // Also exchange unit placement information when proceeding to next step
 
 function UnitPlacement(props: UnitPlacementProps) {
-  const { units, isPlayer, selectedUnit } = useContext(gameContext);
+  const { units, isPlayer, selectedUnit, _startGame, ready } = useContext(gameContext);
   const selectedUnitNumber = selectedUnit.unitNumber;
+  const allPlaced = props.placedUnits[isPlayer].every(Boolean);
   return (
     <div className="game-container">
     <div className="main">
@@ -36,6 +37,16 @@ function UnitPlacement(props: UnitPlacementProps) {
           })}
         </div>
       </div>
+    </div>
+    <div className="panel">
+      {allPlaced && !ready[isPlayer] && (
+        <button className="fight-button confirm" onClick={() => _startGame()}>
+          CONFIRM PLACEMENT
+        </button>
+      )}
+      {ready[isPlayer] && (
+        <div className="hint">Waiting for opponent to place units...</div>
+      )}
     </div>
     </div>
   );

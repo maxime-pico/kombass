@@ -139,9 +139,6 @@ class Game extends Component<GameProps, GameStates> {
           gameOver: gameOver,
           modalStep: 1,
         });
-        if (socketService.socket) {
-          gameService.gameWin(socketService.socket, gameOver);
-        }
       }, 1000);
     }
   }
