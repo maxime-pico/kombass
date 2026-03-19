@@ -33,6 +33,17 @@ async function getBoardWidth(page: Page): Promise<number> {
 
 test.describe("Full Game Flow (2-player REST)", () => {
   test("Room creation + join → both land at settings", async ({ player1, player2 }) => {
+    // Capture console and network for debugging
+    player1.on("console", msg => console.log(`[P1 console] ${msg.type()}: ${msg.text()}`));
+    player1.on("response", resp => {
+      if (resp.url().includes("/api/")) {
+        console.log(`[P1 network] ${resp.status()} ${resp.url()}`);
+      }
+    });
+    player1.on("requestfailed", req => {
+      console.log(`[P1 req failed] ${req.url()} ${req.failure()?.errorText}`);
+    });
+
     // P1 creates room
     await player1.goto("/");
     await player1.waitForSelector("text=PLAY");
