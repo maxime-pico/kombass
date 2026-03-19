@@ -24,12 +24,6 @@ export default defineConfig({
       url: "http://localhost:9000",
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
-      env: {
-        ...process.env,
-        DATABASE_URL: process.env.DATABASE_URL || "",
-      },
-      stdout: "pipe",
-      stderr: "pipe",
     },
     {
       command: "REACT_APP_TEST_MODE=true BROWSER=none npm start",
