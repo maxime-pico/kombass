@@ -65,14 +65,30 @@ test.describe("Full Game Flow (2-player REST)", () => {
     });
     console.log(`[P1 debug] ${JSON.stringify(debug)}`);
 
+    // Intercept fetch to see what happens
+    await player1.evaluate(() => {
+      const origFetch = window.fetch;
+      (window as any).__fetchLog = [];
+      window.fetch = async (...args: any[]) => {
+        (window as any).__fetchLog.push({ url: args[0], opts: args[1] });
+        try {
+          const resp = await origFetch(...args);
+          (window as any).__fetchLog.push({ url: args[0], status: resp.status });
+          return resp;
+        } catch (e: any) {
+          (window as any).__fetchLog.push({ url: args[0], error: e.message });
+          throw e;
+        }
+      };
+    });
+
     await player1.click("text=PLAY");
 
     // Log state after clicking
     await player1.waitForTimeout(3000);
     const afterDebug = await player1.evaluate(() => ({
       url: window.location.href,
-      bodyText: document.body.innerText?.substring(0, 300),
-      errors: (window as any).__lastError,
+      fetchLog: (window as any).__fetchLog,
     }));
     console.log(`[P1 after click] ${JSON.stringify(afterDebug)}`);
 
