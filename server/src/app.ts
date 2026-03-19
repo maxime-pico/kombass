@@ -102,8 +102,20 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
     if (existingP1) {
       return res.json({ sessionToken: existingP1.sessionToken });
     }
-    const sessionToken = await sessionService.createSession(game.id, 1, null);
-    return res.json({ sessionToken });
+    try {
+      const sessionToken = await sessionService.createSession(game.id, 1, null);
+      return res.json({ sessionToken });
+    } catch (createError: any) {
+      // Handle race condition: another request created P1 between our check and insert
+      if (createError?.code === "P2002") {
+        const freshGame = await gameService.getGame(req.params.roomId);
+        const raceP1 = freshGame?.players.find((p: any) => p.playerNumber === 1);
+        if (raceP1) {
+          return res.json({ sessionToken: raceP1.sessionToken });
+        }
+      }
+      throw createError;
+    }
   } catch (error) {
     console.error("Error joining room:", error);
     return res.status(500).json({ error: "Failed to join room" });
