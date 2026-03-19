@@ -56,6 +56,9 @@ jobs:
       - name: Install server dependencies
         run: npm ci
         working-directory: server
+      - name: Generate Prisma client
+        run: npx prisma generate
+        working-directory: server
       - name: Compile server
         run: npx tsc
         working-directory: server
