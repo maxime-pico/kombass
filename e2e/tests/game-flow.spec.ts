@@ -39,7 +39,7 @@ test.describe("Full Game Flow (2-player REST)", () => {
     await player1.click("text=PLAY");
 
     // Wait for room to be created and URL to change
-    await player1.waitForURL(/\/game\/[a-z0-9]+/i, { timeout: 10000 });
+    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
     const roomUrl = player1.url();
 
     // P1 should see settings (step -3), with "Waiting for other player"
@@ -62,7 +62,7 @@ test.describe("Full Game Flow (2-player REST)", () => {
     // Setup: create room and join
     await player1.goto("/");
     await player1.click("text=PLAY");
-    await player1.waitForURL(/\/game\/[a-z0-9]+/i, { timeout: 10000 });
+    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
     const roomUrl = player1.url();
     await player2.goto(roomUrl);
 
@@ -88,7 +88,7 @@ test.describe("Full Game Flow (2-player REST)", () => {
     // Setup: create room, join, confirm settings
     await player1.goto("/");
     await player1.click("text=PLAY");
-    await player1.waitForURL(/\/game\/[a-z0-9]+/i, { timeout: 10000 });
+    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
     const roomUrl = player1.url();
     await player2.goto(roomUrl);
 
