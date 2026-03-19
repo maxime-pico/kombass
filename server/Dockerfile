@@ -8,7 +8,8 @@ COPY server/package*.json ./
 COPY server/tsconfig.json ./
 COPY server/prisma ./prisma/
 COPY server/src ./src/
+COPY shared ../shared/
 RUN npm ci
 RUN npx prisma generate
 EXPOSE 3000
-CMD ["sh", "-c", "until pg_isready -h db -p 5432 -U kombass; do echo 'Waiting for database...'; sleep 2; done && npx prisma migrate deploy && node dist/server.js"]
+CMD ["sh", "-c", "until pg_isready -h db -p 5432 -U kombass; do echo 'Waiting for database...'; sleep 2; done && npx prisma migrate deploy && node dist/server/src/server.js"]
