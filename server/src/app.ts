@@ -97,6 +97,11 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
       }
       return res.status(409).json({ reason: "game_in_progress" });
     }
+    // Check if player 1 slot already exists (idempotency guard against race conditions)
+    const existingP1 = game.players.find((p: any) => p.playerNumber === 1);
+    if (existingP1) {
+      return res.json({ sessionToken: existingP1.sessionToken });
+    }
     const sessionToken = await sessionService.createSession(game.id, 1, null);
     return res.json({ sessionToken });
   } catch (error) {
