@@ -31,82 +31,18 @@ async function getBoardWidth(page: Page): Promise<number> {
   return page.locator(".board-row").first().locator(".square").count();
 }
 
+/** Click the PLAY button and wait for room URL */
+async function clickPlayAndWaitForRoom(page: Page) {
+  await page.waitForSelector("button.active:has-text('PLAY')");
+  await page.click("button.active:has-text('PLAY')");
+  await page.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
+}
+
 test.describe("Full Game Flow (2-player REST)", () => {
   test("Room creation + join → both land at settings", async ({ player1, player2 }) => {
-    // Capture console and network for debugging
-    player1.on("console", msg => console.log(`[P1 console] ${msg.type()}: ${msg.text()}`));
-    player1.on("response", resp => {
-      if (resp.url().includes("/api/")) {
-        console.log(`[P1 network] ${resp.status()} ${resp.url()}`);
-      }
-    });
-    player1.on("requestfailed", req => {
-      console.log(`[P1 req failed] ${req.url()} ${req.failure()?.errorText}`);
-    });
-
     // P1 creates room
     await player1.goto("/");
-    await player1.waitForSelector("text=PLAY");
-    // Debug: check DOM content and button state
-    const debug = await player1.evaluate(() => {
-      const buttons = Array.from(document.querySelectorAll('button'));
-      const btnInfo = buttons.map(b => ({
-        text: b.textContent?.trim(),
-        visible: b.offsetParent !== null,
-        classes: b.className,
-      }));
-      return {
-        textContent: document.body.textContent?.substring(0, 500),
-        innerText: document.body.innerText?.substring(0, 500),
-        buttons: btnInfo,
-        introScreen: !!document.querySelector('.introScreen-container'),
-        html: document.querySelector('.introScreen-container')?.innerHTML?.substring(0, 500),
-      };
-    });
-    console.log(`[P1 debug] ${JSON.stringify(debug)}`);
-
-    // Intercept fetch AND add click listener to debug
-    await player1.evaluate(() => {
-      const origFetch = window.fetch;
-      (window as any).__fetchLog = [];
-      (window as any).__clickLog = [];
-      window.fetch = async (...args: any[]) => {
-        (window as any).__fetchLog.push({ url: args[0], opts: args[1] });
-        try {
-          const resp = await origFetch(...args);
-          (window as any).__fetchLog.push({ url: args[0], status: resp.status });
-          return resp;
-        } catch (e: any) {
-          (window as any).__fetchLog.push({ url: args[0], error: e.message });
-          throw e;
-        }
-      };
-      // Listen for clicks on buttons
-      document.addEventListener('click', (e) => {
-        const target = e.target as HTMLElement;
-        (window as any).__clickLog.push({
-          tag: target.tagName,
-          text: target.textContent?.trim().substring(0, 50),
-          classes: target.className,
-        });
-      }, true);
-    });
-
-    await player1.click("text=PLAY");
-
-    // Log state after clicking
-    await player1.waitForTimeout(3000);
-    const afterDebug = await player1.evaluate(() => ({
-      url: window.location.href,
-      fetchLog: (window as any).__fetchLog,
-      clickLog: (window as any).__clickLog,
-      // Also try calling createRoom directly
-      backendUrl: (window as any).__REACT_DEVTOOLS_GLOBAL_HOOK__ ? 'devtools present' : 'no devtools',
-    }));
-    console.log(`[P1 after click] ${JSON.stringify(afterDebug)}`);
-
-    // Wait for room to be created and URL to change
-    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
+    await clickPlayAndWaitForRoom(player1);
     const roomUrl = player1.url();
 
     // P1 should see settings (step -3), with "Waiting for other player"
@@ -128,8 +64,7 @@ test.describe("Full Game Flow (2-player REST)", () => {
   test("Settings → Placement → both ready", async ({ player1, player2 }) => {
     // Setup: create room and join
     await player1.goto("/");
-    await player1.click("text=PLAY");
-    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
+    await clickPlayAndWaitForRoom(player1);
     const roomUrl = player1.url();
     await player2.goto(roomUrl);
 
@@ -154,8 +89,7 @@ test.describe("Full Game Flow (2-player REST)", () => {
   test("Full game: place → move → combat", async ({ player1, player2 }) => {
     // Setup: create room, join, confirm settings
     await player1.goto("/");
-    await player1.click("text=PLAY");
-    await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
+    await clickPlayAndWaitForRoom(player1);
     const roomUrl = player1.url();
     await player2.goto(roomUrl);
 
