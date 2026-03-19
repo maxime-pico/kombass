@@ -53,6 +53,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
+      - name: Install server dependencies
+        run: npm ci
+        working-directory: server
+      - name: Compile server
+        run: npx tsc
+        working-directory: server
+      - name: Set up database
+        run: npx prisma migrate deploy
+        working-directory: server
+        env:
+          DATABASE_URL: postgresql://kombass:testpassword@localhost:5432/kombass
       - name: Install frontend dependencies
         run: npm ci --legacy-peer-deps
         working-directory: frontend
@@ -68,6 +79,7 @@ jobs:
         env:
           CI: true
           REACT_APP_TEST_MODE: "true"
+          DATABASE_URL: postgresql://kombass:testpassword@localhost:5432/kombass
       - name: Upload Playwright report on failure
         uses: actions/upload-artifact@v4
         if: failure()
