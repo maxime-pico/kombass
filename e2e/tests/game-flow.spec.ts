@@ -47,17 +47,34 @@ test.describe("Full Game Flow (2-player REST)", () => {
     // P1 creates room
     await player1.goto("/");
     await player1.waitForSelector("text=PLAY");
-    // Log what's on the page before clicking
-    const bodyText = await player1.evaluate(() => document.body.innerText);
-    console.log(`[P1 body before click] ${bodyText.substring(0, 500)}`);
+    // Debug: check DOM content and button state
+    const debug = await player1.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll('button'));
+      const btnInfo = buttons.map(b => ({
+        text: b.textContent?.trim(),
+        visible: b.offsetParent !== null,
+        classes: b.className,
+      }));
+      return {
+        textContent: document.body.textContent?.substring(0, 500),
+        innerText: document.body.innerText?.substring(0, 500),
+        buttons: btnInfo,
+        introScreen: !!document.querySelector('.introScreen-container'),
+        html: document.querySelector('.introScreen-container')?.innerHTML?.substring(0, 500),
+      };
+    });
+    console.log(`[P1 debug] ${JSON.stringify(debug)}`);
 
     await player1.click("text=PLAY");
 
-    // Log what's on the page after clicking
-    await player1.waitForTimeout(2000);
-    const bodyAfter = await player1.evaluate(() => document.body.innerText);
-    console.log(`[P1 body after click] ${bodyAfter.substring(0, 500)}`);
-    console.log(`[P1 URL after click] ${player1.url()}`);
+    // Log state after clicking
+    await player1.waitForTimeout(3000);
+    const afterDebug = await player1.evaluate(() => ({
+      url: window.location.href,
+      bodyText: document.body.innerText?.substring(0, 300),
+      errors: (window as any).__lastError,
+    }));
+    console.log(`[P1 after click] ${JSON.stringify(afterDebug)}`);
 
     // Wait for room to be created and URL to change
     await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
