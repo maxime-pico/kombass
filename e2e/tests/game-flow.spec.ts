@@ -25,10 +25,21 @@ async function setupRoom(player1: Page, player2: Page) {
 /** P1 (admin) clicks READY, both click PLACE UNITS */
 async function goThroughSettingsAndSelection(player1: Page, player2: Page) {
   await player1.waitForSelector("button:has-text('READY'):not([disabled])", { timeout: 10000 });
+
+  // Listen for network response to settings endpoint
+  const settingsResponse = player1.waitForResponse(
+    (resp) => resp.url().includes("/api/room/") && resp.url().includes("/settings"),
+    { timeout: 10000 }
+  );
+
   await player1.click("button:has-text('READY')");
 
-  await player1.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
-  await player2.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
+  // Wait for settings API call to complete
+  const resp = await settingsResponse;
+  console.log(`Settings API: ${resp.status()} ${resp.url()}`);
+
+  await player1.waitForSelector("text=PLACE UNITS", { timeout: 10000 });
+  await player2.waitForSelector("text=PLACE UNITS", { timeout: 10000 });
   await player1.click("text=PLACE UNITS");
   await player2.click("text=PLACE UNITS");
 }
