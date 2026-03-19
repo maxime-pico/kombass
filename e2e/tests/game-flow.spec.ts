@@ -3,33 +3,8 @@ import { expect, Page } from "@playwright/test";
 
 /**
  * Full 2-player game flow tests using REST endpoints.
- * Tests the complete lifecycle: room creation → join → settings → placement → moves → combat.
+ * Tests the complete lifecycle: room creation → join → settings → placement → moves → combat → abandon.
  */
-
-/** Wait for a specific step value in the app state */
-async function waitForStep(page: Page, step: number, timeout = 10000) {
-  await page.waitForFunction(
-    (s) => {
-      const el = document.querySelector(".App");
-      // Use data attribute or check visible UI elements
-      return document.body.getAttribute("data-step") === String(s);
-    },
-    step,
-    { timeout }
-  ).catch(() => {
-    // Fallback: just wait a bit
-  });
-}
-
-/** Click a square on the board at grid position (col, row) */
-async function clickSquare(page: Page, col: number, row: number) {
-  const square = page.locator(`.square`).nth(row * await getBoardWidth(page) + col);
-  await square.click();
-}
-
-async function getBoardWidth(page: Page): Promise<number> {
-  return page.locator(".board-row").first().locator(".square").count();
-}
 
 /** Click the PLAY button and wait for room URL */
 async function clickPlayAndWaitForRoom(page: Page) {
@@ -38,130 +13,132 @@ async function clickPlayAndWaitForRoom(page: Page) {
   await page.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
 }
 
+/** Both players join the same room: P1 creates, P2 navigates to the same URL */
+async function setupRoom(player1: Page, player2: Page) {
+  await player1.goto("/");
+  await clickPlayAndWaitForRoom(player1);
+  const roomUrl = player1.url();
+  await player2.goto(roomUrl);
+  return roomUrl;
+}
+
+/** P1 (admin) clicks READY, both click PLACE UNITS */
+async function goThroughSettingsAndSelection(player1: Page, player2: Page) {
+  await player1.waitForSelector("button:has-text('READY'):not([disabled])", { timeout: 10000 });
+  await player1.click("button:has-text('READY')");
+
+  await player1.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
+  await player2.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
+  await player1.click("text=PLACE UNITS");
+  await player2.click("text=PLACE UNITS");
+}
+
+/** Place all units by clicking reachable squares, then confirm placement */
+async function placeUnits(page: Page) {
+  await page.waitForSelector("text=Place your units!", { timeout: 5000 });
+
+  for (let i = 0; i < 5; i++) {
+    await page.waitForSelector(".square-inside.reachable", { timeout: 5000 });
+    const reachableSquares = page.locator(".square:has(.square-inside.reachable)");
+    const count = await reachableSquares.count();
+    const idx = Math.min(Math.floor(count / 2) + i, count - 1);
+    await reachableSquares.nth(idx).click();
+    await page.waitForTimeout(500);
+  }
+
+  const confirmBtn = page.locator("button:has-text('CONFIRM PLACEMENT')");
+  await confirmBtn.waitFor({ state: "visible", timeout: 10000 });
+  await confirmBtn.click();
+}
+
+/** Move all 5 units by clicking reachable squares for each */
+async function moveUnits(page: Page) {
+  for (let i = 0; i < 5; i++) {
+    await page.waitForSelector(".square-inside.reachable", { timeout: 5000 });
+    await page.locator(".square:has(.square-inside.reachable)").first().click();
+    await page.waitForTimeout(500);
+  }
+}
+
 test.describe("Full Game Flow (2-player REST)", () => {
+  // Increase timeout for full flow tests
+  test.setTimeout(60000);
+
   test("Room creation + join → both land at settings", async ({ player1, player2 }) => {
-    // P1 creates room
     await player1.goto("/");
     await clickPlayAndWaitForRoom(player1);
     const roomUrl = player1.url();
 
-    // P1 should see settings (step -3), with "Waiting for other player"
     await player1.waitForSelector("text=Waiting for the other player", { timeout: 5000 });
 
-    // P2 navigates to the same room URL
     await player2.goto(roomUrl);
 
-    // Both should now be at settings
-    // P1 (admin) should see READY button become active
     await player1.waitForSelector("button:has-text('READY'):not([disabled])", { timeout: 10000 });
 
-    // P2 (non-admin) should see waiting for admin message
     await player2.waitForSelector("text=Waiting for admin", { timeout: 5000 }).catch(() => {
       // P2 might see different text depending on timing
     });
   });
 
-  test("Settings → Placement → both ready", async ({ player1, player2 }) => {
-    // Setup: create room and join
-    await player1.goto("/");
-    await clickPlayAndWaitForRoom(player1);
-    const roomUrl = player1.url();
-    await player2.goto(roomUrl);
+  test("Settings → Placement → game starts", async ({ player1, player2 }) => {
+    await setupRoom(player1, player2);
+    await goThroughSettingsAndSelection(player1, player2);
 
-    // Wait for P2 to join, then admin clicks READY
-    await player1.waitForSelector("button:has-text('READY'):not([disabled])", { timeout: 10000 });
-    await player1.click("button:has-text('READY')");
+    await placeUnits(player1);
+    await placeUnits(player2);
 
-    // Both should move to unit selection (step -2)
-    await player1.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
-    await player2.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
-
-    // Both click PLACE UNITS to move to placement phase
-    await player1.click("text=PLACE UNITS");
-    await player2.click("text=PLACE UNITS");
-
-    // Both should now be in placement phase (step -1)
-    // They see the board with squares to place units
-    await player1.waitForSelector(".board-row", { timeout: 5000 });
-    await player2.waitForSelector(".board-row", { timeout: 5000 });
+    // Both should reach the game/movement phase — "Abandon" button is the indicator
+    await player1.waitForSelector("button.abandon-button", { timeout: 15000 });
+    await player2.waitForSelector("button.abandon-button", { timeout: 15000 });
   });
 
-  test("Full game: place → move → combat", async ({ player1, player2 }) => {
-    // Setup: create room, join, confirm settings
-    await player1.goto("/");
-    await clickPlayAndWaitForRoom(player1);
-    const roomUrl = player1.url();
-    await player2.goto(roomUrl);
+  test("Full game: place → move → combat → abandon → victory", async ({ player1, player2 }) => {
+    await setupRoom(player1, player2);
+    await goThroughSettingsAndSelection(player1, player2);
 
-    await player1.waitForSelector("button:has-text('READY'):not([disabled])", { timeout: 10000 });
-    await player1.click("button:has-text('READY')");
+    // Placement phase
+    await placeUnits(player1);
+    await placeUnits(player2);
 
-    // Unit selection
-    await player1.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
-    await player2.waitForSelector("text=PLACE UNITS", { timeout: 5000 });
-    await player1.click("text=PLACE UNITS");
-    await player2.click("text=PLACE UNITS");
+    // Wait for movement phase
+    await player1.waitForSelector("button.abandon-button", { timeout: 15000 });
+    await player2.waitForSelector("button.abandon-button", { timeout: 15000 });
 
-    // Placement phase — both need to click squares to place units
-    // Wait for board to be visible
-    await player1.waitForSelector(".board-row", { timeout: 5000 });
-    await player2.waitForSelector(".board-row", { timeout: 5000 });
+    // Movement phase: each player selects a reachable square for each of 5 units
+    await moveUnits(player1);
+    await moveUnits(player2);
 
-    // Place units by clicking reachable squares
-    // P1 places on left side, P2 places on right side
-    for (let i = 0; i < 5; i++) {
-      const p1Square = player1.locator(".square.reachable").first();
-      if (await p1Square.count() > 0) {
-        await p1Square.click();
-        await player1.waitForTimeout(200);
-      }
-    }
-
-    for (let i = 0; i < 5; i++) {
-      const p2Square = player2.locator(".square.reachable").first();
-      if (await p2Square.count() > 0) {
-        await p2Square.click();
-        await player2.waitForTimeout(200);
-      }
-    }
-
-    // After placing all units, both should move to movement phase (step >= 0)
-    // P1 should see the game board with their units
-    // Wait for movement phase indicators
-    await player1.waitForSelector(".fight-button, .undo-button, .square.selected", { timeout: 10000 });
-    await player2.waitForSelector(".fight-button, .undo-button, .square.selected", { timeout: 10000 });
-
-    // Navigate through all units (click reachable squares or just confirm)
-    // Step through each unit and place them (movement phase)
-    for (let i = 0; i < 5; i++) {
-      const p1Reachable = player1.locator(".square-inside.reachable").first();
-      if (await p1Reachable.count() > 0) {
-        await p1Reachable.click();
-        await player1.waitForTimeout(200);
-      }
-    }
-
-    for (let i = 0; i < 5; i++) {
-      const p2Reachable = player2.locator(".square-inside.reachable").first();
-      if (await p2Reachable.count() > 0) {
-        await p2Reachable.click();
-        await player2.waitForTimeout(200);
-      }
-    }
-
-    // Both should see CONFIRM MOVES button
+    // Both click CONFIRM MOVES
     const p1Confirm = player1.locator("button:has-text('CONFIRM MOVES')");
     const p2Confirm = player2.locator("button:has-text('CONFIRM MOVES')");
+    await p1Confirm.waitFor({ state: "visible", timeout: 10000 });
+    await p2Confirm.waitFor({ state: "visible", timeout: 10000 });
+    await p1Confirm.click();
+    await p2Confirm.click();
 
-    if (await p1Confirm.isVisible()) {
-      await p1Confirm.click();
-    }
-    if (await p2Confirm.isVisible()) {
-      await p2Confirm.click();
-    }
+    // Both should see FIGHT! button (both moves received)
+    await player1.waitForSelector("button:has-text('FIGHT!')", { timeout: 15000 });
+    await player2.waitForSelector("button:has-text('FIGHT!')", { timeout: 15000 });
 
-    // After both confirm, FIGHT button should appear
-    // Wait for combat phase
-    await player1.waitForSelector("button:has-text('FIGHT'), button:has-text('FIGHTING'), button:has-text('WAITING')", { timeout: 10000 });
+    // Both click FIGHT!
+    await player1.click("button:has-text('FIGHT!')");
+    await player2.click("button:has-text('FIGHT!')");
+
+    // Wait for combat animation to finish — FIGHTING... disappears and new round starts
+    // New round = reachable squares appear again (no FIGHT button visible)
+    await player1.waitForSelector(".square-inside.reachable", { timeout: 20000 });
+    await player2.waitForSelector(".square-inside.reachable", { timeout: 20000 });
+
+    // P1 abandons: click Abandon button, then confirm in modal
+    await player1.click("button.abandon-button");
+    await player1.waitForSelector("text=Are you sure you want to abandon", { timeout: 5000 });
+    // Click the "Abandon" confirm button inside the modal
+    await player1.click(".abandon-confirm-buttons button.active");
+
+    // P2 should see "Victory by Default" modal
+    await player2.waitForSelector("text=Victory by Default", { timeout: 10000 });
+
+    // P2 clicks "Continue World Domination"
+    await player2.click("button:has-text('Continue World Domination')");
   });
 });
