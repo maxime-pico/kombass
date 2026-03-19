@@ -47,7 +47,17 @@ test.describe("Full Game Flow (2-player REST)", () => {
     // P1 creates room
     await player1.goto("/");
     await player1.waitForSelector("text=PLAY");
+    // Log what's on the page before clicking
+    const bodyText = await player1.evaluate(() => document.body.innerText);
+    console.log(`[P1 body before click] ${bodyText.substring(0, 500)}`);
+
     await player1.click("text=PLAY");
+
+    // Log what's on the page after clicking
+    await player1.waitForTimeout(2000);
+    const bodyAfter = await player1.evaluate(() => document.body.innerText);
+    console.log(`[P1 body after click] ${bodyAfter.substring(0, 500)}`);
+    console.log(`[P1 URL after click] ${player1.url()}`);
 
     // Wait for room to be created and URL to change
     await player1.waitForFunction(() => /\/game\/[a-z0-9]+/i.test(window.location.pathname), { timeout: 10000 });
