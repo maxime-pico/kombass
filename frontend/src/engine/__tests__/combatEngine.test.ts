@@ -23,11 +23,13 @@ describe("isInCombatRange", () => {
     expect(isInCombatRange(0, 0, 1, 1, 2, 0, 1, 1)).toBe(false);
   });
 
-  test("Light vs non-Light uses Euclidean squared for Light attacker", () => {
-    // Light (range=1) attacks Heavy: (0,0) to (1,0): Euclidean² = 1 ≤ 1
+  test("Light vs non-Light uses Euclidean squared ≤ 2 for Light attacker", () => {
+    // Light (range=1) attacks Heavy: (0,0) to (1,0): Euclidean² = 1 ≤ 2
     expect(isInCombatRange(0, 0, 1, 1, 1, 0, 3, 3)).toBe(true);
-    // Light attacks Heavy: (0,0) to (1,1): Euclidean² = 2 > 1
-    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 3, 3)).toBe(false);
+    // Light attacks Heavy: (0,0) to (1,1): Euclidean² = 2 ≤ 2 (diagonal hit)
+    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 3, 3)).toBe(true);
+    // Light attacks Heavy: (0,0) to (2,0): Euclidean² = 4 > 2
+    expect(isInCombatRange(0, 0, 1, 1, 2, 0, 3, 3)).toBe(false);
   });
 
   test("non-Light vs Light uses Manhattan for non-Light attacker", () => {

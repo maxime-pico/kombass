@@ -35,14 +35,9 @@ export function isInCombatRange(
   const dx = Math.abs(attackerX - defenderX);
   const dy = Math.abs(attackerY - defenderY);
 
-  // Both Light (range=1): symmetric Euclidean squared ≤ 2
-  if (attackerRange === 1 && defenderRange === 1) {
-    return dx ** 2 + dy ** 2 <= 2;
-  }
-
-  // Attacker is Light (range=1): Euclidean squared ≤ 1
+  // Light (range=1): Euclidean squared ≤ 2 (hits diagonals)
   if (attackerRange === 1) {
-    return dx ** 2 + dy ** 2 <= 1;
+    return dx ** 2 + dy ** 2 <= 2;
   }
 
   // Attacker is Medium/Heavy: Manhattan distance ≤ range
