@@ -3,6 +3,7 @@ import gameContext from "../gameContext";
 import socketService from "../services/socketService";
 import gameService from "../services/gameService";
 import { gamePost } from "../services/api";
+import { playPingSound } from "../utilities/sound";
 import { IUnit } from "../App";
 
 interface PanelProps {
@@ -61,6 +62,7 @@ function Panel(props: PanelProps) {
       gameService.onCombatResults(
         socketService.socket,
         (data: { futureUnits: Array<Array<IUnit>>; combatResult: any; winner?: number }) => {
+          playPingSound();
           _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
           _setWaitingForMoves(true, (isPlayer + 1) % 2);
         }
