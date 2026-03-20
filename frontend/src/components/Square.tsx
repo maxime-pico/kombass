@@ -55,6 +55,7 @@ function Square(props: SquareProps) {
     unitIndex: number;
     transform: string;
   } | null>(null);
+  const [lightAnimState, setLightAnimState] = useState<"rearing" | "galloping" | null>(null);
 
   // Extract unit and ghostUnit at the top
   const unit = props.unit;
@@ -87,18 +88,27 @@ function Square(props: SquareProps) {
 
       // Check if this unit is at the current square (original position)
       if (unit?.unit && player === unit.playerNumber && unitIndex === unit.unitNumber) {
-        // To move from square (col, row) to (toX, toY):
-        // Since each square-inside element is (100 / boardWidth) % of the board width,
-        // translating by (toX - col) * 100% of its own width moves it by (toX - col) squares
         const xTranslate = (toX - col) * 100;
         const yTranslate = (toY - row) * 100;
+        const transform = `translate(${xTranslate}%, ${yTranslate}%)`;
 
-        // Apply transform to move unit to target position
-        setAnimatedUnit({
-          player: player,
-          unitIndex: unitIndex,
-          transform: `translate(${xTranslate}%, ${yTranslate}%)`,
-        });
+        const isLight = (unit.unit.unitType ?? 0) === 0;
+
+        if (isLight) {
+          // Two-phase: rear first, then gallop + slide
+          setLightAnimState("rearing");
+          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setTimeout(() => {
+            setLightAnimState("galloping");
+            setAnimatedUnit({ player, unitIndex, transform });
+            // Revert to idle after slide completes (800ms linear)
+            setTimeout(() => {
+              setLightAnimState(null);
+            }, 800);
+          }, 800);
+        } else {
+          setAnimatedUnit({ player, unitIndex, transform });
+        }
       }
     };
 
@@ -115,6 +125,7 @@ function Square(props: SquareProps) {
   useEffect(() => {
     if (!animationPhase.isAnimating && animatedUnit) {
       setAnimatedUnit(null);
+      setLightAnimState(null);
     }
   }, [animationPhase.isAnimating, animatedUnit]);
 
@@ -190,7 +201,10 @@ function Square(props: SquareProps) {
               ? " opponent-can-reach"
               : ""
           }`}
-          style={animatedUnit ? { transform: animatedUnit.transform, transition: 'transform 0.5s ease-in-out' } : undefined}
+          style={animatedUnit ? {
+            transform: animatedUnit.transform,
+            transition: `transform ${lightAnimState ? '0.8s linear' : '0.5s ease-in-out'}`
+          } : undefined}
         >
           {unit?.unit ? (
             <Unit
@@ -198,6 +212,7 @@ function Square(props: SquareProps) {
               playerIndex={unit.playerNumber}
               displayUnitInfo={false}
               isGhost={false}
+              animationState={animatedUnit ? lightAnimState : null}
             />
           ) : (
             ""

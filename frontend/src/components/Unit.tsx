@@ -2,12 +2,14 @@ import React from "react";
 import { UNITS } from "../utilities/dict";
 import Flag from "./Flag";
 import { IUnit } from "../App";
+import AnimatedLightUnit from "./AnimatedLightUnit";
 
 interface UnitProps {
   unit: IUnit | null;
   playerIndex: number | null;
   displayUnitInfo: boolean;
   isGhost: boolean;
+  animationState?: "galloping" | "rearing" | null;
 }
 
 function Unit(props: UnitProps) {
@@ -27,10 +29,20 @@ function Unit(props: UnitProps) {
   const displayUnitInfo = props.displayUnitInfo ? true : false;
   let containsFlag = [];
   containsFlag[(playerIndex + 1) % 2] = hasFlag;
+
+  const isAnimatedLight = (unit.unitType ?? 0) === 0 && !!props.animationState;
+
   return (
     <div className={`unit${hasFlag ? " has-flag" : ""}${isGhost}`}>
       <div className={`unit-sprite${hasFlag ? " mirror" : ""}`}>
-        <img src={unitSprite} alt="player unit" />
+        {isAnimatedLight ? (
+          <AnimatedLightUnit
+            playerIndex={playerIndex}
+            animationState={props.animationState!}
+          />
+        ) : (
+          <img src={unitSprite} alt="player unit" />
+        )}
       </div>
       {displayUnitInfo ? (
         <div className="unit-info">{`HP:${unit.life} S:${unit.strength}`}</div>

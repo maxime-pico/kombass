@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Light Unit Animation Demo</title>
+<style>
+  body {
+    background: #1a1a2e;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    margin: 0;
+    font-family: monospace;
+    color: #eee;
+    gap: 2rem;
+    padding: 2rem 0;
+  }
+
+  h1 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+  h2 { font-size: 1rem; margin: 0; color: #aaa; }
+
+  .stage {
+    width: 350px;
+    height: 350px;
+    position: relative;
+    border: 2px solid #333;
+    background: #0f0f23;
+  }
+
+  .stage svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  .controls {
+    margin-top: 1rem;
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  button {
+    background: #333;
+    color: #eee;
+    border: 1px solid #555;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    font-family: monospace;
+  }
+  button:hover { background: #444; }
+  button.active { background: #4a6; border-color: #6c8; }
+
+  .label {
+    margin-top: 0.5rem;
+    font-size: 0.8rem;
+    color: #888;
+  }
+
+  /* ── P2 Horse (default: gallop) ── */
+  #horse-stage #body {
+    transform-origin: 175px 280px;
+    animation: horseBodyRock 1.2s ease-in-out infinite;
+  }
+  #horse-stage #front-legs {
+    transform-origin: 70px 280px;
+    animation: horseFrontLegs 0.6s ease-in-out infinite;
+  }
+  #horse-stage #back-legs {
+    transform-origin: 260px 280px;
+    animation: horseBackLegs 0.6s ease-in-out infinite;
+  }
+
+  @keyframes horseBodyRock {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    15% { transform: translateY(2px) rotate(6deg); }
+    30% { transform: translateY(0) rotate(0deg); }
+    50% { transform: translateY(-3px) rotate(-1deg); }
+    75% { transform: translateY(-1px) rotate(0.5deg); }
+  }
+  @keyframes horseFrontLegs {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-12px) rotate(-15deg); }
+    50% { transform: translateY(0) rotate(0deg); }
+    75% { transform: translateY(-4px) rotate(-5deg); }
+  }
+  @keyframes horseBackLegs {
+    0%, 100% { transform: translateY(0) rotate(0deg); }
+    25% { transform: translateY(-4px) rotate(5deg); }
+    50% { transform: translateY(-12px) rotate(15deg); }
+    75% { transform: translateY(0) rotate(0deg); }
+  }
+
+  /* ── P1 Motorbike (default: ride) ── */
+  #bike-stage #body {
+    transform-origin: 175px 240px;
+    animation: bikeBounce 0.4s ease-in-out infinite;
+  }
+  #bike-stage #front-wheel {
+    transform-origin: 248.5px 269.5px;
+    animation: wheelSpin 0.4s linear infinite;
+  }
+  #bike-stage #back-wheel {
+    transform-origin: 103px 269.5px;
+  }
+
+  @keyframes bikeBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-4px); }
+  }
+  @keyframes wheelSpin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Rear keyframes for motorbike */
+  @keyframes bikeRearBody {
+    0% { transform: translateY(0) rotate(0deg); }
+    50%, 100% { transform: translateY(2px) rotate(-10deg); }
+  }
+  @keyframes bikeRearFrontWheel {
+    0% { transform: translateY(0) translateX(0); }
+    50%, 100% { transform: translateY(-8px) translateX(6px); }
+  }
+  @keyframes bikeRearBack {
+    0% { transform: rotate(0deg); }
+    50%, 100% { transform: rotate(0deg); }
+  }
+</style>
+</head>
+<body>
+
+<h1>Light Unit Animation Prototypes</h1>
+
+<!-- P2 Horse -->
+<h2>Player 2 — Horse</h2>
+<div class="stage" id="horse-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setHorseAnim('gallop')">Gallop</button>
+  <button onclick="setHorseAnim('rear')">Rear</button>
+  <button onclick="setHorseAnim('idle')">Idle</button>
+</div>
+<div class="label">light-p2-animated.svg (facing left)</div>
+
+<!-- P1 Motorbike -->
+<h2>Player 1 — Motorbike</h2>
+<div class="stage" id="bike-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setBikeAnim('ride')">Ride</button>
+  <button onclick="setBikeAnim('rear')">Rear</button>
+  <button onclick="setBikeAnim('idle')">Idle</button>
+</div>
+<div class="label">light-p1-animated.svg (facing right)</div>
+
+<script>
+// Load horse SVG
+fetch('sprites/light-p2-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('horse-stage').innerHTML = svgText;
+  });
+
+// Load motorbike SVG
+fetch('sprites/light-p1-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('bike-stage').innerHTML = svgText;
+  });
+
+function setHorseAnim(mode) {
+  // Update button states
+  const btns = document.querySelectorAll('#horse-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('horse-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'horse-dynamic';
+    s.textContent = '#horse-stage #body, #horse-stage #front-legs, #horse-stage #back-legs { animation: none !important; }';
+    document.head.appendChild(s);
+  } else if (mode === 'rear') {
+    const s = document.createElement('style');
+    s.id = 'horse-dynamic';
+    s.textContent = `
+      #horse-stage #body { animation: horseRearBody 2s ease-in-out infinite !important; }
+      #horse-stage #front-legs { animation: horseRearFront 2s ease-in-out infinite !important; }
+      #horse-stage #back-legs { animation: horseRearBack 2s ease-in-out infinite !important; }
+      @keyframes horseRearBody {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        30%, 70% { transform: translateY(4px) rotate(12deg); }
+      }
+      @keyframes horseRearFront {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        30%, 70% { transform: translateY(-20px) rotate(-25deg); }
+      }
+      @keyframes horseRearBack {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        30%, 70% { transform: translateY(2px) rotate(5deg); }
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'gallop' uses default CSS
+}
+
+function setBikeAnim(mode) {
+  const btns = document.querySelectorAll('#bike-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('bike-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'bike-dynamic';
+    s.textContent = '#bike-stage #body, #bike-stage #front-wheel, #bike-stage #back-wheel { animation: none !important; }';
+    document.head.appendChild(s);
+  } else if (mode === 'rear') {
+    const s = document.createElement('style');
+    s.id = 'bike-dynamic';
+    s.textContent = `
+      #bike-stage #body { animation: bikeRearBody 0.8s ease-in-out infinite !important; }
+      #bike-stage #front-wheel { animation: bikeRearFrontWheel 0.8s ease-in-out infinite !important; }
+      #bike-stage #back-wheel { animation: bikeRearBack 0.8s ease-in-out infinite !important; }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'ride' uses default CSS
+}
+</script>
+
+</body>
+</html>

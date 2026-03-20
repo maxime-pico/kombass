@@ -778,8 +778,10 @@ class App extends Component<AppProps, AppState> {
         toY: animation.toY,
       });
 
-      // Wait for animation duration (500ms matches CSS transition)
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      // Wait for animation duration: light units need extra time for rear (800ms) + gallop slide (800ms)
+      const isLightUnit = animation.unit && (animation.unit.unitType ?? 0) === 0;
+      const animDuration = isLightUnit ? 1800 : 500;
+      await new Promise((resolve) => setTimeout(resolve, animDuration));
 
       // Check if any booms should trigger after this animation
       const boomsToTrigger = boomQueue.filter(
