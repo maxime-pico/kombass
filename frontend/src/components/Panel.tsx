@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from "react";
+import React, { useContext, useEffect, useRef } from "react";
 import gameContext from "../gameContext";
 import socketService from "../services/socketService";
 import gameService from "../services/gameService";
@@ -56,13 +56,16 @@ function Panel(props: PanelProps) {
     }
   };
 
+  const waitingRef = useRef(waitingForMoves);
+  useEffect(() => { waitingRef.current = waitingForMoves; }, [waitingForMoves]);
+
   useEffect(() => {
     if (socketService.socket) {
       // Listen for combat_results (when we submitted first and opponent submits second)
       gameService.onCombatResults(
         socketService.socket,
         (data: { futureUnits: Array<Array<IUnit>>; combatResult: any; winner?: number }) => {
-          playPingSound();
+          if (waitingRef.current[isPlayer]) playPingSound();
           _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
           _setWaitingForMoves(true, (isPlayer + 1) % 2);
         }
