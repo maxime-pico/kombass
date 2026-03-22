@@ -56,6 +56,8 @@ function Square(props: SquareProps) {
     transform: string;
   } | null>(null);
   const [lightAnimState, setLightAnimState] = useState<"rearing" | "galloping" | null>(null);
+  const [mediumAnimState, setMediumAnimState] = useState<"raising" | "marching" | null>(null);
+  const [heavyAnimState, setHeavyAnimState] = useState<"raising" | "marching" | null>(null);
 
   // Extract unit and ghostUnit at the top
   const unit = props.unit;
@@ -92,18 +94,39 @@ function Square(props: SquareProps) {
         const yTranslate = (toY - row) * 100;
         const transform = `translate(${xTranslate}%, ${yTranslate}%)`;
 
-        const isLight = (unit.unit.unitType ?? 0) === 0;
+        const unitType = unit.unit.unitType ?? 0;
 
-        if (isLight) {
-          // Two-phase: rear first, then gallop + slide
+        if (unitType === 0) {
+          // Light: rear first, then gallop + slide
           setLightAnimState("rearing");
           setAnimatedUnit({ player, unitIndex, transform: "" });
           setTimeout(() => {
             setLightAnimState("galloping");
             setAnimatedUnit({ player, unitIndex, transform });
-            // Revert to idle after slide completes (800ms linear)
             setTimeout(() => {
               setLightAnimState(null);
+            }, 800);
+          }, 800);
+        } else if (unitType === 1) {
+          // Medium: raise weapon first, then march + slide
+          setMediumAnimState("raising");
+          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setTimeout(() => {
+            setMediumAnimState("marching");
+            setAnimatedUnit({ player, unitIndex, transform });
+            setTimeout(() => {
+              setMediumAnimState(null);
+            }, 800);
+          }, 800);
+        } else if (unitType === 2) {
+          // Heavy: raise cannon first, then march + slide
+          setHeavyAnimState("raising");
+          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setTimeout(() => {
+            setHeavyAnimState("marching");
+            setAnimatedUnit({ player, unitIndex, transform });
+            setTimeout(() => {
+              setHeavyAnimState(null);
             }, 800);
           }, 800);
         } else {
@@ -126,6 +149,8 @@ function Square(props: SquareProps) {
     if (!animationPhase.isAnimating && animatedUnit) {
       setAnimatedUnit(null);
       setLightAnimState(null);
+      setMediumAnimState(null);
+      setHeavyAnimState(null);
     }
   }, [animationPhase.isAnimating, animatedUnit]);
 
@@ -203,7 +228,7 @@ function Square(props: SquareProps) {
           }`}
           style={animatedUnit ? {
             transform: animatedUnit.transform,
-            transition: `transform ${lightAnimState ? '0.8s linear' : '0.5s ease-in-out'}`
+            transition: `transform ${(lightAnimState || mediumAnimState || heavyAnimState) ? '0.8s linear' : '0.5s ease-in-out'}`
           } : undefined}
         >
           {unit?.unit ? (
@@ -213,6 +238,8 @@ function Square(props: SquareProps) {
               displayUnitInfo={false}
               isGhost={false}
               animationState={animatedUnit ? lightAnimState : null}
+              mediumAnimationState={animatedUnit ? mediumAnimState : null}
+              heavyAnimationState={animatedUnit ? heavyAnimState : null}
             />
           ) : (
             ""

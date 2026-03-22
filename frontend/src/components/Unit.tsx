@@ -3,6 +3,8 @@ import { UNITS } from "../utilities/dict";
 import Flag from "./Flag";
 import { IUnit } from "../App";
 import AnimatedLightUnit from "./AnimatedLightUnit";
+import AnimatedMediumUnit from "./AnimatedMediumUnit";
+import AnimatedHeavyUnit from "./AnimatedHeavyUnit";
 
 interface UnitProps {
   unit: IUnit | null;
@@ -10,6 +12,8 @@ interface UnitProps {
   displayUnitInfo: boolean;
   isGhost: boolean;
   animationState?: "galloping" | "rearing" | null;
+  mediumAnimationState?: "raising" | "marching" | null;
+  heavyAnimationState?: "raising" | "marching" | null;
 }
 
 function Unit(props: UnitProps) {
@@ -31,6 +35,8 @@ function Unit(props: UnitProps) {
   containsFlag[(playerIndex + 1) % 2] = hasFlag;
 
   const isAnimatedLight = (unit.unitType ?? 0) === 0 && !!props.animationState;
+  const isAnimatedMedium = (unit.unitType ?? 0) === 1 && !!props.mediumAnimationState;
+  const isAnimatedHeavy = (unit.unitType ?? 0) === 2 && !!props.heavyAnimationState;
 
   return (
     <div className={`unit${hasFlag ? " has-flag" : ""}${isGhost}`}>
@@ -39,6 +45,16 @@ function Unit(props: UnitProps) {
           <AnimatedLightUnit
             playerIndex={playerIndex}
             animationState={props.animationState!}
+          />
+        ) : isAnimatedMedium ? (
+          <AnimatedMediumUnit
+            playerIndex={playerIndex}
+            animationState={props.mediumAnimationState!}
+          />
+        ) : isAnimatedHeavy ? (
+          <AnimatedHeavyUnit
+            playerIndex={playerIndex}
+            animationState={props.heavyAnimationState!}
           />
         ) : (
           <img src={unitSprite} alt="player unit" />

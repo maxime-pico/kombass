@@ -1289,3 +1289,179 @@ button.active {
   0% { transform: translateY(0) translateX(0); }
   50%, 100% { transform: translateY(-8px) translateX(6px); }
 }
+
+/* ── Medium Infantry Animation ── */
+
+.animated-medium-unit {
+  width: 100%;
+  height: 100%;
+}
+
+.animated-medium-unit svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Medium Infantry (P1) raising weapon ── */
+.infantry-p1.raising #weapon-back,
+.infantry-p1.raising #weapon-middle,
+.infantry-p1.raising #weapon-front {
+  transform-origin: 71px 171px;
+  animation: infantryP1Raise 0.8s ease-in-out forwards;
+}
+.infantry-p1.raising #left-leg,
+.infantry-p1.raising #right-leg {
+  animation: none;
+}
+
+/* ── Medium Infantry (P1) marching ── */
+.infantry-p1.marching #body-front,
+.infantry-p1.marching #soldierback,
+.infantry-p1.marching #soldiermiddle {
+  animation: infantryBounce 0.6s ease-in-out infinite;
+}
+.infantry-p1.marching #weapon-back,
+.infantry-p1.marching #weapon-middle,
+.infantry-p1.marching #weapon-front {
+  transform-origin: 71px 171px;
+  transform: rotate(-25deg);
+  animation: infantryBounce 0.6s ease-in-out infinite;
+}
+.infantry-p1.marching #left-leg {
+  animation: infantryLeftLeg 0.6s steps(1) infinite;
+}
+.infantry-p1.marching #right-leg {
+  animation: infantryP1RightLeg 0.6s steps(1) infinite;
+}
+
+/* ── Medium Infantry (P2) raising weapon ── */
+.infantry-p2.raising #weapon-back,
+.infantry-p2.raising #weapon-middle,
+.infantry-p2.raising #weapon-front {
+  transform-origin: 294px 256px;
+  animation: infantryP2Raise 0.8s ease-in-out forwards;
+}
+.infantry-p2.raising #left-leg,
+.infantry-p2.raising #right-leg {
+  animation: none;
+}
+
+/* ── Medium Infantry (P2) marching ── */
+.infantry-p2.marching #body-front,
+.infantry-p2.marching #soldierback,
+.infantry-p2.marching #soldiermiddle {
+  animation: infantryBounce 0.6s ease-in-out infinite;
+}
+.infantry-p2.marching #weapon-back,
+.infantry-p2.marching #weapon-middle,
+.infantry-p2.marching #weapon-front {
+  transform-origin: 294px 256px;
+  transform: rotate(25deg);
+  animation: infantryBounce 0.6s ease-in-out infinite;
+}
+.infantry-p2.marching #left-leg {
+  animation: infantryLeftLeg 0.6s steps(1) infinite;
+}
+.infantry-p2.marching #right-leg {
+  animation: infantryP2RightLeg 0.6s steps(1) infinite;
+}
+
+@keyframes infantryBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes infantryLeftLeg {
+  0%, 49% { opacity: 1; transform: translateX(0); }
+  50%, 100% { opacity: 0; transform: translateX(0); }
+}
+@keyframes infantryP1RightLeg {
+  0%, 49% { transform: translateX(0); }
+  50%, 100% { transform: translateX(-16px); }
+}
+@keyframes infantryP2RightLeg {
+  0%, 49% { transform: translateX(0); }
+  50%, 100% { transform: translateX(16px); }
+}
+@keyframes infantryP1Raise {
+  0% { transform: rotate(0deg); }
+  50%, 100% { transform: rotate(-25deg); }
+}
+@keyframes infantryP2Raise {
+  0% { transform: rotate(0deg); }
+  50%, 100% { transform: rotate(25deg); }
+}
+
+/* ── Heavy Unit Animation ── */
+
+.animated-heavy-unit {
+  width: 100%;
+  height: 100%;
+}
+
+.animated-heavy-unit svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Heavy frame alternation keyframes ── */
+@keyframes heavyShowFrame1 {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+@keyframes heavyShowFrame2 {
+  0%, 49% { opacity: 0; }
+  50%, 100% { opacity: 1; }
+}
+
+/* ── Heavy P1 marching ── */
+.heavy-p1.marching #smoke-1,
+.heavy-p1.marching #wheels-idle,
+.heavy-p1.marching #helmet-idle {
+  animation: heavyShowFrame1 0.6s steps(1) infinite;
+}
+.heavy-p1.marching #smoke-2,
+.heavy-p1.marching #wheels-alt,
+.heavy-p1.marching #helmet-alt {
+  animation: heavyShowFrame2 0.6s steps(1) infinite;
+}
+
+/* ── Heavy P1 raising cannon ── */
+.heavy-p1.raising #smoke-1,
+.heavy-p1.raising #smoke-2 {
+  opacity: 0;
+}
+.heavy-p1.raising #cannon-idle {
+  transform-origin: 226.9px 214.4px;
+  animation: heavyP1Raise 0.8s ease-in-out forwards;
+}
+
+/* ── Heavy P2 marching ── */
+.heavy-p2.marching #smoke-1,
+.heavy-p2.marching #wheels-idle,
+.heavy-p2.marching #helmet-idle {
+  animation: heavyShowFrame1 0.6s steps(1) infinite;
+}
+.heavy-p2.marching #smoke-2,
+.heavy-p2.marching #wheels-alt,
+.heavy-p2.marching #helmet-alt {
+  animation: heavyShowFrame2 0.6s steps(1) infinite;
+}
+
+/* ── Heavy P2 raising cannon ── */
+.heavy-p2.raising #smoke-1,
+.heavy-p2.raising #smoke-2 {
+  opacity: 0;
+}
+.heavy-p2.raising #cannon-idle {
+  transform-origin: 184.8px 119.7px;
+  animation: heavyP2Raise 0.8s ease-in-out forwards;
+}
+
+@keyframes heavyP1Raise {
+  0% { transform: rotate(0deg); }
+  50%, 100% { transform: rotate(-30deg); }
+}
+@keyframes heavyP2Raise {
+  0% { transform: rotate(0deg); }
+  50%, 100% { transform: rotate(25deg); }
+}

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Light Unit Animation Demo</title>
+<title>Unit Animation Demo</title>
 <style>
   body {
     background: #1a1a2e;
@@ -126,11 +126,122 @@
     0% { transform: rotate(0deg); }
     50%, 100% { transform: rotate(0deg); }
   }
+
+  /* ── P1 Medium Infantry (default: march) ── */
+  #medium-p1-stage #body-front,
+  #medium-p1-stage #soldierback,
+  #medium-p1-stage #soldiermiddle {
+    animation: mediumBounce 0.6s ease-in-out infinite;
+  }
+  #medium-p1-stage #left-leg {
+    animation: mediumLeftLeg 0.6s steps(1) infinite;
+  }
+  #medium-p1-stage #right-leg {
+    animation: mediumP1RightLeg 0.6s steps(1) infinite;
+  }
+  #medium-p1-stage #weapon-back,
+  #medium-p1-stage #weapon-middle,
+  #medium-p1-stage #weapon-front {
+    transform-origin: 71px 171px;
+    transform: rotate(-25deg);
+    animation: mediumBounce 0.6s ease-in-out infinite;
+  }
+
+  /* ── P2 Medium Infantry (default: march) ── */
+  #medium-p2-stage #body-front,
+  #medium-p2-stage #soldierback,
+  #medium-p2-stage #soldiermiddle {
+    animation: mediumBounce 0.6s ease-in-out infinite;
+  }
+  #medium-p2-stage #left-leg {
+    animation: mediumLeftLeg 0.6s steps(1) infinite;
+  }
+  #medium-p2-stage #right-leg {
+    animation: mediumP2RightLeg 0.6s steps(1) infinite;
+  }
+  #medium-p2-stage #weapon-back,
+  #medium-p2-stage #weapon-middle,
+  #medium-p2-stage #weapon-front {
+    transform-origin: 294px 256px;
+    transform: rotate(25deg);
+    animation: mediumBounce 0.6s ease-in-out infinite;
+  }
+
+  @keyframes mediumBounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-3px); }
+  }
+  @keyframes mediumLeftLeg {
+    0%, 49% { opacity: 1; transform: translateX(0); }
+    50%, 100% { opacity: 0; transform: translateX(0); }
+  }
+  @keyframes mediumP1RightLeg {
+    0%, 49% { transform: translateX(0); }
+    50%, 100% { transform: translateX(-16px); }
+  }
+  @keyframes mediumP2RightLeg {
+    0%, 49% { transform: translateX(0); }
+    50%, 100% { transform: translateX(16px); }
+  }
+
+  /* Raise weapon keyframes */
+  @keyframes mediumP1Raise {
+    0%, 100% { transform: rotate(0deg); }
+    30%, 70% { transform: rotate(-25deg); }
+  }
+  @keyframes mediumP2Raise {
+    0%, 100% { transform: rotate(0deg); }
+    30%, 70% { transform: rotate(25deg); }
+  }
+
+  /* ── Heavy frame alternation ── */
+  @keyframes heavyShowFrame1 {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes heavyShowFrame2 {
+    0%, 49% { opacity: 0; }
+    50%, 100% { opacity: 1; }
+  }
+
+  /* ── P1 Heavy (default: march) ── */
+  #heavy-p1-stage #smoke-1,
+  #heavy-p1-stage #wheels-idle,
+  #heavy-p1-stage #helmet-idle {
+    animation: heavyShowFrame1 0.6s steps(1) infinite;
+  }
+  #heavy-p1-stage #smoke-2,
+  #heavy-p1-stage #wheels-alt,
+  #heavy-p1-stage #helmet-alt {
+    animation: heavyShowFrame2 0.6s steps(1) infinite;
+  }
+
+  /* ── P2 Heavy (default: march) ── */
+  #heavy-p2-stage #smoke-1,
+  #heavy-p2-stage #wheels-idle,
+  #heavy-p2-stage #helmet-idle {
+    animation: heavyShowFrame1 0.6s steps(1) infinite;
+  }
+  #heavy-p2-stage #smoke-2,
+  #heavy-p2-stage #wheels-alt,
+  #heavy-p2-stage #helmet-alt {
+    animation: heavyShowFrame2 0.6s steps(1) infinite;
+  }
+
+  /* Heavy raise keyframes */
+  @keyframes heavyP1Raise {
+    0%, 100% { transform: rotate(0deg); }
+    30%, 70% { transform: rotate(-30deg); }
+  }
+  @keyframes heavyP2Raise {
+    0%, 100% { transform: rotate(0deg); }
+    30%, 70% { transform: rotate(25deg); }
+  }
 </style>
 </head>
 <body>
 
-<h1>Light Unit Animation Prototypes</h1>
+<h1>Unit Animation Prototypes</h1>
 
 <!-- P2 Horse -->
 <h2>Player 2 — Horse</h2>
@@ -151,6 +262,46 @@
   <button onclick="setBikeAnim('idle')">Idle</button>
 </div>
 <div class="label">light-p1-animated.svg (facing right)</div>
+
+<!-- P1 Medium Infantry -->
+<h2>Player 1 — Medium Infantry</h2>
+<div class="stage" id="medium-p1-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setMediumP1Anim('march')">March</button>
+  <button onclick="setMediumP1Anim('raise')">Raise Weapon</button>
+  <button onclick="setMediumP1Anim('idle')">Idle</button>
+</div>
+<div class="label">medium-p1-animated.svg (facing right)</div>
+
+<!-- P2 Medium Infantry -->
+<h2>Player 2 — Medium Infantry</h2>
+<div class="stage" id="medium-p2-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setMediumP2Anim('march')">March</button>
+  <button onclick="setMediumP2Anim('raise')">Raise Weapon</button>
+  <button onclick="setMediumP2Anim('idle')">Idle</button>
+</div>
+<div class="label">medium-p2-animated.svg (facing left)</div>
+
+<!-- P1 Heavy -->
+<h2>Player 1 — Heavy</h2>
+<div class="stage" id="heavy-p1-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setHeavyP1Anim('march')">March</button>
+  <button onclick="setHeavyP1Anim('raise')">Raise Cannon</button>
+  <button onclick="setHeavyP1Anim('idle')">Idle</button>
+</div>
+<div class="label">heavy-p1-animated.svg (facing right)</div>
+
+<!-- P2 Heavy -->
+<h2>Player 2 — Heavy</h2>
+<div class="stage" id="heavy-p2-stage"></div>
+<div class="controls">
+  <button class="active" onclick="setHeavyP2Anim('march')">March</button>
+  <button onclick="setHeavyP2Anim('raise')">Raise Cannon</button>
+  <button onclick="setHeavyP2Anim('idle')">Idle</button>
+</div>
+<div class="label">heavy-p2-animated.svg (facing left)</div>
 
 <script>
 // Load horse SVG
@@ -230,6 +381,184 @@ function setBikeAnim(mode) {
     document.head.appendChild(s);
   }
   // 'ride' uses default CSS
+}
+
+// Load medium P1 SVG
+fetch('sprites/medium-p1-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('medium-p1-stage').innerHTML = svgText;
+  });
+
+// Load medium P2 SVG
+fetch('sprites/medium-p2-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('medium-p2-stage').innerHTML = svgText;
+  });
+
+function setMediumP1Anim(mode) {
+  const btns = document.querySelectorAll('#medium-p1-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('medium-p1-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'medium-p1-dynamic';
+    s.textContent = `
+      #medium-p1-stage #body-front, #medium-p1-stage #soldierback, #medium-p1-stage #soldiermiddle,
+      #medium-p1-stage #weapon-back, #medium-p1-stage #weapon-middle, #medium-p1-stage #weapon-front,
+      #medium-p1-stage #left-leg, #medium-p1-stage #right-leg { animation: none !important; transform: none !important; }
+    `;
+    document.head.appendChild(s);
+  } else if (mode === 'raise') {
+    const s = document.createElement('style');
+    s.id = 'medium-p1-dynamic';
+    s.textContent = `
+      #medium-p1-stage #body-front, #medium-p1-stage #soldierback, #medium-p1-stage #soldiermiddle { animation: none !important; }
+      #medium-p1-stage #left-leg { animation: none !important; }
+      #medium-p1-stage #right-leg { animation: none !important; }
+      #medium-p1-stage #weapon-back,
+      #medium-p1-stage #weapon-middle,
+      #medium-p1-stage #weapon-front {
+        transform-origin: 71px 171px;
+        animation: mediumP1Raise 2s ease-in-out infinite !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'march' uses default CSS
+}
+
+function setMediumP2Anim(mode) {
+  const btns = document.querySelectorAll('#medium-p2-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('medium-p2-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'medium-p2-dynamic';
+    s.textContent = `
+      #medium-p2-stage #body-front, #medium-p2-stage #soldierback, #medium-p2-stage #soldiermiddle,
+      #medium-p2-stage #weapon-back, #medium-p2-stage #weapon-middle, #medium-p2-stage #weapon-front,
+      #medium-p2-stage #left-leg, #medium-p2-stage #right-leg { animation: none !important; transform: none !important; }
+    `;
+    document.head.appendChild(s);
+  } else if (mode === 'raise') {
+    const s = document.createElement('style');
+    s.id = 'medium-p2-dynamic';
+    s.textContent = `
+      #medium-p2-stage #body-front, #medium-p2-stage #soldierback, #medium-p2-stage #soldiermiddle { animation: none !important; }
+      #medium-p2-stage #left-leg { animation: none !important; }
+      #medium-p2-stage #right-leg { animation: none !important; }
+      #medium-p2-stage #weapon-back,
+      #medium-p2-stage #weapon-middle,
+      #medium-p2-stage #weapon-front {
+        transform-origin: 294px 256px;
+        animation: mediumP2Raise 2s ease-in-out infinite !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'march' uses default CSS
+}
+
+// Load heavy P1 SVG
+fetch('sprites/heavy-p1-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('heavy-p1-stage').innerHTML = svgText;
+  });
+
+// Load heavy P2 SVG
+fetch('sprites/heavy-p2-animated.svg')
+  .then(r => r.text())
+  .then(svgText => {
+    document.getElementById('heavy-p2-stage').innerHTML = svgText;
+  });
+
+function setHeavyP1Anim(mode) {
+  const btns = document.querySelectorAll('#heavy-p1-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('heavy-p1-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'heavy-p1-dynamic';
+    s.textContent = `
+      #heavy-p1-stage #smoke-1, #heavy-p1-stage #smoke-2,
+      #heavy-p1-stage #wheels-idle, #heavy-p1-stage #wheels-alt,
+      #heavy-p1-stage #helmet-idle, #heavy-p1-stage #helmet-alt,
+      #heavy-p1-stage #cannon-idle { animation: none !important; }
+      #heavy-p1-stage #smoke-1, #heavy-p1-stage #smoke-2,
+      #heavy-p1-stage #wheels-alt, #heavy-p1-stage #helmet-alt { opacity: 0 !important; }
+    `;
+    document.head.appendChild(s);
+  } else if (mode === 'raise') {
+    const s = document.createElement('style');
+    s.id = 'heavy-p1-dynamic';
+    s.textContent = `
+      #heavy-p1-stage #smoke-1, #heavy-p1-stage #smoke-2,
+      #heavy-p1-stage #wheels-idle, #heavy-p1-stage #wheels-alt,
+      #heavy-p1-stage #helmet-idle, #heavy-p1-stage #helmet-alt { animation: none !important; }
+      #heavy-p1-stage #smoke-1, #heavy-p1-stage #smoke-2,
+      #heavy-p1-stage #wheels-alt, #heavy-p1-stage #helmet-alt { opacity: 0 !important; }
+      #heavy-p1-stage #cannon-idle {
+        transform-origin: 226.9px 214.4px;
+        animation: heavyP1Raise 2s ease-in-out infinite !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'march' uses default CSS
+}
+
+function setHeavyP2Anim(mode) {
+  const btns = document.querySelectorAll('#heavy-p2-stage + .controls button');
+  btns.forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+
+  const style = document.getElementById('heavy-p2-dynamic');
+  if (style) style.remove();
+
+  if (mode === 'idle') {
+    const s = document.createElement('style');
+    s.id = 'heavy-p2-dynamic';
+    s.textContent = `
+      #heavy-p2-stage #smoke-1, #heavy-p2-stage #smoke-2,
+      #heavy-p2-stage #wheels-idle, #heavy-p2-stage #wheels-alt,
+      #heavy-p2-stage #helmet-idle, #heavy-p2-stage #helmet-alt,
+      #heavy-p2-stage #cannon-idle { animation: none !important; }
+      #heavy-p2-stage #smoke-1, #heavy-p2-stage #smoke-2,
+      #heavy-p2-stage #wheels-alt, #heavy-p2-stage #helmet-alt { opacity: 0 !important; }
+    `;
+    document.head.appendChild(s);
+  } else if (mode === 'raise') {
+    const s = document.createElement('style');
+    s.id = 'heavy-p2-dynamic';
+    s.textContent = `
+      #heavy-p2-stage #smoke-1, #heavy-p2-stage #smoke-2,
+      #heavy-p2-stage #wheels-idle, #heavy-p2-stage #wheels-alt,
+      #heavy-p2-stage #helmet-idle, #heavy-p2-stage #helmet-alt { animation: none !important; }
+      #heavy-p2-stage #smoke-1, #heavy-p2-stage #smoke-2,
+      #heavy-p2-stage #wheels-alt, #heavy-p2-stage #helmet-alt { opacity: 0 !important; }
+      #heavy-p2-stage #cannon-idle {
+        transform-origin: 184.8px 119.7px;
+        animation: heavyP2Raise 2s ease-in-out infinite !important;
+      }
+    `;
+    document.head.appendChild(s);
+  }
+  // 'march' uses default CSS
 }
 </script>
 

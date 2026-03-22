@@ -778,9 +778,10 @@ class App extends Component<AppProps, AppState> {
         toY: animation.toY,
       });
 
-      // Wait for animation duration: light units need extra time for rear (800ms) + gallop slide (800ms)
-      const isLightUnit = animation.unit && (animation.unit.unitType ?? 0) === 0;
-      const animDuration = isLightUnit ? 1800 : 500;
+      // Wait for animation duration: light/medium units need extra time for phase animations (800ms + 800ms)
+      const unitType = animation.unit ? (animation.unit.unitType ?? 0) : -1;
+      const hasPhaseAnim = unitType === 0 || unitType === 1 || unitType === 2;
+      const animDuration = hasPhaseAnim ? 1800 : 500;
       await new Promise((resolve) => setTimeout(resolve, animDuration));
 
       // Check if any booms should trigger after this animation
