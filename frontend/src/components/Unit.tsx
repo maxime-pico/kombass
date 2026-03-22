@@ -11,6 +11,7 @@ interface UnitProps {
   playerIndex: number | null;
   displayUnitInfo: boolean;
   isGhost: boolean;
+  compact?: boolean;
   animationState?: "galloping" | "rearing" | null;
   mediumAnimationState?: "raising" | "marching" | null;
   heavyAnimationState?: "raising" | "marching" | null;
@@ -61,7 +62,7 @@ function Unit(props: UnitProps) {
         )}
       </div>
       {displayUnitInfo ? (
-        <div className="unit-info">{`HP:${unit.life} S:${unit.strength}`}</div>
+        <div className="unit-info">{props.compact ? `HP:${unit.life}` : `HP:${unit.life} S:${unit.strength}`}</div>
       ) : null}
       {hasFlag ? <Flag containsFlag={containsFlag} withPlayer={true} /> : null}
     </div>

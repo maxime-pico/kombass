@@ -793,7 +793,21 @@ class App extends Component<AppProps, AppState> {
       if (boomsToTrigger.length > 0) {
         console.log(`Triggering ${boomsToTrigger.length} boom(s) after animation ${i}`);
         for (const boom of boomsToTrigger) {
-          dispatchCustomEvent("boom", { x: boom.x, y: boom.y });
+          // Calculate damage at this location by comparing pre/post combat life
+          let damage = 0;
+          if (this.combatResultsBuffer) {
+            for (let player = 0; player < 2; player++) {
+              for (let unitIdx = 0; unitIdx < this.state.unitsCount; unitIdx++) {
+                const preUnit = this.state.futureUnits[player]?.[unitIdx];
+                const postUnit = this.combatResultsBuffer.newFutureUnits[player][unitIdx];
+                if (preUnit && postUnit && preUnit.x === boom.x && preUnit.y === boom.y && postUnit.life > 0) {
+                  const unitDamage = preUnit.life - postUnit.life;
+                  if (unitDamage > 0) damage = Math.max(damage, unitDamage);
+                }
+              }
+            }
+          }
+          dispatchCustomEvent("boom", { x: boom.x, y: boom.y, damage });
         }
 
         // Wait for boom animations (1000ms)

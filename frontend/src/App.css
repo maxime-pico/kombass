@@ -734,6 +734,30 @@ button {
   font-weight: 800;
 }
 
+.square-inside > .unit {
+  pointer-events: none;
+}
+
+.square-inside > .unit > .unit-info {
+  pointer-events: none;
+  display: none;
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  padding: 1px 4px;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+@media (hover: hover) {
+  .square-inside > .unit:hover > .unit-info {
+    display: block;
+  }
+}
+
 .infobar {
   background-color: white;
   margin: 1rem 3rem;
@@ -916,6 +940,33 @@ button.active {
     transform: scale(7) translate(-1px, 0, 5rem);
     background-color: white;
     box-shadow: 0 0 0 10px red;
+  }
+}
+
+.floating-damage {
+  position: absolute;
+  z-index: 20;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: red;
+  pointer-events: none;
+  animation: float-damage 1.5s ease-out forwards;
+  left: -50%;
+  top: -150%;
+}
+
+@keyframes float-damage {
+  0% {
+    opacity: 0.5;
+    transform: translateX(50%) translateY(0);
+  }
+  20% {
+    opacity: 1;
+    transform: translateX(-20%) translateY(-50%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(50%) translateY(-150%);
   }
 }
 

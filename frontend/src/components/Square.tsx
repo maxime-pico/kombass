@@ -50,6 +50,7 @@ function Square(props: SquareProps) {
   const { animationPhase, isPlayer, players, selectedUnit, step, unitsCount, boardLength, boardWidth } =
     useContext(gameContext);
   const [boom, setBoom] = useState(false);
+  const [damage, setDamage] = useState<number | null>(null);
   const [animatedUnit, setAnimatedUnit] = useState<{
     player: 0 | 1;
     unitIndex: number;
@@ -157,7 +158,7 @@ function Square(props: SquareProps) {
   // Add boom event listener with proper cleanup
   useEffect(() => {
     // Only add listener if this square should respond to boom events
-    if ((ghostUnit.unit || containsOpponentGhostUnits.unit) && !boom) {
+    if ((ghostUnit.unit || containsOpponentGhostUnits.unit || animationPhase.isAnimating) && !boom) {
       const handleBoom = (e: Event) => {
         if (!isCustomEvent(e)) throw new Error("not a custom event");
         if (e.detail.x === col && e.detail.y === row) {
@@ -166,6 +167,7 @@ function Square(props: SquareProps) {
           audio.src = AUDIO.boom;
           audio.play();
           setBoom(true);
+          if (e.detail.damage > 0) setDamage(e.detail.damage);
         }
       };
 
@@ -175,13 +177,14 @@ function Square(props: SquareProps) {
         document.removeEventListener("boom", handleBoom);
       };
     }
-  }, [ghostUnit.unit, containsOpponentGhostUnits.unit, boom, col, row, _screenShake]);
+  }, [ghostUnit.unit, containsOpponentGhostUnits.unit, animationPhase.isAnimating, boom, col, row, _screenShake]);
 
   // Reset boom animation after 1 second
   useEffect(() => {
     if (boom) {
       const timeout = setTimeout(() => {
         setBoom(false);
+        setDamage(null);
       }, 1000);
 
       return () => clearTimeout(timeout);
@@ -235,7 +238,8 @@ function Square(props: SquareProps) {
             <Unit
               unit={unit.unit}
               playerIndex={unit.playerNumber}
-              displayUnitInfo={false}
+              displayUnitInfo={true}
+              compact={true}
               isGhost={false}
               animationState={animatedUnit ? lightAnimState : null}
               mediumAnimationState={animatedUnit ? mediumAnimState : null}
@@ -248,7 +252,8 @@ function Square(props: SquareProps) {
             <Unit
               unit={ghostUnit.unit}
               playerIndex={ghostUnit.playerNumber}
-              displayUnitInfo={false}
+              displayUnitInfo={true}
+              compact={true}
               isGhost={false}
             />
           ) : (
@@ -275,6 +280,7 @@ function Square(props: SquareProps) {
               )
           )}
         </div>
+        {damage ? <div className="floating-damage">-{damage}</div> : null}
       </div>
     </div>
   );
