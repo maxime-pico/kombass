@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getCachedSprite } from "../utilities/spriteCache";
 
 interface AnimatedLightUnitProps {
   playerIndex: number;
@@ -6,19 +7,21 @@ interface AnimatedLightUnitProps {
 }
 
 function AnimatedLightUnit({ playerIndex, animationState }: AnimatedLightUnitProps) {
-  const [svgContent, setSvgContent] = useState<string>("");
-
   const spriteFile = playerIndex === 0
     ? "/sprites/light-p1-animated.svg"
     : "/sprites/light-p2-animated.svg";
 
+  const [svgContent, setSvgContent] = useState<string>(() => getCachedSprite(spriteFile) || "");
+
   const unitClass = playerIndex === 0 ? "bike" : "horse";
 
   useEffect(() => {
-    fetch(spriteFile)
-      .then((r) => r.text())
-      .then((text) => setSvgContent(text));
-  }, [spriteFile]);
+    if (!svgContent) {
+      fetch(spriteFile)
+        .then((r) => r.text())
+        .then((text) => setSvgContent(text));
+    }
+  }, [spriteFile, svgContent]);
 
   if (!svgContent) return null;
 

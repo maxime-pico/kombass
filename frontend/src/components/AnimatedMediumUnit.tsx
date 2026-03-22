@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { getCachedSprite } from "../utilities/spriteCache";
 
 interface AnimatedMediumUnitProps {
   playerIndex: number;
@@ -6,19 +7,21 @@ interface AnimatedMediumUnitProps {
 }
 
 function AnimatedMediumUnit({ playerIndex, animationState }: AnimatedMediumUnitProps) {
-  const [svgContent, setSvgContent] = useState<string>("");
-
   const spriteFile = playerIndex === 0
     ? "/sprites/medium-p1-animated.svg"
     : "/sprites/medium-p2-animated.svg";
 
+  const [svgContent, setSvgContent] = useState<string>(() => getCachedSprite(spriteFile) || "");
+
   const unitClass = playerIndex === 0 ? "infantry-p1" : "infantry-p2";
 
   useEffect(() => {
-    fetch(spriteFile)
-      .then((r) => r.text())
-      .then((text) => setSvgContent(text));
-  }, [spriteFile]);
+    if (!svgContent) {
+      fetch(spriteFile)
+        .then((r) => r.text())
+        .then((text) => setSvgContent(text));
+    }
+  }, [spriteFile, svgContent]);
 
   if (!svgContent) return null;
 

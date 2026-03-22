@@ -3,6 +3,7 @@ import "./App.css";
 import React, { Component } from "react";
 import Chat from "./components/Chat";
 import Settings from "./components/Settings";
+import { preloadAnimatedSprites } from "./utilities/spriteCache";
 import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
@@ -1250,6 +1251,7 @@ class App extends Component<AppProps, AppState> {
     Object.values(SPRITES).forEach((sprite) => {
       sprite.forEach((url) => preloading(url));
     });
+    preloadAnimatedSprites();
 
     if (process.env.REACT_APP_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
