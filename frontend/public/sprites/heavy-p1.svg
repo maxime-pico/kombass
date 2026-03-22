@@ -25,17 +25,17 @@
     </rdf:RDF>
   </metadata>
   <sodipodi:namedview
-     inkscape:current-layer="g295"
+     inkscape:current-layer="g2"
      inkscape:window-maximized="0"
-     inkscape:window-y="30"
-     inkscape:window-x="0"
-     inkscape:cy="232.73876"
-     inkscape:cx="191.67643"
-     inkscape:zoom="3.1902722"
+     inkscape:window-y="1113"
+     inkscape:window-x="2108"
+     inkscape:cy="171.70988"
+     inkscape:cx="135.93699"
+     inkscape:zoom="1.6772477"
      showgrid="false"
      id="namedview3275"
-     inkscape:window-height="1022"
-     inkscape:window-width="1920"
+     inkscape:window-height="921"
+     inkscape:window-width="1512"
      inkscape:pageshadow="2"
      inkscape:pageopacity="0"
      guidetolerance="10"
@@ -56,7 +56,7 @@
      id="g295"
      inkscape:label="smoke"
      transform="translate(1.2062098,1.754487)"
-     style="display:none">
+     style="display:inline">
     <g
        id="g306"
        inkscape:label="smoke alternate 2"
@@ -113,7 +113,7 @@
     <g
        id="g315"
        inkscape:label="smoke alternate 1"
-       style="display:inline">
+       style="display:none">
       <rect
          style="fill:#999999;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:0.862745"
          id="rect307"

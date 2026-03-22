@@ -700,7 +700,6 @@ button {
   align-items: center;
   position: relative;
   z-index: 3;
-  pointer-events: none;
 }
 
 .mirror {
@@ -713,6 +712,7 @@ button {
   z-index: 4;
   width: 100%;
   transition: 0.5s;
+  pointer-events: none;
 }
 
 .square-inside > .unit > .unit-sprite {
@@ -732,10 +732,6 @@ button {
   background-color: white;
   color: black;
   font-weight: 800;
-}
-
-.square-inside > .unit {
-  pointer-events: none;
 }
 
 .square-inside > .unit > .unit-info {
