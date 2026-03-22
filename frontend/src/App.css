@@ -1012,6 +1012,89 @@ button.active {
   margin: 0 auto;
 }
 
+/* Embuscade overlay */
+.embuscade-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: rgba(0, 0, 0, 0);
+  animation: embuscade-bg 1600ms ease-in-out forwards;
+}
+
+.embuscade-text {
+  font-family: "Press Start 2P", "Courier New", Courier, monospace;
+  font-size: clamp(28px, 8vw, 72px);
+  color: white;
+  text-shadow:
+    3px 3px 0 rgba(0, 0, 0, 0.5);
+  letter-spacing: 6px;
+  text-transform: uppercase;
+  animation: embuscade-slide 1600ms ease-in-out forwards;
+  z-index: 1;
+  background: #cc0000;
+  padding: 16px 40px;
+  border-top: 4px solid #ff4444;
+  border-bottom: 4px solid #880000;
+}
+
+@keyframes embuscade-bg {
+  0% { background: rgba(0, 0, 0, 0); }
+  15% { background: rgba(0, 0, 0, 0.55); }
+  75% { background: rgba(0, 0, 0, 0.55); }
+  100% { background: rgba(0, 0, 0, 0); }
+}
+
+@keyframes embuscade-slide {
+  0% {
+    transform: translateX(-120vw) scale(1.2);
+    opacity: 0;
+  }
+  15% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: translateX(0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(120vw) scale(1.2);
+    opacity: 0;
+  }
+}
+
+/* Rain streaks */
+.embuscade-rain {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  opacity: 1;
+}
+
+.embuscade-streak {
+  position: absolute;
+  width: 60px;
+  height: 10px;
+  background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: embuscade-rain-fly 400ms linear infinite;
+}
+
+@keyframes embuscade-rain-fly {
+  0% { transform: translateX(-100px); }
+  100% { transform: translateX(calc(100vw + 100px)); }
+}
+
 @keyframes spin {
   0% {
     transform: rotate(0deg);

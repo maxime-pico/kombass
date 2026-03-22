@@ -1,5 +1,6 @@
 import React, { useContext } from "react";
 import Square from "./Square";
+import Embuscade from "./Embuscade";
 import { IUnit, ISelectedUnit } from "../App";
 import gameContext from "../gameContext";
 
@@ -470,6 +471,7 @@ function Board(props: BoardProps) {
         pointerEvents: animationPhase.isAnimating ? 'none' : 'auto',
       }}
     >
+      <Embuscade />
       {Array(boardLength)
         .fill(Array(boardWidth).fill(null))
         .map((row: any, row_index: number) =>

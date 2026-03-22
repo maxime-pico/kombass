@@ -791,6 +791,10 @@ class App extends Component<AppProps, AppState> {
       );
 
       if (boomsToTrigger.length > 0) {
+        // Show "EMBUSCADE!" text before booms
+        dispatchCustomEvent("embuscade", {});
+        await new Promise((resolve) => setTimeout(resolve, 1600));
+
         console.log(`Triggering ${boomsToTrigger.length} boom(s) after animation ${i}`);
         for (const boom of boomsToTrigger) {
           // Calculate damage at this location by comparing pre/post combat life
