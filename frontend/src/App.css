@@ -551,13 +551,93 @@ button {
   opacity: 1;
 }
 
-.board.p1 > .square-container > .square > .square-inside.opponent-can-reach {
-  background: repeating-linear-gradient(135deg, #ffd9004d, #ffd9004d 5px, #fce7724d 5px, #fce7724d 10px);
+.board.p1 > .square-container > .square > .square-inside.opponent-reach-fill {
+  background-color: rgba(255, 217, 0, 0.1);
 }
 
-.board.p2 > .square-container > .square > .square-inside.opponent-can-reach {
-  background: repeating-linear-gradient(135deg, #5dfec880, #5dfec880 5px, #93ffdb80 5px, #93ffdb80 10px);
+.board.p2 > .square-container > .square > .square-inside.opponent-reach-fill {
+  background-color: rgba(93, 254, 200, 0.15);
 }
+
+/* Staircase corner connectors — hidden for now */
+.orb-corner { display: none; }
+
+/* Opponent reach perimeter — pseudo-element on square-inside, sized to match .square */
+.square:has(> .square-inside.opponent-reach-border) {
+  z-index: 2;
+}
+
+.square-inside.opponent-reach-border::after {
+  content: "";
+  position: absolute;
+  /* Extend to cover the full .square including its border, bridging gaps */
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  pointer-events: none;
+  border: 0 solid transparent;
+  z-index: 5;
+}
+/* P1 sees red opponent borders, P2 sees blue opponent borders */
+.board.p1 .square-inside.opponent-reach-border::after { border-color: rgba(220, 80, 60, 0.7); }
+.board.p2 .square-inside.opponent-reach-border::after { border-color: rgba(60, 120, 220, 0.7); }
+
+.square-inside.orb-top::after { border-top-width: 2.5px; }
+.square-inside.orb-right::after { border-right-width: 2.5px; }
+.square-inside.orb-bottom::after { border-bottom-width: 2.5px; }
+.square-inside.orb-left::after { border-left-width: 2.5px; }
+
+/* Rounded corners — when two adjacent edges meet at a corner */
+.square-inside.orb-top.orb-left::after { border-top-left-radius: 4px; }
+.square-inside.orb-top.orb-right::after { border-top-right-radius: 4px; }
+.square-inside.orb-bottom.orb-left::after { border-bottom-left-radius: 4px; }
+.square-inside.orb-bottom.orb-right::after { border-bottom-right-radius: 4px; }
+
+/* Reachable (active unit) — tinted grid lines inside the reach area */
+.board.p1 > .square-container > .square:has(> .square-inside.reachable) {
+  border-color: rgba(175, 249, 243, 0.5);
+}
+.board.p2 > .square-container > .square:has(> .square-inside.reachable) {
+  border-color: rgba(255, 235, 122, 0.5);
+}
+
+/* Own unmoved units reach — fill */
+.board.p1 > .square-container > .square > .square-inside.own-reach-fill {
+  background-color: rgba(60, 120, 220, 0.08);
+}
+.board.p2 > .square-container > .square > .square-inside.own-reach-fill {
+  background-color: rgba(220, 80, 60, 0.08);
+}
+
+/* Own unmoved units reach — perimeter via ::before */
+.square:has(> .square-inside.own-reach-border) {
+  z-index: 2;
+}
+.square-inside.own-reach-border::before {
+  content: "";
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  pointer-events: none;
+  border: 0 solid transparent;
+  z-index: 5;
+}
+.board.p1 .square-inside.own-reach-border::before { border-color: rgba(60, 120, 220, 0.6); }
+.board.p2 .square-inside.own-reach-border::before { border-color: rgba(220, 80, 60, 0.6); }
+
+.square-inside.own-top::before { border-top-width: 2.5px; }
+.square-inside.own-right::before { border-right-width: 2.5px; }
+.square-inside.own-bottom::before { border-bottom-width: 2.5px; }
+.square-inside.own-left::before { border-left-width: 2.5px; }
+
+/* Rounded corners for own reach */
+.square-inside.own-top.own-left::before { border-top-left-radius: 4px; }
+.square-inside.own-top.own-right::before { border-top-right-radius: 4px; }
+.square-inside.own-bottom.own-left::before { border-bottom-left-radius: 4px; }
+.square-inside.own-bottom.own-right::before { border-bottom-right-radius: 4px; }
 
 .square.active {
   color: white;
@@ -622,8 +702,8 @@ button {
 @media (hover: hover) {
   .board.p1 > .square-container > .square > .square-inside.reachable:hover,
   .board.p2 > .square-container > .square > .square-inside.reachable:hover,
-  .board.p1 > .square-container > .square > .square-inside.opponent-can-reach:hover,
-  .board.p2 > .square-container > .square > .square-inside.opponent-can-reach:hover,
+  .board.p1 > .square-container > .square > .square-inside.opponent-reach-fill:hover,
+  .board.p2 > .square-container > .square > .square-inside.opponent-reach-fill:hover,
   .square-inside:hover {
     background-color: hsl(114deg 80% 60% / 80%);
     z-index: 4;
@@ -673,18 +753,82 @@ button {
   height: 100%;
 }
 
-.danger {
-  width: 40%;
-  height: 40%;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  opacity: 0.7;
-  border-radius: 30px;
+.danger-overlay.in-danger {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
 }
 
-.danger.ghost {
-  opacity: 0;
+.danger-overlay.danger-p0.in-danger {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 6px
+  );
+}
+
+.danger-overlay.danger-p1.in-danger {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+/* Scan animation: stripes alternate (swap colored/transparent) 3x in 1 second */
+.danger-overlay.danger-p0.danger-scanning {
+  animation: danger-scan-p0 0.33s steps(1) 3;
+}
+
+.danger-overlay.danger-p1.danger-scanning {
+  animation: danger-scan-p1 0.33s steps(1) 3;
+}
+
+@keyframes danger-scan-p0 {
+  0%, 100% {
+    background: repeating-linear-gradient(-45deg,
+      transparent, transparent 3px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 6px);
+  }
+  50% {
+    background: repeating-linear-gradient(-45deg,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+      transparent 3px, transparent 6px);
+  }
+}
+
+@keyframes danger-scan-p1 {
+  0%, 100% {
+    background: repeating-linear-gradient(-45deg,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+      transparent 3px, transparent 6px);
+  }
+  50% {
+    background: repeating-linear-gradient(-45deg,
+      transparent, transparent 3px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 6px);
+  }
+}
+
+/* Target flash: yellow-orange-yellow on the whole square, above unit sprites */
+.danger-overlay.danger-targeting {
+  animation: danger-target 0.6s ease-in-out;
+  z-index: 5;
+}
+
+@keyframes danger-target {
+  0% { background: rgba(255, 255, 0, 0.5); }
+  50% { background: rgba(255, 140, 0, 0.7); }
+  100% { background: rgba(255, 255, 0, 0.5); }
 }
 
 .unit.ghost {

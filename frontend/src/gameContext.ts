@@ -153,6 +153,7 @@ const defaultState: IGameContextProps = {
   animationPhase: {
     isAnimating: false,
     currentAnimationIndex: 0,
+    animationSubPhase: 'idle',
     queue: [],
     boomQueue: [],
     deadUnits: new Set(),

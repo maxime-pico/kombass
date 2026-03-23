@@ -62,9 +62,12 @@ export type IBoomEvent = {
   y: number;
 };
 
+export type AnimationSubPhase = 'idle' | 'pre-move' | 'moving' | 'post-move' | 'scanning' | 'targeting' | 'combat';
+
 export type IAnimationPhase = {
   isAnimating: boolean;
   currentAnimationIndex: number;
+  animationSubPhase: AnimationSubPhase;
   queue: Array<IAnimationItem>;
   boomQueue: Array<IBoomEvent>;
   deadUnits: Set<string>; // Format: "player_unitIndex" (e.g., "0_2" for player 0, unit 2)
@@ -228,6 +231,7 @@ class App extends Component<AppProps, AppState> {
       animationPhase: {
         isAnimating: false,
         currentAnimationIndex: 0,
+        animationSubPhase: 'idle',
         queue: [],
         boomQueue: [],
         deadUnits: new Set(),
@@ -756,6 +760,15 @@ class App extends Component<AppProps, AppState> {
     );
   };
 
+  _setAnimationSubPhase = (subPhase: AnimationSubPhase) => {
+    this.setState(prevState => ({
+      animationPhase: {
+        ...prevState.animationPhase,
+        animationSubPhase: subPhase,
+      },
+    }));
+  };
+
   _runAnimationSequence = async () => {
     const { queue, boomQueue } = this.state.animationPhase;
 
@@ -768,6 +781,13 @@ class App extends Component<AppProps, AppState> {
       const animation = queue[i];
 
       console.log(`Animating unit ${animation.unitIndex} of player ${animation.player} (${i + 1}/${queue.length})`);
+
+      // Pre-move: show danger zone at origin position
+      this._setAnimationSubPhase('pre-move');
+      await new Promise((resolve) => setTimeout(resolve, 800));
+
+      // Moving: hide danger zone during slide
+      this._setAnimationSubPhase('moving');
 
       // Dispatch event for this unit to animate
       dispatchCustomEvent("animate_unit", {
@@ -785,12 +805,23 @@ class App extends Component<AppProps, AppState> {
       const animDuration = hasPhaseAnim ? 1800 : 500;
       await new Promise((resolve) => setTimeout(resolve, animDuration));
 
+      // Post-move: show danger zone at destination + scan animation
+      this._setAnimationSubPhase('scanning');
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       // Check if any booms should trigger after this animation
       const boomsToTrigger = boomQueue.filter(
         (boom) => boom.afterAnimationIndex === i
       );
 
       if (boomsToTrigger.length > 0) {
+        // Targeting: flash enemy squares in range
+        this._setAnimationSubPhase('targeting');
+        await new Promise((resolve) => setTimeout(resolve, 600));
+
+        // Combat: embuscade + booms
+        this._setAnimationSubPhase('combat');
+
         // Show "EMBUSCADE!" text before booms
         dispatchCustomEvent("embuscade", {});
         await new Promise((resolve) => setTimeout(resolve, 1600));
@@ -819,47 +850,53 @@ class App extends Component<AppProps, AppState> {
 
         // After boom, check which units are now dead and mark them
         if (this.combatResultsBuffer) {
-          const newDeadUnits = new Set(this.state.animationPhase.deadUnits);
           const { newFutureUnits } = this.combatResultsBuffer;
+          const unitsCount = this.state.unitsCount;
 
-          // Check all units at boom locations
-          for (const boom of boomsToTrigger) {
-            for (let player = 0; player < 2; player++) {
-              for (let unitIdx = 0; unitIdx < this.state.unitsCount; unitIdx++) {
-                const unit = newFutureUnits[player][unitIdx];
-                // Check if unit is at boom location and is dead
-                if (unit && unit.x === boom.x && unit.y === boom.y && unit.life <= 0) {
-                  newDeadUnits.add(`${player}_${unitIdx}`);
+          // Update dead units set
+          this.setState(prevState => {
+            const newDeadUnits = new Set(prevState.animationPhase.deadUnits);
+
+            // Check all units at boom locations
+            for (const boom of boomsToTrigger) {
+              for (let player = 0; player < 2; player++) {
+                for (let unitIdx = 0; unitIdx < unitsCount; unitIdx++) {
+                  const unit = newFutureUnits[player][unitIdx];
+                  if (unit && unit.x === boom.x && unit.y === boom.y && unit.life <= 0) {
+                    newDeadUnits.add(`${player}_${unitIdx}`);
+                  }
                 }
               }
             }
-          }
 
-          // Update dead units set
-          this.setState({
-            animationPhase: {
-              ...this.state.animationPhase,
-              deadUnits: newDeadUnits,
-              currentAnimationIndex: i + 1,
-            },
+            return {
+              animationPhase: {
+                ...prevState.animationPhase,
+                deadUnits: newDeadUnits,
+                currentAnimationIndex: i + 1,
+                animationSubPhase: 'idle' as const,
+              },
+            };
           });
         } else {
           // No combat results, just update progress
-          this.setState({
+          this.setState(prevState => ({
             animationPhase: {
-              ...this.state.animationPhase,
+              ...prevState.animationPhase,
               currentAnimationIndex: i + 1,
+              animationSubPhase: 'idle' as const,
             },
-          });
+          }));
         }
       } else {
         // No booms, just update progress
-        this.setState({
+        this.setState(prevState => ({
           animationPhase: {
-            ...this.state.animationPhase,
+            ...prevState.animationPhase,
             currentAnimationIndex: i + 1,
+            animationSubPhase: 'idle' as const,
           },
-        });
+        }));
       }
     }
 
@@ -906,6 +943,7 @@ class App extends Component<AppProps, AppState> {
       animationPhase: {
         isAnimating: false,
         currentAnimationIndex: 0,
+        animationSubPhase: 'idle',
         queue: [],
         boomQueue: [],
         deadUnits: new Set(),
@@ -951,6 +989,7 @@ class App extends Component<AppProps, AppState> {
             animationPhase: {
               isAnimating: true,
               currentAnimationIndex: 0,
+              animationSubPhase: 'pre-move',
               queue: animationQueue,
               boomQueue: boomQueue,
               deadUnits: new Set(),

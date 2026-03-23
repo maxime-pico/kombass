@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import Square from "./Square";
 import Embuscade from "./Embuscade";
 import { IUnit, ISelectedUnit } from "../App";
@@ -93,6 +93,65 @@ function Board(props: BoardProps) {
     return opponentCanReach;
   };
 
+  // Helper: compute perimeter borders from a set of reachable squares
+  const _computeReachGrid = (reachable: Set<string>) => {
+    const borders = new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>();
+    reachable.forEach((key) => {
+      const [c, r] = key.split(",").map(Number);
+      borders.set(key, {
+        top: !reachable.has(`${c},${r - 1}`),
+        right: !reachable.has(`${c + 1},${r}`),
+        bottom: !reachable.has(`${c},${r + 1}`),
+        left: !reachable.has(`${c - 1},${r}`),
+      });
+    });
+    return { borders };
+  };
+
+  // Precompute opponent reachable grid with perimeter borders
+  const opponentReachGrid = useMemo(() => {
+    const opponentUnits = units[(isPlayer + 1) % 2];
+    const empty = { borders: new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>() };
+    if (!opponentUnits || props.placement) return empty;
+
+    const reachable = new Set<string>();
+    for (let r = 0; r < boardLength; r++) {
+      for (let c = 0; c < boardWidth; c++) {
+        if (_opponentCanReach(opponentUnits, c, r, false)) {
+          reachable.add(`${c},${r}`);
+        }
+      }
+    }
+    return _computeReachGrid(reachable);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units, isPlayer, boardLength, boardWidth, flags, props.placement]);
+
+  // Precompute own unmoved units' reachable grid (units with index > step)
+  const ownUnmovedReachGrid = useMemo(() => {
+    const empty = { borders: new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>() };
+    const ownUnits = units[isPlayer];
+    if (!ownUnits || props.placement || step < 0 || step >= unitsCount) return empty;
+
+    const ownFlag = flags[isPlayer];
+    const reachable = new Set<string>();
+    for (let r = 0; r < boardLength; r++) {
+      for (let c = 0; c < boardWidth; c++) {
+        if (isTerrainSquare(c, r)) continue;
+        ownUnits.forEach((unit, index) => {
+          if (index < step || !unit || unit.life <= 0) return;
+          const flagZone = ownFlag && !unit.hasFlag
+            ? Math.abs(c - (ownFlag.originX ?? ownFlag.x)) + Math.abs(r - (ownFlag.originY ?? ownFlag.y)) <= 3
+            : false;
+          if (Math.abs(unit.x - c) + Math.abs(unit.y - r) <= unit.speed && !flagZone) {
+            reachable.add(`${c},${r}`);
+          }
+        });
+      }
+    }
+    return _computeReachGrid(reachable);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units, isPlayer, boardLength, boardWidth, flags, props.placement, step, unitsCount, terrain]);
+
   // placement was default false
   const _isForbidden = (
     unit: IUnit,
@@ -156,89 +215,153 @@ function Board(props: BoardProps) {
   // first cell determines if it's a player zero unit creating danger
   // second cell determines if it's a player one unit creating danger
   // third cell determines ??? I removed it, I couldn't read the code
+  const _unitInRange = (col: number, row: number, unit: IUnit, ux: number, uy: number): boolean => {
+    if (unit.range > 1) {
+      return Math.abs(col - ux) + Math.abs(row - uy) <= unit.range;
+    } else {
+      return Math.abs(col - ux) ** 2 + Math.abs(row - uy) ** 2 <= 2;
+    }
+  };
+
+  const _notInFlagZone = (col: number, row: number): boolean => {
+    const flag1 = flags[0];
+    const notInReachFlag1 =
+      flag1 &&
+      flag1.x !== -1 &&
+      !(Math.abs(col - (flag1.originX ?? flag1.x)) + Math.abs(row - (flag1.originY ?? flag1.y)) <= 3);
+    const flag2 = flags[1];
+    const notInReachFlag2 =
+      flag2 &&
+      flag2.x !== -1 &&
+      !(Math.abs(col - (flag2.originX ?? flag2.x)) + Math.abs(row - (flag2.originY ?? flag2.y)) <= 3);
+    return !!(notInReachFlag1 && notInReachFlag2);
+  };
+
   const _isInDanger = (col: number, row: number, placement: boolean) => {
-    // initialise vars
     let isInDanger = [false, false];
     const currentUnit = selectedUnit.unitNumber;
 
-    // During placement, do not display danger indicators
-    if (!placement) {
-      // determine if we are in the flagzone or not. In the flagzone, players cannot be in danger
-      const flag1 = flags[0];
-      let notInReachFlag1 =
-        flag1 &&
-        flag1.x !== -1 &&
-        !(Math.abs(col - (flag1.originX ?? flag1.x)) + Math.abs(row - (flag1.originY ?? flag1.y)) <= 3);
-      const flag2 = flags[1];
-      let notInReachFlag2 =
-        flag2 &&
-        flag2.x !== -1 &&
-        !(Math.abs(col - (flag2.originX ?? flag2.x)) + Math.abs(row - (flag2.originY ?? flag2.y)) <= 3);
+    if (placement) return isInDanger;
 
-      // Future units are units already moved of the current player
-      // For each unit, determine whether it creates a danger bubble or not for current square
-      futureUnits.forEach((player, player_index) => {
-        player.forEach((unit, unit_index) => {
-          // Check if not in reach of the flags and if unit belongs to current player
-          if (
-            notInReachFlag1 &&
-            notInReachFlag2 &&
-            unit &&
-            isPlayer === player_index
-          ) {
-            // In that case, for each type of unit check if it's in range of current square
-            if (unit.range > 1) {
-              // normal unit
-              isInDanger[player_index] =
-                isInDanger[player_index] ||
-                Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                  unit.range;
-            } else {
-              // infantry unit with different range mechanism
-              isInDanger[player_index] =
-                isInDanger[player_index] ||
-                Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <= 2;
-            }
-          }
-        });
-      });
-      // For each unit, determine whether it creates a danger bubble or not for current square
+    if (!_notInFlagZone(col, row)) return isInDanger;
+
+    // During animation, compute danger from animation queue positions
+    if (animationPhase.isAnimating) {
+      const { queue, currentAnimationIndex, animationSubPhase, deadUnits } = animationPhase;
+
+      // Build set of all units in the animation queue
+      const inQueueSet = new Set(queue.map(a => `${a.player}_${a.unitIndex}`));
+
+      // Already-animated units: danger at their destination
+      for (let i = 0; i < currentAnimationIndex; i++) {
+        const anim = queue[i];
+        if (deadUnits.has(`${anim.player}_${anim.unitIndex}`)) continue;
+        if (_unitInRange(col, row, anim.unit, anim.toX, anim.toY)) {
+          isInDanger[anim.player] = true;
+        }
+      }
+
+      // Current unit: depends on sub-phase
+      if (currentAnimationIndex < queue.length && animationSubPhase !== 'moving') {
+        const current = queue[currentAnimationIndex];
+        const [cx, cy] = animationSubPhase === 'pre-move'
+          ? [current.fromX, current.fromY]
+          : [current.toX, current.toY];
+        if (_unitInRange(col, row, current.unit, cx, cy)) {
+          isInDanger[current.player] = true;
+        }
+      }
+
+      // Not-yet-animated units in the queue: use ORIGIN positions (they haven't moved yet)
+      for (let i = currentAnimationIndex + 1; i < queue.length; i++) {
+        const anim = queue[i];
+        if (_unitInRange(col, row, anim.unit, anim.fromX, anim.fromY)) {
+          isInDanger[anim.player] = true;
+        }
+      }
+
+      // Units NOT in the queue at all (didn't move): use units[] pre-round positions
       units.forEach((player, player_index) => {
         player.forEach((unit, unit_index) => {
-          // Check if not in reach of the flags and if unit belongs to current player
-          // also make sure player has finished placing units and is ready to start
-          if (
-            (step === unitsCount && player_index !== isPlayer) ||
-            step !== unitsCount
-          ) {
-            if (
-              notInReachFlag1 &&
-              notInReachFlag2 &&
-              unit &&
-              unit.life > 0 &&
-              (player_index !== isPlayer || unit_index >= currentUnit) &&
-              ready[player_index]
-            ) {
-              // In that case, for each type of unit check if it's in range of current square
-              if (unit.range > 1) {
-                // normal unit
-                isInDanger[player_index] =
-                  isInDanger[player_index] ||
-                  Math.abs(col - unit.x) + Math.abs(row - unit.y) <=
-                    unit.range;
-              } else {
-                // infantry unit with different range mechanism
-                isInDanger[player_index] =
-                  isInDanger[player_index] ||
-                  Math.abs(col - unit.x) ** 2 + Math.abs(row - unit.y) ** 2 <=
-                    2;
-              }
-            }
+          if (inQueueSet.has(`${player_index}_${unit_index}`)) return;
+          if (!unit || unit.life <= 0) return;
+          if (_unitInRange(col, row, unit, unit.x, unit.y)) {
+            isInDanger[player_index] = true;
           }
         });
       });
+
+      return isInDanger;
     }
+
+    // Normal (non-animation) logic
+    // Future units (already moved by current player)
+    futureUnits.forEach((player, player_index) => {
+      player.forEach((unit, unit_index) => {
+        if (unit && isPlayer === player_index) {
+          if (_unitInRange(col, row, unit, unit.x, unit.y)) {
+            isInDanger[player_index] = true;
+          }
+        }
+      });
+    });
+
+    // Current units
+    units.forEach((player, player_index) => {
+      player.forEach((unit, unit_index) => {
+        if (
+          (step === unitsCount && player_index !== isPlayer) ||
+          step !== unitsCount
+        ) {
+          if (
+            unit &&
+            unit.life > 0 &&
+            (player_index !== isPlayer || unit_index >= currentUnit) &&
+            ready[player_index]
+          ) {
+            if (_unitInRange(col, row, unit, unit.x, unit.y)) {
+              isInDanger[player_index] = true;
+            }
+          }
+        }
+      });
+    });
+
     return isInDanger;
+  };
+
+  // Compute CSS classes for danger zone rendering during animation
+  const _getDangerClasses = (col: number, row: number, isInDanger: boolean[]): string => {
+    if (!isInDanger.some(Boolean)) return '';
+    if (!animationPhase.isAnimating) return 'in-danger';
+
+    const classes = ['in-danger'];
+    const { queue, currentAnimationIndex, animationSubPhase, boomQueue } = animationPhase;
+
+    if (currentAnimationIndex < queue.length && animationSubPhase !== 'moving') {
+      const current = queue[currentAnimationIndex];
+      const [cx, cy] = animationSubPhase === 'pre-move'
+        ? [current.fromX, current.fromY]
+        : [current.toX, current.toY];
+
+      const isCurrentUnitZone = _notInFlagZone(col, row) &&
+        _unitInRange(col, row, current.unit, cx, cy);
+
+      if (isCurrentUnitZone && animationSubPhase === 'scanning') {
+        classes.push('danger-scanning');
+      }
+    }
+
+    if (animationSubPhase === 'targeting') {
+      const hasBoom = boomQueue.some(
+        b => b.afterAnimationIndex === currentAnimationIndex && b.x === col && b.y === row
+      );
+      if (hasBoom) {
+        classes.push('danger-targeting');
+      }
+    }
+
+    return classes.join(' ');
   };
 
   // Determines whether current square (row, col) contains a unit or not and if so
@@ -430,14 +553,14 @@ function Board(props: BoardProps) {
 
     const containsFlag = _containsFlag(col, row);
     const isReachable = _isReachable(unit, col, row, placement);
-    const opponentCanReach = _opponentCanReach(
-      units[(isPlayer + 1) % 2],
-      col,
-      row,
-      placement
-    );
+    const key = `${col},${row}`;
+    const opponentCanReach = opponentReachGrid.borders.has(key);
+    const opponentReachBorders = opponentReachGrid.borders.get(key) || null;
+    const opponentReachCorners = null; // corners disabled for now
+    const ownReachBorders = ownUnmovedReachGrid.borders.get(key) || null;
     const isForbidden = _isForbidden(unit, col, row, placement);
     const isInDanger = _isInDanger(col, row, placement);
+    const dangerClasses = _getDangerClasses(col, row, isInDanger);
     const isFlagZone = _isFlagZone(col, row);
     return (
       <Square
@@ -454,8 +577,12 @@ function Board(props: BoardProps) {
         isForbidden={isForbidden}
         isTerrain={isTerrainSquare(col, row)}
         isInDanger={isInDanger}
+        dangerClasses={dangerClasses}
         isReachable={isReachable}
         opponentCanReach={opponentCanReach}
+        opponentReachBorders={opponentReachBorders}
+        opponentReachCorners={opponentReachCorners}
+        ownReachBorders={ownReachBorders}
         key={`${col} ${row}`}
         row={row}
         selected={_isSelected(col, row, selectedUnit)}
