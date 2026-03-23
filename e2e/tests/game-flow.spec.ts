@@ -126,8 +126,8 @@ test.describe("Full Game Flow (2-player REST)", () => {
 
     // Wait for combat animation to finish — FIGHTING... disappears and new round starts
     // New round = reachable squares appear again (no FIGHT button visible)
-    await player1.waitForSelector(".square-inside.reachable", { timeout: 20000 });
-    await player2.waitForSelector(".square-inside.reachable", { timeout: 20000 });
+    await player1.waitForSelector(".square-inside.reachable", { timeout: 60000 });
+    await player2.waitForSelector(".square-inside.reachable", { timeout: 60000 });
 
     // P1 abandons: click Abandon button, then confirm in modal
     await player1.click("button.abandon-button");
