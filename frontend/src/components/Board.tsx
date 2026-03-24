@@ -136,6 +136,133 @@ function Board(props: BoardProps) {
   const onUnitHover = useCallback((player: number, index: number) => setHoveredUnit({ player, index }), []);
   const onUnitHoverEnd = useCallback(() => setHoveredUnit(null), []);
 
+  // Hovered square tracking for movement arrow
+  const [hoveredSquare, setHoveredSquare] = useState<{ col: number; row: number } | null>(null);
+  const onSquareHover = useCallback((col: number, row: number) => setHoveredSquare({ col, row }), []);
+  const onSquareHoverEnd = useCallback(() => setHoveredSquare(null), []);
+
+  // Arrow path types
+  type Direction = 'up' | 'down' | 'left' | 'right';
+  type ArrowSegment =
+    | { type: 'start'; to: Direction }
+    | { type: 'body'; from: Direction; to: Direction }
+    | { type: 'head'; from: Direction };
+
+  // Compute movement arrow path from selected unit to hovered square
+  const arrowPath = useMemo(() => {
+    const empty = new Map<string, ArrowSegment>();
+    if (step < 0 || step >= unitsCount || !hoveredSquare || props.placement || animationPhase.isAnimating) return empty;
+
+    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
+    if (!unit) return empty;
+
+    const sx = unit.x, sy = unit.y;
+    const tx = hoveredSquare.col, ty = hoveredSquare.row;
+
+    if (sx === tx && sy === ty) return empty;
+
+    const ownFlag = flags[isPlayer];
+
+    const isBlocked = (nx: number, ny: number): boolean => {
+      if (nx < 0 || nx >= boardWidth || ny < 0 || ny >= boardLength) return true;
+      if (Math.abs(nx - sx) + Math.abs(ny - sy) > unit.speed) return true;
+      if (isTerrainSquare(nx, ny)) return true;
+      if (ownFlag && !unit.hasFlag) {
+        if (Math.abs(nx - (ownFlag.originX ?? ownFlag.x)) + Math.abs(ny - (ownFlag.originY ?? ownFlag.y)) <= 3) return true;
+      }
+      return false;
+    };
+
+    const isForbiddenSquare = (nx: number, ny: number): boolean => {
+      return futureUnits[isPlayer].some((u, idx) =>
+        u && idx !== selectedUnit.unitNumber && u.x === nx && u.y === ny
+      );
+    };
+
+    // BFS shortest Manhattan path
+    const startKey = `${sx},${sy}`;
+    const targetKey = `${tx},${ty}`;
+    const targetReachable = !isBlocked(tx, ty) && !isForbiddenSquare(tx, ty);
+    const bfsQueue: [number, number][] = [[sx, sy]];
+    const visited = new Set<string>([startKey]);
+    const parent = new Map<string, string>();
+    let bestTarget = { col: sx, row: sy, dist: Math.abs(sx - tx) + Math.abs(sy - ty) };
+    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
+    let found = false;
+    while (bfsQueue.length > 0) {
+      const [cx, cy] = bfsQueue.shift()!;
+      const key = `${cx},${cy}`;
+      if (key === targetKey && targetReachable) { found = true; break; }
+
+      const distToTarget = Math.abs(cx - tx) + Math.abs(cy - ty);
+      if (distToTarget < bestTarget.dist && key !== startKey) {
+        bestTarget = { col: cx, row: cy, dist: distToTarget };
+      }
+
+      for (const [ddx, ddy] of dirs) {
+        const nx = cx + ddx, ny = cy + ddy;
+        const nKey = `${nx},${ny}`;
+        if (visited.has(nKey)) continue;
+        if (isBlocked(nx, ny)) continue;
+        if (isForbiddenSquare(nx, ny) && !(nKey === targetKey && targetReachable)) continue;
+        visited.add(nKey);
+        parent.set(nKey, key);
+        bfsQueue.push([nx, ny]);
+      }
+    }
+
+    // Reconstruct path
+    const endKey = found ? targetKey : `${bestTarget.col},${bestTarget.row}`;
+    if (endKey === startKey) return empty;
+
+    const path: { col: number; row: number }[] = [];
+    let cur = endKey;
+    while (cur !== startKey) {
+      const [c, r] = cur.split(',').map(Number);
+      path.unshift({ col: c, row: r });
+      cur = parent.get(cur)!;
+    }
+
+    if (path.length === 0) return empty;
+
+    const dirBetween = (from: { col: number; row: number }, to: { col: number; row: number }): Direction => {
+      if (to.col > from.col) return 'right';
+      if (to.col < from.col) return 'left';
+      if (to.row > from.row) return 'down';
+      return 'up';
+    };
+
+    const origin = { col: sx, row: sy };
+    const segMap = new Map<string, ArrowSegment>();
+
+    // Start segment on unit's square
+    segMap.set(`${sx},${sy}`, { type: 'start', to: dirBetween(origin, path[0]) });
+
+    // Body segments
+    for (let i = 0; i < path.length - 1; i++) {
+      const prev = i === 0 ? origin : path[i - 1];
+      const curr = path[i];
+      const next = path[i + 1];
+      segMap.set(`${curr.col},${curr.row}`, {
+        type: 'body',
+        from: dirBetween(curr, prev),
+        to: dirBetween(curr, next),
+      });
+    }
+
+    // Head segment
+    const last = path[path.length - 1];
+    const prevOfLast = path.length >= 2 ? path[path.length - 2] : origin;
+    segMap.set(`${last.col},${last.row}`, {
+      type: 'head',
+      from: dirBetween(last, prevOfLast),
+    });
+
+    return segMap;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hoveredSquare, step, unitsCount, units, isPlayer, selectedUnit, flags, boardWidth, boardLength, futureUnits, terrain, props.placement, animationPhase.isAnimating]);
+
   // Precompute opponent per-unit grids and merged grid
   const { opponentReachGrid, opponentPerUnitGrids } = useMemo(() => {
     const opponentPlayer = (isPlayer + 1) % 2;
@@ -701,6 +828,9 @@ function Board(props: BoardProps) {
         hoveredReachBorders={hoveredReachBorders}
         onUnitHover={onUnitHover}
         onUnitHoverEnd={onUnitHoverEnd}
+        onSquareHover={onSquareHover}
+        onSquareHoverEnd={onSquareHoverEnd}
+        arrowSegment={arrowPath.get(`${col},${row}`) || null}
         key={`${col} ${row}`}
         row={row}
         selected={_isSelected(col, row, selectedUnit)}
@@ -715,6 +845,7 @@ function Board(props: BoardProps) {
       style={{
         pointerEvents: animationPhase.isAnimating ? 'none' : 'auto',
       }}
+      onMouseLeave={onSquareHoverEnd}
     >
       <Embuscade />
       {Array(boardLength)

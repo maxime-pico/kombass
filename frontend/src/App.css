@@ -659,6 +659,57 @@ button {
 .hrb-bottom.hrb-left { border-bottom-left-radius: 5px; }
 .hrb-bottom.hrb-right { border-bottom-right-radius: 5px; }
 
+/* Movement arrow — Advance Wars style */
+.move-arrow {
+  position: absolute;
+  top: -2px; left: -2px;
+  width: calc(100% + 4px); height: calc(100% + 4px);
+  pointer-events: none;
+  z-index: 7;
+  background: rgb(33, 167, 67);
+}
+/* Start segment renders under the unit */
+.move-arrow.arrow-start-right,
+.move-arrow.arrow-start-left,
+.move-arrow.arrow-start-down,
+.move-arrow.arrow-start-up {
+  z-index: 0;
+}
+
+/* Start segments: half-body from center toward exit */
+.arrow-start-right { clip-path: inset(30% 0 30% 40%); }
+.arrow-start-left  { clip-path: inset(30% 40% 30% 0); }
+.arrow-start-down  { clip-path: inset(40% 30% 0 30%); }
+.arrow-start-up    { clip-path: inset(0 30% 40% 30%); }
+
+/* Body straight segments */
+.arrow-body-horizontal { clip-path: inset(30% 0 30% 0); }
+.arrow-body-vertical   { clip-path: inset(0 30% 0 30%); }
+
+/* Body corner segments: L-shapes with rounded outer bend */
+/* left-down / down-left: outer bend at top-right */
+.arrow-corner-left-down,
+.arrow-corner-down-left  { clip-path: polygon(0 30%, 55% 30%, 61% 31%, 66% 34%, 69% 39%, 70% 45%, 70% 100%, 30% 100%, 30% 70%, 0 70%); }
+/* left-up / up-left: outer bend at bottom-right */
+.arrow-corner-left-up,
+.arrow-corner-up-left    { clip-path: polygon(0 30%, 30% 30%, 30% 0, 70% 0, 70% 55%, 69% 61%, 66% 66%, 61% 69%, 55% 70%, 0 70%); }
+/* right-down / down-right: outer bend at top-left */
+.arrow-corner-right-down,
+.arrow-corner-down-right { clip-path: polygon(30% 45%, 31% 39%, 34% 34%, 39% 31%, 45% 30%, 100% 30%, 100% 70%, 70% 70%, 70% 100%, 30% 100%); }
+/* right-up / up-right: outer bend at bottom-left */
+.arrow-corner-right-up,
+.arrow-corner-up-right   { clip-path: polygon(30% 0, 70% 0, 70% 30%, 100% 30%, 100% 70%, 55% 70%, 45% 69%, 39% 66%, 34% 61%, 31% 55%, 30% 45%); }
+
+/* Arrowhead segments: wider than body, 'from' = where previous square is */
+/* from-left → points right */
+.arrow-head-left  { clip-path: polygon(0 15%, 80% 50%, 0 85%); }
+/* from-right → points left */
+.arrow-head-right { clip-path: polygon(100% 15%, 20% 50%, 100% 85%); }
+/* from-up → points down */
+.arrow-head-up    { clip-path: polygon(15% 0, 50% 80%, 85% 0); }
+/* from-down → points up */
+.arrow-head-down  { clip-path: polygon(15% 100%, 50% 20%, 85% 100%); }
+
 .square.active {
   color: white;
   z-index: 3;
@@ -686,7 +737,7 @@ button {
 }
 
 .board.p1 > .square-container > .square > .square-inside.reachable {
-  background-color: aquamarine;
+  background-color: #4dffc3;
   z-index: 1;
 }
 

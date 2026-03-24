@@ -64,6 +64,15 @@ interface SquareProps {
   } | null;
   onUnitHover: (player: number, index: number) => void;
   onUnitHoverEnd: () => void;
+  onSquareHover: (col: number, row: number) => void;
+  onSquareHoverEnd: () => void;
+  arrowSegment: {
+    type: 'start'; to: 'up' | 'down' | 'left' | 'right';
+  } | {
+    type: 'body'; from: 'up' | 'down' | 'left' | 'right'; to: 'up' | 'down' | 'left' | 'right';
+  } | {
+    type: 'head'; from: 'up' | 'down' | 'left' | 'right';
+  } | null;
   row: number;
   selected: boolean;
   unit: {
@@ -253,6 +262,17 @@ function Square(props: SquareProps) {
     }
   }, [boom]);
 
+  const _getArrowClass = (seg: NonNullable<SquareProps['arrowSegment']>): string => {
+    if (seg.type === 'start') return `arrow-start-${seg.to}`;
+    if (seg.type === 'head') return `arrow-head-${seg.from}`;
+    // Body: determine if straight or corner
+    const { from, to } = seg;
+    if ((from === 'left' && to === 'right') || (from === 'right' && to === 'left')) return 'arrow-body-horizontal';
+    if ((from === 'up' && to === 'down') || (from === 'down' && to === 'up')) return 'arrow-body-vertical';
+    // Corner: from-to
+    return `arrow-corner-${from}-${to}`;
+  };
+
   const containsFlag = props.containsFlag;
   const bgcol = containsFlag[0]
     ? players[0].color
@@ -287,6 +307,8 @@ function Square(props: SquareProps) {
         }`}
         onClick={() => _clickedSquare()}
         onTouchEnd={void 0}
+        onMouseEnter={() => props.onSquareHover(col, row)}
+        onMouseLeave={() => props.onSquareHoverEnd()}
       >
         <div
           onMouseEnter={() => unit?.unit && unit.unitNumber !== null && props.onUnitHover(unit.playerNumber, unit.unitNumber)}
@@ -374,6 +396,9 @@ function Square(props: SquareProps) {
         {props.hoveredReachBorders && !animationPhase.isAnimating &&
           (props.hoveredReachBorders.top || props.hoveredReachBorders.right || props.hoveredReachBorders.bottom || props.hoveredReachBorders.left) && (
           <div className={`hovered-reach-border${props.hoveredReachBorders.top ? " hrb-top" : ""}${props.hoveredReachBorders.right ? " hrb-right" : ""}${props.hoveredReachBorders.bottom ? " hrb-bottom" : ""}${props.hoveredReachBorders.left ? " hrb-left" : ""}`} />
+        )}
+        {props.arrowSegment && !animationPhase.isAnimating && (
+          <div className={`move-arrow ${_getArrowClass(props.arrowSegment)}`} />
         )}
         {damage ? <div className="floating-damage">-{damage}</div> : null}
         {opponentReachCorners && !animationPhase.isAnimating && (
