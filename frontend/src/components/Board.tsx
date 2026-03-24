@@ -93,9 +93,11 @@ function Board(props: BoardProps) {
     return opponentCanReach;
   };
 
+  type BorderInfo = { top: boolean; right: boolean; bottom: boolean; left: boolean };
+
   // Helper: compute perimeter borders from a set of reachable squares
   const _computeReachGrid = (reachable: Set<string>) => {
-    const borders = new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>();
+    const borders = new Map<string, BorderInfo>();
     reachable.forEach((key) => {
       const [c, r] = key.split(",").map(Number);
       borders.set(key, {
@@ -108,47 +110,78 @@ function Board(props: BoardProps) {
     return { borders };
   };
 
-  // Precompute opponent reachable grid with perimeter borders
+  // Merge multiple per-unit border maps: OR borders so each unit keeps its own perimeter
+  const _mergeReachGrids = (grids: Array<{ borders: Map<string, BorderInfo> }>) => {
+    const merged = new Map<string, BorderInfo>();
+    for (const grid of grids) {
+      grid.borders.forEach((b, key) => {
+        const existing = merged.get(key);
+        if (existing) {
+          merged.set(key, {
+            top: existing.top || b.top,
+            right: existing.right || b.right,
+            bottom: existing.bottom || b.bottom,
+            left: existing.left || b.left,
+          });
+        } else {
+          merged.set(key, { ...b });
+        }
+      });
+    }
+    return { borders: merged };
+  };
+
+  // Precompute opponent reachable grid with perimeter borders (per-unit to preserve individual perimeters)
   const opponentReachGrid = useMemo(() => {
     const opponentUnits = units[(isPlayer + 1) % 2];
-    const empty = { borders: new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>() };
+    const empty = { borders: new Map<string, BorderInfo>() };
     if (!opponentUnits || props.placement) return empty;
 
-    const reachable = new Set<string>();
-    for (let r = 0; r < boardLength; r++) {
-      for (let c = 0; c < boardWidth; c++) {
-        if (_opponentCanReach(opponentUnits, c, r, false)) {
-          reachable.add(`${c},${r}`);
+    const opponentFlag = flags[(isPlayer + 1) % 2];
+    const perUnitGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
+    opponentUnits.forEach((unit) => {
+      if (!unit || unit.life <= 0) return;
+      const reachable = new Set<string>();
+      for (let r = 0; r < boardLength; r++) {
+        for (let c = 0; c < boardWidth; c++) {
+          const opponentFlagZone =
+            Math.abs(c - (opponentFlag.originX ?? opponentFlag.x)) + Math.abs(r - (opponentFlag.originY ?? opponentFlag.y)) <= 3;
+          if (Math.abs(unit.x - c) + Math.abs(unit.y - r) <= unit.speed && !opponentFlagZone) {
+            reachable.add(`${c},${r}`);
+          }
         }
       }
-    }
-    return _computeReachGrid(reachable);
+      if (reachable.size > 0) perUnitGrids.push(_computeReachGrid(reachable));
+    });
+    return perUnitGrids.length > 0 ? _mergeReachGrids(perUnitGrids) : empty;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [units, isPlayer, boardLength, boardWidth, flags, props.placement]);
 
   // Precompute own unmoved units' reachable grid (units with index > step)
   const ownUnmovedReachGrid = useMemo(() => {
-    const empty = { borders: new Map<string, { top: boolean; right: boolean; bottom: boolean; left: boolean }>() };
+    const empty = { borders: new Map<string, BorderInfo>() };
     const ownUnits = units[isPlayer];
     if (!ownUnits || props.placement || step < 0 || step >= unitsCount) return empty;
 
     const ownFlag = flags[isPlayer];
-    const reachable = new Set<string>();
-    for (let r = 0; r < boardLength; r++) {
-      for (let c = 0; c < boardWidth; c++) {
-        if (isTerrainSquare(c, r)) continue;
-        ownUnits.forEach((unit, index) => {
-          if (index < step || !unit || unit.life <= 0) return;
+    const perUnitGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
+    ownUnits.forEach((unit, index) => {
+      if (index < step || !unit || unit.life <= 0) return;
+      const reachable = new Set<string>();
+      for (let r = 0; r < boardLength; r++) {
+        for (let c = 0; c < boardWidth; c++) {
+          if (isTerrainSquare(c, r)) continue;
           const flagZone = ownFlag && !unit.hasFlag
             ? Math.abs(c - (ownFlag.originX ?? ownFlag.x)) + Math.abs(r - (ownFlag.originY ?? ownFlag.y)) <= 3
             : false;
           if (Math.abs(unit.x - c) + Math.abs(unit.y - r) <= unit.speed && !flagZone) {
             reachable.add(`${c},${r}`);
           }
-        });
+        }
       }
-    }
-    return _computeReachGrid(reachable);
+      if (reachable.size > 0) perUnitGrids.push(_computeReachGrid(reachable));
+    });
+    return perUnitGrids.length > 0 ? _mergeReachGrids(perUnitGrids) : empty;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [units, isPlayer, boardLength, boardWidth, flags, props.placement, step, unitsCount, terrain]);
 

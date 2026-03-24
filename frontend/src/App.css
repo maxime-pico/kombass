@@ -662,18 +662,22 @@ button {
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 2;
 }
 
 .board.p1 > .square-container > .square > .square-inside.reachable {
   background-color: aquamarine;
+  z-index: 1;
 }
 
 .board.p2 > .square-container > .square > .square-inside.reachable {
   background-color: gold;
+  z-index: 1;
 }
 
 .board > .square-container > .square.selected > .square-inside.reachable {
   background-color: white;
+  z-index: 1;
 }
 
 .square.terrain {
@@ -764,19 +768,19 @@ button {
   background: repeating-linear-gradient(
     -45deg,
     transparent,
-    transparent 3px,
-    color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-    color-mix(in srgb, var(--danger-color) 30%, transparent) 6px
+    transparent 5px,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 5px,
+    color-mix(in srgb, var(--danger-color) 30%, transparent) 10px
   );
 }
 
 .danger-overlay.danger-p1.in-danger {
   background: repeating-linear-gradient(
     -45deg,
-    color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
-    color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-    transparent 3px,
-    transparent 6px
+    color-mix(in srgb, var(--danger-color) 60%, transparent) 0px,
+    color-mix(in srgb, var(--danger-color) 60%, transparent) 5px,
+    transparent 5px,
+    transparent 10px
   );
 }
 
@@ -792,37 +796,37 @@ button {
 @keyframes danger-scan-p0 {
   0%, 100% {
     background: repeating-linear-gradient(-45deg,
-      transparent, transparent 3px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 6px);
+      transparent, transparent 5px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 5px,
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 10px);
   }
   50% {
     background: repeating-linear-gradient(-45deg,
       color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-      transparent 3px, transparent 6px);
+      color-mix(in srgb, var(--danger-color) 30%, transparent) 5px,
+      transparent 5px, transparent 10px);
   }
 }
 
 @keyframes danger-scan-p1 {
   0%, 100% {
     background: repeating-linear-gradient(-45deg,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 0px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-      transparent 3px, transparent 6px);
+      color-mix(in srgb, var(--danger-color) 60%, transparent) 0px,
+      color-mix(in srgb, var(--danger-color) 60%, transparent) 5px,
+      transparent 5px, transparent 10px);
   }
   50% {
     background: repeating-linear-gradient(-45deg,
-      transparent, transparent 3px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 3px,
-      color-mix(in srgb, var(--danger-color) 30%, transparent) 6px);
+      transparent, transparent 5px,
+      color-mix(in srgb, var(--danger-color) 60%, transparent) 5px,
+      color-mix(in srgb, var(--danger-color) 60%, transparent) 10px);
   }
 }
 
 /* Target flash: yellow-orange-yellow on the whole square, above unit sprites */
 .danger-overlay.danger-targeting {
   animation: danger-target 0.6s ease-in-out;
-  z-index: 5;
+  z-index: 1010;
 }
 
 @keyframes danger-target {
