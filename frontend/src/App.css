@@ -747,7 +747,7 @@ button {
 }
 
 .board > .square-container > .square.selected > .square-inside.reachable {
-  background-color: white;
+  background-color: transparent;
   z-index: 1;
 }
 
