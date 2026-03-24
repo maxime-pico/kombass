@@ -35,6 +35,7 @@ interface SquareProps {
   isTerrain: boolean;
   isInDanger: Array<boolean>;
   dangerClasses: string;
+  dangerHighlighted: boolean[];
   isReachable: boolean;
   opponentCanReach: boolean;
   opponentReachBorders: {
@@ -365,7 +366,7 @@ function Square(props: SquareProps) {
           (danger, playerIdx) => danger && (
             <div
               key={playerIdx}
-              className={`danger-overlay danger-p${playerIdx} ${props.dangerClasses}`}
+              className={`danger-overlay danger-p${playerIdx} ${props.dangerClasses}${props.dangerHighlighted[playerIdx] ? ' danger-highlighted' : ''}`}
               style={{ "--danger-color": players[playerIdx].color } as React.CSSProperties}
             />
           )

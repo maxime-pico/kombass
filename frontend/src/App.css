@@ -789,12 +789,32 @@ button {
     -45deg,
     transparent,
     transparent 5px,
+    color-mix(in srgb, var(--danger-color) 10%, transparent) 5px,
+    color-mix(in srgb, var(--danger-color) 10%, transparent) 10px
+  );
+}
+
+.danger-overlay.danger-p0.in-danger.danger-highlighted {
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 5px,
     color-mix(in srgb, var(--danger-color) 30%, transparent) 5px,
     color-mix(in srgb, var(--danger-color) 30%, transparent) 10px
   );
 }
 
 .danger-overlay.danger-p1.in-danger {
+  background: repeating-linear-gradient(
+    -45deg,
+    color-mix(in srgb, var(--danger-color) 20%, transparent) 0px,
+    color-mix(in srgb, var(--danger-color) 20%, transparent) 5px,
+    transparent 5px,
+    transparent 10px
+  );
+}
+
+.danger-overlay.danger-p1.in-danger.danger-highlighted {
   background: repeating-linear-gradient(
     -45deg,
     color-mix(in srgb, var(--danger-color) 60%, transparent) 0px,

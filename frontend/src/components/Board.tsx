@@ -432,6 +432,50 @@ function Board(props: BoardProps) {
     return classes.join(' ');
   };
 
+  // Determines whether a square's danger overlay should be highlighted (brighter)
+  // per player. Highlighted when the source unit is selected, hovered, or animated.
+  const _isDangerHighlighted = (col: number, row: number): boolean[] => {
+    const highlighted = [false, false];
+    if (!_notInFlagZone(col, row)) return highlighted;
+
+    // During animation: highlight the currently-animated unit's danger zone
+    if (animationPhase.isAnimating) {
+      const { queue, currentAnimationIndex, animationSubPhase } = animationPhase;
+      if (currentAnimationIndex < queue.length && animationSubPhase !== 'moving') {
+        const current = queue[currentAnimationIndex];
+        const [cx, cy] = animationSubPhase === 'pre-move'
+          ? [current.fromX, current.fromY]
+          : [current.toX, current.toY];
+        if (_unitInRange(col, row, current.unit, cx, cy)) {
+          highlighted[current.player] = true;
+        }
+      }
+      return highlighted;
+    }
+
+    // Hovered unit
+    if (hoveredUnit) {
+      const hPlayer = hoveredUnit.player;
+      const hUnits = units[hPlayer];
+      if (hUnits && hUnits[hoveredUnit.index]) {
+        const hu = hUnits[hoveredUnit.index];
+        if (hu.life > 0 && _unitInRange(col, row, hu, hu.x, hu.y)) {
+          highlighted[hPlayer] = true;
+        }
+      }
+    }
+
+    // Selected unit (during movement phase)
+    if (step >= 0 && step < unitsCount) {
+      const selUnit = units[isPlayer]?.[selectedUnit.unitNumber];
+      if (selUnit && selUnit.life > 0 && _unitInRange(col, row, selUnit, selUnit.x, selUnit.y)) {
+        highlighted[isPlayer] = true;
+      }
+    }
+
+    return highlighted;
+  };
+
   // Determines whether current square (row, col) contains a unit or not and if so
   // what type it is and if it should be displayed
   const _containsUnits = (
@@ -630,6 +674,7 @@ function Board(props: BoardProps) {
     const isForbidden = _isForbidden(unit, col, row, placement);
     const isInDanger = _isInDanger(col, row, placement);
     const dangerClasses = _getDangerClasses(col, row, isInDanger);
+    const dangerHighlighted = _isDangerHighlighted(col, row);
     const isFlagZone = _isFlagZone(col, row);
     return (
       <Square
@@ -647,6 +692,7 @@ function Board(props: BoardProps) {
         isTerrain={isTerrainSquare(col, row)}
         isInDanger={isInDanger}
         dangerClasses={dangerClasses}
+        dangerHighlighted={dangerHighlighted}
         isReachable={isReachable}
         opponentCanReach={opponentCanReach}
         opponentReachBorders={opponentReachBorders}
