@@ -1,4 +1,4 @@
-import React, { useContext, useMemo } from "react";
+import React, { useCallback, useContext, useMemo, useState } from "react";
 import Square from "./Square";
 import Embuscade from "./Embuscade";
 import { IUnit, ISelectedUnit } from "../App";
@@ -131,15 +131,22 @@ function Board(props: BoardProps) {
     return { borders: merged };
   };
 
-  // Precompute opponent reachable grid with perimeter borders (per-unit to preserve individual perimeters)
-  const opponentReachGrid = useMemo(() => {
-    const opponentUnits = units[(isPlayer + 1) % 2];
-    const empty = { borders: new Map<string, BorderInfo>() };
-    if (!opponentUnits || props.placement) return empty;
+  // Hovered unit tracking: { playerNumber, unitIndex }
+  const [hoveredUnit, setHoveredUnit] = useState<{ player: number; index: number } | null>(null);
+  const onUnitHover = useCallback((player: number, index: number) => setHoveredUnit({ player, index }), []);
+  const onUnitHoverEnd = useCallback(() => setHoveredUnit(null), []);
 
-    const opponentFlag = flags[(isPlayer + 1) % 2];
-    const perUnitGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
-    opponentUnits.forEach((unit) => {
+  // Precompute opponent per-unit grids and merged grid
+  const { opponentReachGrid, opponentPerUnitGrids } = useMemo(() => {
+    const opponentPlayer = (isPlayer + 1) % 2;
+    const opponentUnits = units[opponentPlayer];
+    const emptyResult = { opponentReachGrid: { borders: new Map<string, BorderInfo>() }, opponentPerUnitGrids: new Map<number, { borders: Map<string, BorderInfo> }>() };
+    if (!opponentUnits || props.placement) return emptyResult;
+
+    const opponentFlag = flags[opponentPlayer];
+    const allGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
+    const perUnit = new Map<number, { borders: Map<string, BorderInfo> }>();
+    opponentUnits.forEach((unit, index) => {
       if (!unit || unit.life <= 0) return;
       const reachable = new Set<string>();
       for (let r = 0; r < boardLength; r++) {
@@ -151,20 +158,28 @@ function Board(props: BoardProps) {
           }
         }
       }
-      if (reachable.size > 0) perUnitGrids.push(_computeReachGrid(reachable));
+      if (reachable.size > 0) {
+        const grid = _computeReachGrid(reachable);
+        allGrids.push(grid);
+        perUnit.set(index, grid);
+      }
     });
-    return perUnitGrids.length > 0 ? _mergeReachGrids(perUnitGrids) : empty;
+    return {
+      opponentReachGrid: allGrids.length > 0 ? _mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
+      opponentPerUnitGrids: perUnit,
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [units, isPlayer, boardLength, boardWidth, flags, props.placement]);
 
-  // Precompute own unmoved units' reachable grid (units with index > step)
-  const ownUnmovedReachGrid = useMemo(() => {
-    const empty = { borders: new Map<string, BorderInfo>() };
+  // Precompute own unmoved per-unit grids and merged grid
+  const { ownUnmovedReachGrid, ownPerUnitGrids } = useMemo(() => {
+    const emptyResult = { ownUnmovedReachGrid: { borders: new Map<string, BorderInfo>() }, ownPerUnitGrids: new Map<number, { borders: Map<string, BorderInfo> }>() };
     const ownUnits = units[isPlayer];
-    if (!ownUnits || props.placement || step < 0 || step >= unitsCount) return empty;
+    if (!ownUnits || props.placement || step < 0 || step >= unitsCount) return emptyResult;
 
     const ownFlag = flags[isPlayer];
-    const perUnitGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
+    const allGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
+    const perUnit = new Map<number, { borders: Map<string, BorderInfo> }>();
     ownUnits.forEach((unit, index) => {
       if (index < step || !unit || unit.life <= 0) return;
       const reachable = new Set<string>();
@@ -179,11 +194,31 @@ function Board(props: BoardProps) {
           }
         }
       }
-      if (reachable.size > 0) perUnitGrids.push(_computeReachGrid(reachable));
+      if (reachable.size > 0) {
+        const grid = _computeReachGrid(reachable);
+        allGrids.push(grid);
+        perUnit.set(index, grid);
+      }
     });
-    return perUnitGrids.length > 0 ? _mergeReachGrids(perUnitGrids) : empty;
+    return {
+      ownUnmovedReachGrid: allGrids.length > 0 ? _mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
+      ownPerUnitGrids: perUnit,
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [units, isPlayer, boardLength, boardWidth, flags, props.placement, step, unitsCount, terrain]);
+
+  // Get the hovered unit's individual reach grid
+  const hoveredReachGrid = useMemo(() => {
+    if (!hoveredUnit) return null;
+    const opponentPlayer = (isPlayer + 1) % 2;
+    if (hoveredUnit.player === opponentPlayer) {
+      return opponentPerUnitGrids.get(hoveredUnit.index) || null;
+    }
+    if (hoveredUnit.player === isPlayer) {
+      return ownPerUnitGrids.get(hoveredUnit.index) || null;
+    }
+    return null;
+  }, [hoveredUnit, isPlayer, opponentPerUnitGrids, ownPerUnitGrids]);
 
   // placement was default false
   const _isForbidden = (
@@ -591,6 +626,7 @@ function Board(props: BoardProps) {
     const opponentReachBorders = opponentReachGrid.borders.get(key) || null;
     const opponentReachCorners = null; // corners disabled for now
     const ownReachBorders = ownUnmovedReachGrid.borders.get(key) || null;
+    const hoveredReachBorders = hoveredReachGrid?.borders.get(key) || null;
     const isForbidden = _isForbidden(unit, col, row, placement);
     const isInDanger = _isInDanger(col, row, placement);
     const dangerClasses = _getDangerClasses(col, row, isInDanger);
@@ -616,6 +652,9 @@ function Board(props: BoardProps) {
         opponentReachBorders={opponentReachBorders}
         opponentReachCorners={opponentReachCorners}
         ownReachBorders={ownReachBorders}
+        hoveredReachBorders={hoveredReachBorders}
+        onUnitHover={onUnitHover}
+        onUnitHoverEnd={onUnitHoverEnd}
         key={`${col} ${row}`}
         row={row}
         selected={_isSelected(col, row, selectedUnit)}

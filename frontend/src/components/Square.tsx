@@ -55,6 +55,14 @@ interface SquareProps {
     bottom: boolean;
     left: boolean;
   } | null;
+  hoveredReachBorders: {
+    top: boolean;
+    right: boolean;
+    bottom: boolean;
+    left: boolean;
+  } | null;
+  onUnitHover: (player: number, index: number) => void;
+  onUnitHoverEnd: () => void;
   row: number;
   selected: boolean;
   unit: {
@@ -280,6 +288,8 @@ function Square(props: SquareProps) {
         onTouchEnd={void 0}
       >
         <div
+          onMouseEnter={() => unit?.unit && unit.unitNumber !== null && props.onUnitHover(unit.playerNumber, unit.unitNumber)}
+          onMouseLeave={() => unit?.unit && props.onUnitHoverEnd()}
           className={`square-inside${
             isReachable && !animationPhase.isAnimating ? " reachable" : ""
           } ${
@@ -308,6 +318,8 @@ function Square(props: SquareProps) {
             ownReachBorders && !animationPhase.isAnimating && !isReachable
               ? " own-reach-fill"
               : ""
+          }${
+            ""
           }`}
           style={{
             ...(animatedUnit
@@ -357,6 +369,10 @@ function Square(props: SquareProps) {
               style={{ "--danger-color": players[playerIdx].color } as React.CSSProperties}
             />
           )
+        )}
+        {props.hoveredReachBorders && !animationPhase.isAnimating &&
+          (props.hoveredReachBorders.top || props.hoveredReachBorders.right || props.hoveredReachBorders.bottom || props.hoveredReachBorders.left) && (
+          <div className={`hovered-reach-border${props.hoveredReachBorders.top ? " hrb-top" : ""}${props.hoveredReachBorders.right ? " hrb-right" : ""}${props.hoveredReachBorders.bottom ? " hrb-bottom" : ""}${props.hoveredReachBorders.left ? " hrb-left" : ""}`} />
         )}
         {damage ? <div className="floating-damage">-{damage}</div> : null}
         {opponentReachCorners && !animationPhase.isAnimating && (

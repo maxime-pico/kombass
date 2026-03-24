@@ -639,6 +639,26 @@ button {
 .square-inside.own-bottom.own-left::before { border-bottom-left-radius: 4px; }
 .square-inside.own-bottom.own-right::before { border-bottom-right-radius: 4px; }
 
+/* Hovered unit reach border — green highlight via dedicated overlay div */
+.hovered-reach-border {
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  bottom: -2px;
+  pointer-events: none;
+  border: 0 solid rgba(34, 197, 94, 0.9);
+  z-index: 6;
+}
+.hrb-top { border-top-width: 4px; }
+.hrb-right { border-right-width: 4px; }
+.hrb-bottom { border-bottom-width: 4px; }
+.hrb-left { border-left-width: 4px; }
+.hrb-top.hrb-left { border-top-left-radius: 5px; }
+.hrb-top.hrb-right { border-top-right-radius: 5px; }
+.hrb-bottom.hrb-left { border-bottom-left-radius: 5px; }
+.hrb-bottom.hrb-right { border-bottom-right-radius: 5px; }
+
 .square.active {
   color: white;
   z-index: 3;
