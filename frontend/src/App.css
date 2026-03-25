@@ -650,14 +650,14 @@ button {
   border: 0 solid rgba(34, 197, 94, 0.9);
   z-index: 6;
 }
-.hrb-top { border-top-width: 4px; }
-.hrb-right { border-right-width: 4px; }
-.hrb-bottom { border-bottom-width: 4px; }
-.hrb-left { border-left-width: 4px; }
-.hrb-top.hrb-left { border-top-left-radius: 5px; }
-.hrb-top.hrb-right { border-top-right-radius: 5px; }
-.hrb-bottom.hrb-left { border-bottom-left-radius: 5px; }
-.hrb-bottom.hrb-right { border-bottom-right-radius: 5px; }
+.hrb-top { border-top-width: 3px; }
+.hrb-right { border-right-width: 3px; }
+.hrb-bottom { border-bottom-width: 3px; }
+.hrb-left { border-left-width: 3px; }
+.hrb-top.hrb-left { border-top-left-radius: 4px; }
+.hrb-top.hrb-right { border-top-right-radius: 4px; }
+.hrb-bottom.hrb-left { border-bottom-left-radius: 4px; }
+.hrb-bottom.hrb-right { border-bottom-right-radius: 4px; }
 
 /* Movement arrow — Advance Wars style */
 .move-arrow {
@@ -748,6 +748,18 @@ button {
 
 .board > .square-container > .square.selected > .square-inside.reachable {
   background-color: transparent;
+  z-index: 1;
+}
+
+.board.p1 > .square-container > .square > .square-inside.manhattan-only-reachable {
+  background-color: #4dffc3;
+  opacity: 0.35;
+  z-index: 1;
+}
+
+.board.p2 > .square-container > .square > .square-inside.manhattan-only-reachable {
+  background-color: gold;
+  opacity: 0.35;
   z-index: 1;
 }
 

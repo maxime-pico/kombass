@@ -37,6 +37,7 @@ interface SquareProps {
   dangerClasses: string;
   dangerHighlighted: boolean[];
   isReachable: boolean;
+  manhattanOnlyReachable: boolean;
   opponentCanReach: boolean;
   opponentReachBorders: {
     top: boolean;
@@ -316,6 +317,8 @@ function Square(props: SquareProps) {
           onMouseLeave={() => unit?.unit && props.onUnitHoverEnd()}
           className={`square-inside${
             isReachable && !animationPhase.isAnimating ? " reachable" : ""
+          }${
+            props.manhattanOnlyReachable && !animationPhase.isAnimating ? " manhattan-only-reachable" : ""
           } ${
             opponentCanReach && !animationPhase.isAnimating
               ? " opponent-reach-fill"

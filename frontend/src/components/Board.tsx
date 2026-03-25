@@ -35,11 +35,42 @@ function Board(props: BoardProps) {
   const terrainSet = new Set(terrain.map((t: { x: number; y: number }) => `${t.x},${t.y}`));
   const isTerrainSquare = (col: number, row: number) => terrainSet.has(`${col},${row}`);
 
+  // BFS flood-fill: returns set of squares reachable via adjacent steps.
+  // Uses Manhattan distance from origin as the range constraint (not step count),
+  // matching the arrow pathfinding logic — allows detour paths around terrain.
+  const _bfsReachableSet = (unit: IUnit, flagToAvoid: any): Set<string> => {
+    const reachable = new Set<string>();
+    const sx = unit.x, sy = unit.y;
+    const queue: [number, number][] = [[sx, sy]];
+    const visited = new Set<string>([`${sx},${sy}`]);
+    reachable.add(`${sx},${sy}`);
+    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    while (queue.length > 0) {
+      const [cx, cy] = queue.shift()!;
+      for (const [dx, dy] of dirs) {
+        const nx = cx + dx, ny = cy + dy;
+        const key = `${nx},${ny}`;
+        if (visited.has(key)) continue;
+        if (nx < 0 || nx >= boardWidth || ny < 0 || ny >= boardLength) continue;
+        if (Math.abs(nx - sx) + Math.abs(ny - sy) > unit.speed) continue;
+        if (isTerrainSquare(nx, ny)) continue;
+        if (flagToAvoid) {
+          if (Math.abs(nx - (flagToAvoid.originX ?? flagToAvoid.x)) + Math.abs(ny - (flagToAvoid.originY ?? flagToAvoid.y)) <= 3) continue;
+        }
+        visited.add(key);
+        reachable.add(key);
+        queue.push([nx, ny]);
+      }
+    }
+    return reachable;
+  };
+
   const _isReachable = (
     unit: IUnit,
     col: number,
     row: number,
-    placement: boolean
+    placement: boolean,
+    bfsSet?: Set<string>
   ) => {
     let isReachable = false;
     if (isTerrainSquare(col, row)) return false;
@@ -53,18 +84,40 @@ function Board(props: BoardProps) {
         : col < placementZone;
       isReachable = isReachable && !flagZone;
     } else {
-      const x = unit ? unit.x : 999;
-      const y = unit ? unit.y : 999;
-      const speed = unit ? unit.speed : -1;
-      const flagZone =
-        ownFlag && !unit?.hasFlag
-          ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
+      if (bfsSet) {
+        isReachable = bfsSet.has(`${col},${row}`);
+      } else {
+        const x = unit ? unit.x : 999;
+        const y = unit ? unit.y : 999;
+        const speed = unit ? unit.speed : -1;
+        const flagZone =
+          ownFlag && !unit?.hasFlag
+            ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
+            : false;
+        isReachable = unit
+          ? Math.abs(x - col) + Math.abs(y - row) <= speed && !flagZone
           : false;
-      isReachable = unit
-        ? Math.abs(x - col) + Math.abs(y - row) <= speed && !flagZone
-        : false;
+      }
     }
     return isReachable;
+  };
+
+  // Manhattan-reachable but not BFS-reachable (for dimmed visual)
+  const _isManhattanOnlyReachable = (
+    unit: IUnit,
+    col: number,
+    row: number,
+    bfsSet?: Set<string>
+  ) => {
+    if (!unit || !bfsSet) return false;
+    if (isTerrainSquare(col, row)) return false;
+    const ownFlag = flags[isPlayer];
+    const flagZone =
+      ownFlag && !unit?.hasFlag
+        ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
+        : false;
+    const manhattanReachable = Math.abs(unit.x - col) + Math.abs(unit.y - row) <= unit.speed && !flagZone;
+    return manhattanReachable && !bfsSet.has(`${col},${row}`);
   };
 
   const _opponentCanReach = (
@@ -275,16 +328,8 @@ function Board(props: BoardProps) {
     const perUnit = new Map<number, { borders: Map<string, BorderInfo> }>();
     opponentUnits.forEach((unit, index) => {
       if (!unit || unit.life <= 0) return;
-      const reachable = new Set<string>();
-      for (let r = 0; r < boardLength; r++) {
-        for (let c = 0; c < boardWidth; c++) {
-          const opponentFlagZone =
-            Math.abs(c - (opponentFlag.originX ?? opponentFlag.x)) + Math.abs(r - (opponentFlag.originY ?? opponentFlag.y)) <= 3;
-          if (Math.abs(unit.x - c) + Math.abs(unit.y - r) <= unit.speed && !opponentFlagZone) {
-            reachable.add(`${c},${r}`);
-          }
-        }
-      }
+      const flagToAvoid = opponentFlag;
+      const reachable = _bfsReachableSet(unit, flagToAvoid);
       if (reachable.size > 0) {
         const grid = _computeReachGrid(reachable);
         allGrids.push(grid);
@@ -309,18 +354,8 @@ function Board(props: BoardProps) {
     const perUnit = new Map<number, { borders: Map<string, BorderInfo> }>();
     ownUnits.forEach((unit, index) => {
       if (index < step || !unit || unit.life <= 0) return;
-      const reachable = new Set<string>();
-      for (let r = 0; r < boardLength; r++) {
-        for (let c = 0; c < boardWidth; c++) {
-          if (isTerrainSquare(c, r)) continue;
-          const flagZone = ownFlag && !unit.hasFlag
-            ? Math.abs(c - (ownFlag.originX ?? ownFlag.x)) + Math.abs(r - (ownFlag.originY ?? ownFlag.y)) <= 3
-            : false;
-          if (Math.abs(unit.x - c) + Math.abs(unit.y - r) <= unit.speed && !flagZone) {
-            reachable.add(`${c},${r}`);
-          }
-        }
-      }
+      const flagToAvoid = ownFlag && !unit.hasFlag ? ownFlag : null;
+      const reachable = _bfsReachableSet(unit, flagToAvoid);
       if (reachable.size > 0) {
         const grid = _computeReachGrid(reachable);
         allGrids.push(grid);
@@ -346,6 +381,17 @@ function Board(props: BoardProps) {
     }
     return null;
   }, [hoveredUnit, isPlayer, opponentPerUnitGrids, ownPerUnitGrids]);
+
+  // BFS reachable set for the currently selected unit (movement phase only)
+  const selectedUnitBfsSet = useMemo(() => {
+    if (props.placement || step < 0 || step >= unitsCount) return undefined;
+    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
+    if (!unit || unit.life <= 0) return undefined;
+    const ownFlag = flags[isPlayer];
+    const flagToAvoid = ownFlag && !unit.hasFlag ? ownFlag : null;
+    return _bfsReachableSet(unit, flagToAvoid);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [units, isPlayer, selectedUnit.unitNumber, step, unitsCount, flags, props.placement, boardWidth, boardLength, terrain]);
 
   // placement was default false
   const _isForbidden = (
@@ -798,7 +844,8 @@ function Board(props: BoardProps) {
     }
 
     const containsFlag = _containsFlag(col, row);
-    const isReachable = _isReachable(unit, col, row, placement);
+    const isReachable = _isReachable(unit, col, row, placement, selectedUnitBfsSet);
+    const manhattanOnlyReachable = !placement && _isManhattanOnlyReachable(unit, col, row, selectedUnitBfsSet);
     const key = `${col},${row}`;
     const opponentCanReach = opponentReachGrid.borders.has(key);
     const opponentReachBorders = opponentReachGrid.borders.get(key) || null;
@@ -828,6 +875,7 @@ function Board(props: BoardProps) {
         dangerClasses={dangerClasses}
         dangerHighlighted={dangerHighlighted}
         isReachable={isReachable}
+        manhattanOnlyReachable={manhattanOnlyReachable}
         opponentCanReach={opponentCanReach}
         opponentReachBorders={opponentReachBorders}
         opponentReachCorners={opponentReachCorners}
