@@ -80,6 +80,7 @@ interface SquareProps {
     unitNumber: number | null;
     playerNumber: number;
     display: boolean;
+    opacity: number;
   };
 }
 
@@ -360,6 +361,7 @@ function Square(props: SquareProps) {
               displayUnitInfo={true}
               compact={true}
               isGhost={false}
+              opacity={unit.opacity}
               animationState={animatedUnit ? lightAnimState : null}
               mediumAnimationState={animatedUnit ? mediumAnimState : null}
               heavyAnimationState={animatedUnit ? heavyAnimState : null}

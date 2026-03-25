@@ -668,11 +668,16 @@ function Board(props: BoardProps) {
       }
     });
 
+    // Dim non-active own units during movement phase
+    const isMovementPhase = !placement && !ghost && player === isPlayer && step < unitsCount;
+    const opacity = isMovementPhase && unitNumber !== null && unitNumber !== selectedUnit.unitNumber ? 0.4 : 1;
+
     return {
       unit: unitContained,
       unitNumber: unitNumber,
       playerNumber: player,
       display: display,
+      opacity: opacity,
     };
   };
 
@@ -730,7 +735,7 @@ function Board(props: BoardProps) {
         ? containsUnitsPlayer
         : containsUnitsOpponent.unit && containsUnitsOpponent.display
         ? containsUnitsOpponent
-        : { unit: null, unitNumber: null, playerNumber: -1, display: false };
+        : { unit: null, unitNumber: null, playerNumber: -1, display: false, opacity: 1 };
     let containsGhostUnits = {
       unit: null,
       unitNumber: null,

@@ -15,6 +15,7 @@ interface UnitProps {
   animationState?: "galloping" | "rearing" | null;
   mediumAnimationState?: "raising" | "marching" | null;
   heavyAnimationState?: "raising" | "marching" | null;
+  opacity?: number;
 }
 
 function Unit(props: UnitProps) {
@@ -40,7 +41,7 @@ function Unit(props: UnitProps) {
   const isAnimatedHeavy = (unit.unitType ?? 0) === 2 && !!props.heavyAnimationState;
 
   return (
-    <div className={`unit${hasFlag ? " has-flag" : ""}${isGhost}`}>
+    <div className={`unit${hasFlag ? " has-flag" : ""}${isGhost}${props.opacity !== undefined && props.opacity < 1 ? " dimmed" : ""}`}>
       <div className={`unit-sprite${hasFlag ? " mirror" : ""}`}>
         {isAnimatedLight ? (
           <AnimatedLightUnit
