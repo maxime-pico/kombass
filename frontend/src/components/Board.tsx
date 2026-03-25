@@ -438,6 +438,8 @@ function Board(props: BoardProps) {
 
     if (placement) return isInDanger;
 
+    if (isTerrainSquare(col, row)) return isInDanger;
+
     if (!_notInFlagZone(col, row)) return isInDanger;
 
     // During animation, compute danger from animation queue positions
