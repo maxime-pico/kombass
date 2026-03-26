@@ -1,5 +1,73 @@
 import { CombatInput } from "./combatEngine";
-import { IAnimationItem, IBoomEvent } from "../App";
+import { IAnimationItem, IBoomEvent, IFlag } from "../App";
+
+export interface AnimationBuildOptions {
+  movementPaths?: Array<Array<{ x: number; y: number }> | null>;
+  terrain?: Array<{ x: number; y: number }>;
+  boardWidth?: number;
+  boardLength?: number;
+}
+
+/**
+ * BFS shortest path from (sx,sy) to (tx,ty), respecting terrain and flag zones.
+ * Returns full path including origin, or undefined if no movement needed.
+ */
+function computeBfsPath(
+  sx: number, sy: number, tx: number, ty: number,
+  speed: number, hasFlag: boolean,
+  terrain: Set<string>, flags: IFlag[], playerIndex: number,
+  boardWidth: number, boardLength: number,
+): Array<{ x: number; y: number }> | undefined {
+  if (sx === tx && sy === ty) return undefined;
+
+  const ownFlag = flags[playerIndex];
+  const isBlocked = (nx: number, ny: number): boolean => {
+    if (nx < 0 || nx >= boardWidth || ny < 0 || ny >= boardLength) return true;
+    if (Math.abs(nx - sx) + Math.abs(ny - sy) > speed) return true;
+    if (terrain.has(`${nx},${ny}`)) return true;
+    if (ownFlag && !hasFlag) {
+      if (Math.abs(nx - (ownFlag.originX ?? ownFlag.x)) + Math.abs(ny - (ownFlag.originY ?? ownFlag.y)) <= 3) return true;
+    }
+    return false;
+  };
+
+  const startKey = `${sx},${sy}`;
+  const targetKey = `${tx},${ty}`;
+  if (isBlocked(tx, ty)) return undefined;
+
+  const queue: [number, number][] = [[sx, sy]];
+  const visited = new Set<string>([startKey]);
+  const parent = new Map<string, string>();
+  const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+
+  let found = false;
+  while (queue.length > 0) {
+    const [cx, cy] = queue.shift()!;
+    const key = `${cx},${cy}`;
+    if (key === targetKey) { found = true; break; }
+    for (const [dx, dy] of dirs) {
+      const nx = cx + dx, ny = cy + dy;
+      const nKey = `${nx},${ny}`;
+      if (visited.has(nKey)) continue;
+      if (isBlocked(nx, ny)) continue;
+      visited.add(nKey);
+      parent.set(nKey, key);
+      queue.push([nx, ny]);
+    }
+  }
+
+  if (!found) return undefined;
+
+  const path: { x: number; y: number }[] = [];
+  let cur = targetKey;
+  while (cur !== startKey) {
+    const [c, r] = cur.split(',').map(Number);
+    path.unshift({ x: c, y: r });
+    cur = parent.get(cur)!;
+  }
+  path.unshift({ x: sx, y: sy });
+  return path;
+}
 
 /**
  * Pure function that builds the animation queue from combat state.
@@ -10,25 +78,42 @@ import { IAnimationItem, IBoomEvent } from "../App";
  * - Sort by y ascending, then x ascending
  * - Interleave both players' animations
  */
-export function buildAnimationQueue(input: CombatInput): IAnimationItem[] {
-  const { units, futureUnits, isPlayer } = input;
+export function buildAnimationQueue(input: CombatInput, options?: AnimationBuildOptions): IAnimationItem[] {
+  const { units, futureUnits, isPlayer, flags } = input;
   const myUnits = units[isPlayer];
   const myFutureUnits = futureUnits[isPlayer];
   const opponentNumber = (isPlayer + 1) % 2;
   const opponentUnits = units[opponentNumber];
   const opponentFutureUnits = futureUnits[opponentNumber];
 
+  const { movementPaths, terrain, boardWidth, boardLength } = options || {};
+  const terrainSet = terrain ? new Set(terrain.map(t => `${t.x},${t.y}`)) : new Set<string>();
+
   // Build arrays for each player
   const player1Animations: IAnimationItem[] = myUnits
-    .map((unit, index) => ({
-      player: isPlayer,
-      unitIndex: index,
-      unit: myFutureUnits[index],
-      fromX: unit.x,
-      fromY: unit.y,
-      toX: myFutureUnits[index]?.x ?? unit.x,
-      toY: myFutureUnits[index]?.y ?? unit.y,
-    }))
+    .map((unit, index) => {
+      const fromX = unit.x;
+      const fromY = unit.y;
+      const toX = myFutureUnits[index]?.x ?? unit.x;
+      const toY = myFutureUnits[index]?.y ?? unit.y;
+      // Use stored path, or compute BFS as fallback
+      let path = movementPaths?.[index] ?? undefined;
+      if (!path && boardWidth != null && boardLength != null && unit) {
+        path = computeBfsPath(
+          fromX, fromY, toX, toY,
+          unit.speed, unit.hasFlag,
+          terrainSet, flags, isPlayer,
+          boardWidth, boardLength,
+        );
+      }
+      return {
+        player: isPlayer,
+        unitIndex: index,
+        unit: myFutureUnits[index],
+        fromX, fromY, toX, toY,
+        path,
+      };
+    })
     .filter((item) => item.unit && item.unit.life > 0) // Dead units don't animate
     .sort((a, b) => {
       if (a.fromY !== b.fromY) return a.fromY - b.fromY; // y ascending
@@ -36,15 +121,29 @@ export function buildAnimationQueue(input: CombatInput): IAnimationItem[] {
     });
 
   const player2Animations: IAnimationItem[] = opponentUnits
-    .map((unit, index) => ({
-      player: opponentNumber as 0 | 1,
-      unitIndex: index,
-      unit: opponentFutureUnits[index],
-      fromX: unit.x,
-      fromY: unit.y,
-      toX: opponentFutureUnits[index]?.x ?? unit.x,
-      toY: opponentFutureUnits[index]?.y ?? unit.y,
-    }))
+    .map((unit, index) => {
+      const fromX = unit.x;
+      const fromY = unit.y;
+      const toX = opponentFutureUnits[index]?.x ?? unit.x;
+      const toY = opponentFutureUnits[index]?.y ?? unit.y;
+      // Compute BFS path locally for opponent units
+      let path: Array<{ x: number; y: number }> | undefined;
+      if (boardWidth != null && boardLength != null && unit) {
+        path = computeBfsPath(
+          fromX, fromY, toX, toY,
+          unit.speed, unit.hasFlag,
+          terrainSet, flags, opponentNumber,
+          boardWidth, boardLength,
+        );
+      }
+      return {
+        player: opponentNumber as 0 | 1,
+        unitIndex: index,
+        unit: opponentFutureUnits[index],
+        fromX, fromY, toX, toY,
+        path,
+      };
+    })
     .filter((item) => item.unit && item.unit.life > 0)
     .sort((a, b) => {
       if (a.fromY !== b.fromY) return a.fromY - b.fromY;

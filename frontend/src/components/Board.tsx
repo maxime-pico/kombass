@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useMemo, useState } from "react";
+import React, { useCallback, useContext, useMemo, useRef, useState } from "react";
 import Square from "./Square";
 import Embuscade from "./Embuscade";
 import { IUnit, ISelectedUnit } from "../App";
@@ -194,6 +194,9 @@ function Board(props: BoardProps) {
   const onSquareHover = useCallback((col: number, row: number) => setHoveredSquare({ col, row }), []);
   const onSquareHoverEnd = useCallback(() => setHoveredSquare(null), []);
 
+  // Ref to store the current arrow path coordinates for animation
+  const arrowPathCoordsRef = useRef<Array<{ x: number; y: number }>>([]);
+
   // Arrow path types
   type Direction = 'up' | 'down' | 'left' | 'right';
   type ArrowSegment =
@@ -204,7 +207,10 @@ function Board(props: BoardProps) {
   // Compute movement arrow path from selected unit to hovered square
   const arrowPath = useMemo(() => {
     const empty = new Map<string, ArrowSegment>();
-    if (step < 0 || step >= unitsCount || !hoveredSquare || props.placement || animationPhase.isAnimating) return empty;
+    if (step < 0 || step >= unitsCount || !hoveredSquare || props.placement || animationPhase.isAnimating) {
+      arrowPathCoordsRef.current = [];
+      return empty;
+    }
 
     const unit = units[isPlayer]?.[selectedUnit.unitNumber];
     if (!unit) return empty;
@@ -277,7 +283,16 @@ function Board(props: BoardProps) {
       cur = parent.get(cur)!;
     }
 
-    if (path.length === 0) return empty;
+    if (path.length === 0) {
+      arrowPathCoordsRef.current = [];
+      return empty;
+    }
+
+    // Store path coordinates (including origin) for animation use
+    arrowPathCoordsRef.current = [
+      { x: sx, y: sy },
+      ...path.map(p => ({ x: p.col, y: p.row })),
+    ];
 
     const dirBetween = (from: { col: number; row: number }, to: { col: number; row: number }): Direction => {
       if (to.col > from.col) return 'right';
@@ -315,6 +330,14 @@ function Board(props: BoardProps) {
     return segMap;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hoveredSquare, step, unitsCount, units, isPlayer, selectedUnit, flags, boardWidth, boardLength, futureUnits, terrain, props.placement, animationPhase.isAnimating]);
+
+  // Wrap _changePosition to include the current arrow path for animation
+  const _changePositionWithPath = useCallback(
+    (playerNumber: number, unitNumber: number, x: number, y: number) => {
+      _changePosition(playerNumber, unitNumber, x, y, arrowPathCoordsRef.current.length > 0 ? [...arrowPathCoordsRef.current] : undefined);
+    },
+    [_changePosition]
+  );
 
   // Precompute opponent per-unit grids and merged grid
   const { opponentReachGrid, opponentPerUnitGrids } = useMemo(() => {
@@ -859,7 +882,7 @@ function Board(props: BoardProps) {
     const isFlagZone = _isFlagZone(col, row);
     return (
       <Square
-        _changePosition={_changePosition}
+        _changePosition={_changePositionWithPath}
         _changeStep={_changeStep}
         _placeUnit={_placeUnit}
         _screenShake={props._screenShake}

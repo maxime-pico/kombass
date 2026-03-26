@@ -102,6 +102,7 @@ function Square(props: SquareProps) {
     player: 0 | 1;
     unitIndex: number;
     transform: string;
+    animation?: string;
   } | null>(null);
   const [lightAnimState, setLightAnimState] = useState<
     "rearing" | "galloping" | null
@@ -134,7 +135,7 @@ function Square(props: SquareProps) {
   useEffect(() => {
     const handleAnimateUnit = (e: Event) => {
       if (!isCustomEvent(e)) throw new Error("not a custom event");
-      const { player, unitIndex, toX, toY } = e.detail;
+      const { player, unitIndex, toX, toY, path } = e.detail;
 
       // Check if this unit is at the current square (original position)
       if (
@@ -142,47 +143,87 @@ function Square(props: SquareProps) {
         player === unit.playerNumber &&
         unitIndex === unit.unitNumber
       ) {
-        const xTranslate = (toX - col) * 100;
-        const yTranslate = (toY - row) * 100;
-        const transform = `translate(${xTranslate}%, ${yTranslate}%)`;
+        const finalTransform = `translate(${(toX - col) * 100}%, ${(toY - row) * 100}%)`;
+
+        // Build keyframes for path-based animation (or single-step for straight line)
+        const pathPoints: Array<{ x: number; y: number }> = path && path.length > 1
+          ? path
+          : [{ x: col, y: row }, { x: toX, y: toY }];
+
+        const keyframeSteps = pathPoints.map((p: { x: number; y: number }) =>
+          `translate(${(p.x - col) * 100}%, ${(p.y - row) * 100}%)`
+        );
+
+        // Generate unique keyframe name and inject CSS
+        const animName = `path-${player}-${unitIndex}-${Date.now()}`;
+        const keyframeCSS = keyframeSteps.map((t, i) => {
+          const pct = pathPoints.length <= 1 ? 100 : Math.round((i / (pathPoints.length - 1)) * 100);
+          return `${pct}% { transform: ${t}; }`;
+        }).join('\n');
+        const styleEl = document.createElement('style');
+        styleEl.textContent = `@keyframes ${animName} { ${keyframeCSS} }`;
+        document.head.appendChild(styleEl);
 
         const unitType = unit.unit.unitType ?? 0;
 
+        const startSlide = () => {
+          setAnimatedUnit({
+            player,
+            unitIndex,
+            transform: finalTransform,
+            animation: `${animName} 0.8s linear forwards`,
+          });
+        };
+
+        const cleanupSlide = () => {
+          // Switch from animation to transform so unit stays at final position
+          setAnimatedUnit({ player, unitIndex, transform: finalTransform });
+          setTimeout(() => styleEl.remove(), 100);
+        };
+
         if (unitType === 0) {
-          // Light: rear first, then gallop + slide
           setLightAnimState("rearing");
           setAnimatedUnit({ player, unitIndex, transform: "" });
           setTimeout(() => {
             setLightAnimState("galloping");
-            setAnimatedUnit({ player, unitIndex, transform });
+            startSlide();
             setTimeout(() => {
               setLightAnimState(null);
+              cleanupSlide();
             }, 800);
           }, 800);
         } else if (unitType === 1) {
-          // Medium: raise weapon first, then march + slide
           setMediumAnimState("raising");
           setAnimatedUnit({ player, unitIndex, transform: "" });
           setTimeout(() => {
             setMediumAnimState("marching");
-            setAnimatedUnit({ player, unitIndex, transform });
+            startSlide();
             setTimeout(() => {
               setMediumAnimState(null);
+              cleanupSlide();
             }, 800);
           }, 800);
         } else if (unitType === 2) {
-          // Heavy: raise cannon first, then march + slide
           setHeavyAnimState("raising");
           setAnimatedUnit({ player, unitIndex, transform: "" });
           setTimeout(() => {
             setHeavyAnimState("marching");
-            setAnimatedUnit({ player, unitIndex, transform });
+            startSlide();
             setTimeout(() => {
               setHeavyAnimState(null);
+              cleanupSlide();
             }, 800);
           }, 800);
         } else {
-          setAnimatedUnit({ player, unitIndex, transform });
+          setAnimatedUnit({
+            player,
+            unitIndex,
+            transform: finalTransform,
+            animation: `${animName} 0.5s ease-in-out forwards`,
+          });
+          setTimeout(() => {
+            cleanupSlide();
+          }, 500);
         }
       }
     };
@@ -350,10 +391,14 @@ function Square(props: SquareProps) {
           }`}
           style={{
             ...(animatedUnit
-              ? {
-                  transform: animatedUnit.transform,
-                  transition: `transform ${lightAnimState || mediumAnimState || heavyAnimState ? "0.8s linear" : "0.5s ease-in-out"}`,
-                }
+              ? animatedUnit.animation
+                ? {
+                    animation: animatedUnit.animation,
+                  }
+                : {
+                    transform: animatedUnit.transform,
+                    transition: `transform ${lightAnimState || mediumAnimState || heavyAnimState ? "0.8s linear" : "0.5s ease-in-out"}`,
+                  }
               : {}),
           }}
         >

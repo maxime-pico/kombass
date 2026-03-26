@@ -20,7 +20,8 @@ export interface IGameContextProps {
     playerNumber: number,
     unitNumber: number,
     x: number,
-    y: number
+    y: number,
+    path?: Array<{ x: number; y: number }>
   ) => void;
   _circlePlayer: () => void;
   _circleUnit: (

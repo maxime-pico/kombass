@@ -54,6 +54,7 @@ export type IAnimationItem = {
   fromY: number;
   toX: number;
   toY: number;
+  path?: Array<{ x: number; y: number }>;
 };
 
 export type IBoomEvent = {
@@ -88,7 +89,8 @@ interface AppState {
     playerNumber: number,
     unitNumber: number,
     x: number,
-    y: number
+    y: number,
+    path?: Array<{ x: number; y: number }>
   ) => void;
   _circlePlayer: () => void;
   _circleUnit: (
@@ -150,6 +152,7 @@ interface AppState {
   unitConfig: UnitConfig;
   flagStayInPlace: boolean;
   waitingForMoves: Array<boolean>;
+  movementPaths: Array<Array<{ x: number; y: number }> | null>;
   animationPhase: IAnimationPhase;
   isSyncing: boolean;
   isTestScenario: boolean;
@@ -195,6 +198,7 @@ class App extends Component<AppProps, AppState> {
       flagStayInPlace: false,
       futureUnits: [Array(5).fill(null), Array(5).fill(null)],
       futureUnitsHistory: [],
+      movementPaths: Array(5).fill(null),
       gameStarted: false,
       isAdmin: false,
       isInRoom: false,
@@ -391,6 +395,7 @@ class App extends Component<AppProps, AppState> {
         })
       ),
       futureUnits: [Array(count).fill(null), Array(count).fill(null)],
+      movementPaths: Array(count).fill(null),
       placedUnits: [Array(count).fill(false), Array(count).fill(false)],
       unitsCount: count,
     });
@@ -664,6 +669,7 @@ class App extends Component<AppProps, AppState> {
     this.setState({
       futureUnits: futureUnits,
       futureUnitsHistory: futureUnitsHistory,
+      movementPaths: Array(this.state.unitsCount).fill(null),
     });
     this._changeStep(this.state.step, -1);
   };
@@ -679,7 +685,8 @@ class App extends Component<AppProps, AppState> {
     playerNumber: number,
     unitNumber: number,
     x: number,
-    y: number
+    y: number,
+    path?: Array<{ x: number; y: number }>
   ) => {
     // initialise vars..
     const life = this.state.units[playerNumber][unitNumber]?.life;
@@ -717,9 +724,14 @@ class App extends Component<AppProps, AppState> {
     let futureUnitsHistory = [...this.state.futureUnitsHistory];
     futureUnitsHistory.push(futurePlayerUnits);
 
+    // Store the movement path for animation
+    const movementPaths = [...this.state.movementPaths];
+    movementPaths[unitNumber] = path || null;
+
     this.setState({
       futureUnits: futureUnitsArray,
       futureUnitsHistory: futureUnitsHistory,
+      movementPaths: movementPaths,
     });
   };
 
@@ -730,6 +742,11 @@ class App extends Component<AppProps, AppState> {
       flags: this.state.flags,
       isPlayer: this.state.isPlayer,
       unitsCount: this.state.unitsCount,
+    }, {
+      movementPaths: this.state.movementPaths,
+      terrain: this.state.terrain,
+      boardWidth: this.state.boardWidth,
+      boardLength: this.state.boardLength,
     });
   };
 
@@ -797,6 +814,7 @@ class App extends Component<AppProps, AppState> {
         fromY: animation.fromY,
         toX: animation.toX,
         toY: animation.toY,
+        path: animation.path,
       });
 
       // Wait for animation duration: light/medium units need extra time for phase animations (800ms + 800ms)
@@ -933,6 +951,7 @@ class App extends Component<AppProps, AppState> {
         Array(this.state.unitsCount).fill(null),
       ],
       futureUnitsHistory: [],
+      movementPaths: Array(this.state.unitsCount).fill(null),
       waitingForMoves: [false, false],
       round: this.state.round + 1,
       step: results.firstLivingUnitIndex,
