@@ -254,9 +254,9 @@ export function buildBoomQueue(
         // Boom trigger index is max of both units' animation indices
         const triggerIndex = Math.max(myAnimIndex, opponentAnimIndex);
 
-        // Add booms at both units' locations
-        addBoom(a, b, triggerIndex);
-        addBoom(x, y, triggerIndex);
+        // Only boom on units that are actually getting hit
+        if (oppHitsMe) addBoom(a, b, triggerIndex);
+        if (myHitsOpp) addBoom(x, y, triggerIndex);
       }
     });
   });

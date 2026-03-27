@@ -920,6 +920,11 @@ button {
   100% { transform: translate(-21.21px, -21.21px); }
 }
 
+/* Elevate the square itself so the targeting overlay renders above units animated from other squares */
+.square:has(.danger-targeting) {
+  z-index: 10;
+}
+
 /* Target flash: yellow-orange-yellow on the whole square, above unit sprites */
 .danger-overlay.danger-targeting {
   animation: danger-target 0.6s ease-in-out;

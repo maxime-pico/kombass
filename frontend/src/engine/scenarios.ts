@@ -328,7 +328,7 @@ export const scenarios: TestScenario[] = [
     expected: {
       myUnitsLife: [-2],
       opponentUnitsLife: [3],
-      expectedBoomCount: 2,
+      expectedBoomCount: 1,
     },
   },
   {
