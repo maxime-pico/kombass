@@ -8,10 +8,10 @@ const TEST_MAP_PATH = path.resolve(__dirname, "../fixtures/test-map.json");
 // Default flags for a 12×10 board would be (0,5) and (11,5).
 // By placing flags in corners we can distinguish custom flags from defaults.
 
-/** Helper to get the .square ancestor class of a square-inside data-testid */
+/** Helper to get the .square child class from a square-container data-testid */
 async function getSquareClass(page: Page, col: number, row: number) {
-  // square-inside -> .square -> .square-container; we want .square
-  const squareDiv = page.locator(`[data-testid="square-${col}-${row}"]`).locator("..").locator("..");
+  // data-testid is on .square-container; .square is its first child
+  const squareDiv = page.locator(`[data-testid="square-${col}-${row}"] > .square`);
   return squareDiv.getAttribute("class");
 }
 
