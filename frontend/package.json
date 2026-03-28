@@ -1,6 +1,6 @@
 {
   "name": "kombass",
-  "version": "0.4.15",
+  "version": "0.4.16",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^6.9.1",
