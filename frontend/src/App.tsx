@@ -802,9 +802,9 @@ class App extends Component<AppProps, AppState> {
 
       console.log(`Animating unit ${animation.unitIndex} of player ${animation.player} (${i + 1}/${queue.length})`);
 
-      // Pre-move: show danger zone at origin position
+      // Pre-move: brief flash of danger zone at origin position
       this._setAnimationSubPhase('pre-move');
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       // Moving: hide danger zone during slide
       this._setAnimationSubPhase('moving');
@@ -823,7 +823,7 @@ class App extends Component<AppProps, AppState> {
       // Wait for animation duration: light/medium units need extra time for phase animations (800ms + 800ms)
       const unitType = animation.unit ? (animation.unit.unitType ?? 0) : -1;
       const hasPhaseAnim = unitType === 0 || unitType === 1 || unitType === 2;
-      const animDuration = hasPhaseAnim ? 1800 : 500;
+      const animDuration = hasPhaseAnim ? 1000 : 500;
       await new Promise((resolve) => setTimeout(resolve, animDuration));
 
       // Post-move: show danger zone at destination + scan animation
@@ -840,12 +840,30 @@ class App extends Component<AppProps, AppState> {
         this._setAnimationSubPhase('targeting');
         await new Promise((resolve) => setTimeout(resolve, 600));
 
+        // Raise animation on units at boom locations before combat
+        const boomLocations = boomsToTrigger.map(b => ({ x: b.x, y: b.y }));
+        // Build list of units at boom locations so both origin and destination squares can match
+        const unitsAtBooms: Array<{ player: number; unitIndex: number; unitType: number; x: number; y: number }> = [];
+        for (const boom of boomsToTrigger) {
+          for (let player = 0; player < 2; player++) {
+            for (let unitIdx = 0; unitIdx < this.state.unitsCount; unitIdx++) {
+              const u = this.state.futureUnits[player]?.[unitIdx];
+              if (u && u.x === boom.x && u.y === boom.y && u.life > 0) {
+                unitsAtBooms.push({ player, unitIndex: unitIdx, unitType: u.unitType ?? 0, x: boom.x, y: boom.y });
+              }
+            }
+          }
+        }
         // Combat: embuscade + booms
         this._setAnimationSubPhase('combat');
 
-        // Show "EMBUSCADE!" text before booms
+        // Show "EMBUSCADE!" text first
         dispatchCustomEvent("embuscade", {});
         await new Promise((resolve) => setTimeout(resolve, 1600));
+
+        // Raise animation on units at boom locations after embuscade message
+        dispatchCustomEvent("embuscade_raise", { locations: boomLocations, units: unitsAtBooms });
+        await new Promise((resolve) => setTimeout(resolve, 800));
 
         console.log(`Triggering ${boomsToTrigger.length} boom(s) after animation ${i}`);
         for (const boom of boomsToTrigger) {

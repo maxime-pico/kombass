@@ -182,37 +182,25 @@ function Square(props: SquareProps) {
         };
 
         if (unitType === 0) {
-          setLightAnimState("rearing");
-          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setLightAnimState("galloping");
+          startSlide();
           setTimeout(() => {
-            setLightAnimState("galloping");
-            startSlide();
-            setTimeout(() => {
-              setLightAnimState(null);
-              cleanupSlide();
-            }, 800);
+            setLightAnimState(null);
+            cleanupSlide();
           }, 800);
         } else if (unitType === 1) {
-          setMediumAnimState("raising");
-          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setMediumAnimState("marching");
+          startSlide();
           setTimeout(() => {
-            setMediumAnimState("marching");
-            startSlide();
-            setTimeout(() => {
-              setMediumAnimState(null);
-              cleanupSlide();
-            }, 800);
+            setMediumAnimState(null);
+            cleanupSlide();
           }, 800);
         } else if (unitType === 2) {
-          setHeavyAnimState("raising");
-          setAnimatedUnit({ player, unitIndex, transform: "" });
+          setHeavyAnimState("marching");
+          startSlide();
           setTimeout(() => {
-            setHeavyAnimState("marching");
-            startSlide();
-            setTimeout(() => {
-              setHeavyAnimState(null);
-              cleanupSlide();
-            }, 800);
+            setHeavyAnimState(null);
+            cleanupSlide();
           }, 800);
         } else {
           setAnimatedUnit({
@@ -245,6 +233,42 @@ function Square(props: SquareProps) {
     boardWidth,
     boardLength,
   ]);
+
+  // Add embuscade_raise event listener — raise animation before boom
+  useEffect(() => {
+    type RaiseUnit = { player: number; unitIndex: number; unitType: number; x: number; y: number };
+    const handleEmbuscadeRaise = (e: Event) => {
+      if (!isCustomEvent(e)) throw new Error("not a custom event");
+      const { units } = e.detail as { units: RaiseUnit[] };
+
+      // For animated units (moved to boom location): match by player+unitIndex on origin square
+      if (animatedUnit) {
+        const match = units.find((u: RaiseUnit) => u.player === animatedUnit.player && u.unitIndex === animatedUnit.unitIndex);
+        if (match) {
+          if (match.unitType === 0) setLightAnimState("rearing");
+          else if (match.unitType === 1) setMediumAnimState("raising");
+          else if (match.unitType === 2) setHeavyAnimState("raising");
+          return;
+        }
+      }
+      // For ghost/stationary units: match by position
+      const atThisSquare = units.filter((u: RaiseUnit) => u.x === col && u.y === row);
+      if (atThisSquare.length > 0 && (ghostUnit.unit || containsOpponentGhostUnits.unit)) {
+        const gUnit = ghostUnit.unit || containsOpponentGhostUnits.unit;
+        const gUnitType = gUnit?.unitType ?? 0;
+        if (gUnitType === 0) setLightAnimState("rearing");
+        else if (gUnitType === 1) setMediumAnimState("raising");
+        else if (gUnitType === 2) setHeavyAnimState("raising");
+      }
+    };
+
+    if (animationPhase.isAnimating) {
+      document.addEventListener("embuscade_raise", handleEmbuscadeRaise);
+      return () => {
+        document.removeEventListener("embuscade_raise", handleEmbuscadeRaise);
+      };
+    }
+  }, [animationPhase.isAnimating, animatedUnit, ghostUnit.unit, containsOpponentGhostUnits.unit, col, row]);
 
   // Reset animated unit when animation ends
   useEffect(() => {
