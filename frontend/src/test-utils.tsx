@@ -1,6 +1,7 @@
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import gameContext, { IGameContextProps } from './gameContext';
+import { defaultUnitConfig } from './utilities/dict';
 
 /**
  * Custom render function that wraps components with gameContext provider
@@ -35,6 +36,14 @@ const defaultContextValue: Partial<IGameContextProps> = {
   _updateMovesListener: () => {},
   _updateOpponentUnits: () => {},
   _waitingForMoves: () => {},
+  terrain: [],
+  unitConfig: defaultUnitConfig(),
+  boardWidth: 22,
+  boardLength: 21,
+  placementZone: 5,
+  unitsCount: 5,
+  flagStayInPlace: false,
+  step: -5,
 };
 
 export function renderWithContext(

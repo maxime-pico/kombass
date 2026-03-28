@@ -22,6 +22,14 @@ function playNote(
   osc.stop(start + duration);
 }
 
+export function playChatPing() {
+  if (!audioCtx) audioCtx = new AudioContext();
+  const t = audioCtx.currentTime;
+  // Short 8-bit blip: two quick ascending notes
+  playNote(audioCtx, 880, t, 0.06, 0.07);       // A5
+  playNote(audioCtx, 1320, t + 0.07, 0.08, 0.07); // E6
+}
+
 export function playPingSound() {
   if (!audioCtx) audioCtx = new AudioContext();
   const t = audioCtx.currentTime;

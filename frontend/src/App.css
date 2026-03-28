@@ -133,6 +133,16 @@ button {
   color: red;
 }
 
+@keyframes notification-flash {
+  0%   { color: green; }
+  50%  { color: orange; }
+  100% { color: green; }
+}
+
+#chat .bubble.notification{
+  animation: notification-flash 1s step-end infinite;
+}
+
 #chat .chat-intro{
   text-align: center;
   font-size: 0.8em;
@@ -254,7 +264,7 @@ button {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  margin: 7vh 0 0 0;
+  margin: 7vh 0 3vh 0;
 }
 
 .taskForceSelector-unit {

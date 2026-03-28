@@ -4,6 +4,7 @@ import chatService from "../services/chatService";
 import gameContext from "../gameContext";
 import { defaultUnitConfig } from "../utilities/dict";
 import type { UnitConfig } from "../utilities/dict";
+import { playChatPing } from "../utilities/sound";
 
 function buildSettingsMessages(
   boardWidth: number,
@@ -65,12 +66,8 @@ function Chat() {
   const [message, setMessage] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
-  const settingsInjectedRef = useRef(false);
-  const [history, updateHistory] = useState<any>([
-    { who: "admin", content: "KRAU COM SYSTEM" },
-    { who: "admin", content: "MILITARY GRADE ENCRYPTION" },
-    { who: "admin", content: "----" },
-  ]);
+  const [hasUnread, setHasUnread] = useState(false);
+  const [history, updateHistory] = useState<any>([]);
 
   const _focusChat = () => {
     if (chatInput.current) chatInput.current.focus();
@@ -104,6 +101,8 @@ function Chat() {
         (newMessage: { who: string; content: string }) => {
           // Use functional update to avoid stale closure over history
           updateHistory((prevHistory: any) => [...prevHistory, newMessage]);
+          setHasUnread(true);
+          playChatPing();
         }
       );
     }
@@ -117,17 +116,81 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Inject settings message and auto-open chat when entering compose step
+  // Typewriter-style intro + mission briefing when entering compose step
   useEffect(() => {
-    if (step === -2 && !settingsInjectedRef.current) {
-      settingsInjectedRef.current = true;
-      const settingsMessages = buildSettingsMessages(
-        boardWidth, boardLength, placementZone, unitsCount, terrain, flagStayInPlace, unitConfig
-      );
-      updateHistory((prev: any) => [...prev, ...settingsMessages]);
+    if (step !== -2) return;
+
+    const introMessages = [
+      { who: "admin", content: "KRAU COM SYSTEM" },
+      { who: "admin", content: "MILITARY GRADE ENCRYPTION" },
+      { who: "admin", content: "----" },
+    ];
+    const settingsMessages = buildSettingsMessages(
+      boardWidth, boardLength, placementZone, unitsCount, terrain, flagStayInPlace, unitConfig
+    );
+    const allMessages = [...introMessages, ...settingsMessages];
+
+    const CHAR_DELAY = 25;
+    const LINE_PAUSE = 80;
+    const INTRO_END_PAUSE = 400; // pause after "----" before mission briefing
+    const HEADER_PAUSE = 600; // pause after "---- MISSION BRIEFING ----"
+    const INITIAL_DELAY = 1000;
+
+    let cancelled = false;
+    let t = INITIAL_DELAY;
+    const timeouts: ReturnType<typeof setTimeout>[] = [];
+
+    // Ping first, then open chat
+    timeouts.push(setTimeout(() => {
+      if (cancelled) return;
+      setHasUnread(true);
+      playChatPing();
+    }, t));
+    t += 150;
+    timeouts.push(setTimeout(() => {
+      if (cancelled) return;
       setCollapsed(false);
-    }
-  }, [step, boardWidth, boardLength, placementZone, unitsCount, terrain, flagStayInPlace, unitConfig]);
+    }, t));
+
+    allMessages.forEach((msg, msgIndex) => {
+      const text = msg.content;
+      // Add line with empty content first
+      t += LINE_PAUSE;
+      timeouts.push(setTimeout(() => {
+        if (cancelled) return;
+        updateHistory((prev: any) => [...prev, { who: "admin", content: "" }]);
+      }, t));
+
+      // Type each character
+      for (let i = 0; i < text.length; i++) {
+        t += CHAR_DELAY;
+        const partial = text.slice(0, i + 1);
+        timeouts.push(setTimeout(() => {
+          if (cancelled) return;
+          updateHistory((prev: any) => {
+            const updated = [...prev];
+            updated[updated.length - 1] = { who: "admin", content: partial };
+            return updated;
+          });
+        }, t));
+      }
+
+      // Pause after intro "----" line (index 2) before mission briefing
+      if (msgIndex === 2) {
+        t += INTRO_END_PAUSE;
+      }
+      // Pause after "---- MISSION BRIEFING ----" line (index 3)
+      if (msgIndex === 3) {
+        t += HEADER_PAUSE;
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      timeouts.forEach(clearTimeout);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step]);
 
   return (
     <div id="chat">
@@ -138,10 +201,11 @@ function Chat() {
           if (collapsed && gameStarted) {
             _focusChat();
             setInputFocused(true);
+            setHasUnread(false);
           }
         }}
       >
-        <div className={`bubble ${gameStarted ? "connected" : "disconnected"}`}>
+        <div className={`bubble ${gameStarted ? (hasUnread ? "notification" : "connected") : "disconnected"}`}>
           {"•"}
         </div>
         <div className="chat-title">{"Communication system"}</div>
@@ -151,7 +215,7 @@ function Chat() {
         className={`collapsible ${collapsed ? "collapsed" : ""} ${
           !gameStarted ? "waiting" : ""
         }`}
-        onClick={() => _focusChat()}
+        onClick={() => { _focusChat(); setHasUnread(false); }}
       >
         <div className="chat-content">
           <div>
