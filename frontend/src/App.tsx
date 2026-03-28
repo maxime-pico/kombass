@@ -725,8 +725,11 @@ class App extends Component<AppProps, AppState> {
     futureUnitsHistory.push(futurePlayerUnits);
 
     // Store the movement path for animation
+    // If the unit stays in place, clear any stale path from hovering
     const movementPaths = [...this.state.movementPaths];
-    movementPaths[unitNumber] = path || null;
+    const originX = currentPlayerUnit.x;
+    const originY = currentPlayerUnit.y;
+    movementPaths[unitNumber] = (x === originX && y === originY) ? null : (path || null);
 
     this.setState({
       futureUnits: futureUnitsArray,
