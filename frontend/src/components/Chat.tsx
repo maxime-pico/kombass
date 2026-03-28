@@ -2,13 +2,70 @@ import React, { useState, useRef, useEffect, useContext } from "react";
 import socketService from "../services/socketService";
 import chatService from "../services/chatService";
 import gameContext from "../gameContext";
+import { defaultUnitConfig } from "../utilities/dict";
+import type { UnitConfig } from "../utilities/dict";
+
+function buildSettingsMessages(
+  boardWidth: number,
+  boardLength: number,
+  placementZone: number,
+  unitsCount: number,
+  terrain: Array<{ x: number; y: number }>,
+  flagStayInPlace: boolean,
+  unitConfig: UnitConfig
+): Array<{ who: string; content: string }> {
+  const messages: Array<{ who: string; content: string }> = [];
+  const admin = (content: string) => messages.push({ who: "admin", content });
+
+  admin("---- MISSION BRIEFING ----");
+  admin(`Board: ${boardWidth}x${boardLength}`);
+  admin(`Placement zone: ${placementZone} rows`);
+  admin(`Units per player: ${unitsCount}`);
+  admin(`Terrain: ${terrain.length > 0 ? `${terrain.length} tiles destroyed` : "clear"}`);
+  if (flagStayInPlace) {
+    admin("Flag: stays in place on carrier death");
+  }
+
+  const defaults = defaultUnitConfig();
+  const isCustom =
+    (["light", "medium", "heavy"] as const).some((t) => {
+      const d = defaults[t];
+      const c = unitConfig[t];
+      return d.strength !== c.strength || d.range !== c.range || d.speed !== c.speed || d.life !== c.life;
+    });
+
+  if (isCustom) {
+    admin("Unit stats: CUSTOM");
+    for (const t of ["light", "medium", "heavy"] as const) {
+      const u = unitConfig[t];
+      admin(`  ${t.charAt(0).toUpperCase() + t.slice(1)}: STR ${u.strength} / RNG ${u.range} / SPD ${u.speed} / HP ${u.life}`);
+    }
+  } else {
+    admin("Unit stats: default");
+  }
+
+  admin("-------------------------");
+  return messages;
+}
 
 function Chat() {
-  const { isPlayer, gameStarted } = useContext(gameContext);
+  const {
+    isPlayer,
+    gameStarted,
+    step,
+    boardWidth,
+    boardLength,
+    placementZone,
+    unitsCount,
+    terrain,
+    flagStayInPlace,
+    unitConfig,
+  } = useContext(gameContext);
   const chatInput = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState("");
   const [inputFocused, setInputFocused] = useState(false);
   const [collapsed, setCollapsed] = useState(true);
+  const settingsInjectedRef = useRef(false);
   const [history, updateHistory] = useState<any>([
     { who: "admin", content: "KRAU COM SYSTEM" },
     { who: "admin", content: "MILITARY GRADE ENCRYPTION" },
@@ -60,6 +117,18 @@ function Chat() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Inject settings message and auto-open chat when entering compose step
+  useEffect(() => {
+    if (step === -2 && !settingsInjectedRef.current) {
+      settingsInjectedRef.current = true;
+      const settingsMessages = buildSettingsMessages(
+        boardWidth, boardLength, placementZone, unitsCount, terrain, flagStayInPlace, unitConfig
+      );
+      updateHistory((prev: any) => [...prev, ...settingsMessages]);
+      setCollapsed(false);
+    }
+  }, [step, boardWidth, boardLength, placementZone, unitsCount, terrain, flagStayInPlace, unitConfig]);
+
   return (
     <div id="chat">
       <div
@@ -88,8 +157,8 @@ function Chat() {
           <div>
             {history.map(
               (message: { who: string; content: string }, index: number) => (
-                <div key={index} className={index < 3 ? "chat-intro" : ""}>{`${
-                  index > 2 ? "P" + message.who + ">" : ""
+                <div key={index} className={message.who === "admin" ? "chat-intro" : ""}>{`${
+                  message.who !== "admin" ? "P" + message.who + ">" : ""
                 } ${message.content}`}</div>
               )
             )}
