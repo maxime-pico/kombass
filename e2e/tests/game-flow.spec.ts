@@ -35,7 +35,7 @@ async function goThroughSettingsAndSelection(player1: Page, player2: Page) {
 
 /** Place all units by clicking reachable squares, then confirm placement */
 async function placeUnits(page: Page) {
-  await page.waitForSelector("text=Place your units!", { timeout: 5000 });
+  await page.waitForSelector("text=Place your units", { timeout: 5000 });
 
   for (let i = 0; i < 5; i++) {
     await page.waitForSelector(".square-inside.reachable", { timeout: 5000 });
