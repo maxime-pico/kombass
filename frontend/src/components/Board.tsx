@@ -2,7 +2,7 @@ import React, { useCallback, useContext, useMemo, useRef, useState } from "react
 import Square from "./Square";
 import Embuscade from "./Embuscade";
 import { IUnit, ISelectedUnit } from "../App";
-import gameContext from "../gameContext";
+import gameContext, { dispatchCustomEvent } from "../gameContext";
 
 interface BoardProps {
   placement: boolean;
@@ -186,8 +186,14 @@ function Board(props: BoardProps) {
 
   // Hovered unit tracking: { playerNumber, unitIndex }
   const [hoveredUnit, setHoveredUnit] = useState<{ player: number; index: number } | null>(null);
-  const onUnitHover = useCallback((player: number, index: number) => setHoveredUnit({ player, index }), []);
-  const onUnitHoverEnd = useCallback(() => setHoveredUnit(null), []);
+  const onUnitHover = useCallback((player: number, index: number) => {
+    setHoveredUnit({ player, index });
+    dispatchCustomEvent('unitHover', { player, index });
+  }, []);
+  const onUnitHoverEnd = useCallback(() => {
+    setHoveredUnit(null);
+    dispatchCustomEvent('unitHover', null);
+  }, []);
 
   // Hovered square tracking for movement arrow
   const [hoveredSquare, setHoveredSquare] = useState<{ col: number; row: number } | null>(null);

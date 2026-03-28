@@ -529,6 +529,11 @@ button {
   color: white;
 }
 
+.square-container.has-unit {
+  position: relative;
+  z-index: 5;
+}
+
 .square {
   position: relative;
   z-index: 0;
@@ -708,7 +713,7 @@ button {
 
 .square.active {
   color: white;
-  z-index: 3;
+  z-index: 5;
   border: 0;
 }
 

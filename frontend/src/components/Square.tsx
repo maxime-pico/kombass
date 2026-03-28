@@ -332,7 +332,7 @@ function Square(props: SquareProps) {
   const isFlagZone = props.isFlagZone;
   return (
     <div
-      className="square-container"
+      className={`square-container${unit?.unit || (ghostUnit?.unit && !animationPhase.isAnimating) ? " has-unit" : ""}`}
       style={{ width: `${100 / props.boardWidth}%` }}
       data-testid={`square-${col}-${row}`}
     >

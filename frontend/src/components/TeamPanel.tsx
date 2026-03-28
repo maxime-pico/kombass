@@ -1,7 +1,7 @@
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Unit from "./Unit";
 import { IUnit, ISelectedUnit } from "../App";
-import gameContext from "../gameContext";
+import gameContext, { isCustomEvent } from "../gameContext";
 
 interface TeamPanelProps {
   units: Array<IUnit>;
@@ -11,6 +11,18 @@ interface TeamPanelProps {
 
 function TeamPanel(props: TeamPanelProps) {
   const { animationPhase } = useContext(gameContext);
+  const [hoveredUnit, setHoveredUnit] = useState<{ player: number; index: number } | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      if (isCustomEvent(e)) {
+        setHoveredUnit(e.detail);
+      }
+    };
+    document.addEventListener('unitHover', handler);
+    return () => document.removeEventListener('unitHover', handler);
+  }, []);
+
   const units = props.units;
   const playerIndex = props.playerIndex;
   const selectedUnit = props.selectedUnit;
@@ -21,8 +33,10 @@ function TeamPanel(props: TeamPanelProps) {
         {units.map((unit, unit_index) => {
           if (!unit) return null;
           selected =
-            selectedUnit.playerNumber === playerIndex &&
-            selectedUnit.unitNumber === unit_index;
+            (selectedUnit.playerNumber === playerIndex &&
+            selectedUnit.unitNumber === unit_index) ||
+            (hoveredUnit?.player === playerIndex &&
+            hoveredUnit?.index === unit_index);
 
           // Check if unit is dead during animation
           const unitKey = `${playerIndex}_${unit_index}`;
