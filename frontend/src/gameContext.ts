@@ -33,13 +33,14 @@ export interface IGameContextProps {
   _createRoom: () => Promise<void>;
   _placeUnit: (unitNumber: number, col: number, row: number) => void;
   _startGame: () => Promise<void>;
-  _setBoardSize: (length: number, width: number) => void;
+  _setBoardSize: (length: number, width: number, customFlags?: Array<IFlag>) => void;
   _setGameStarted: () => void;
   _setInRoom: (inRoom: boolean) => void;
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
   _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
+  _setFlags: (flags: Array<IFlag>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setFlagStayInPlace: (flagStayInPlace: boolean) => void;
   _setSelectedUnit: (
@@ -101,6 +102,7 @@ const defaultState: IGameContextProps = {
   _setIsPlayer: () => {},
   _setPlacementZone: () => {},
   _setTerrain: () => {},
+  _setFlags: () => {},
   _setUnitConfig: () => {},
   _setFlagStayInPlace: () => {},
   _setSelectedUnit: () => {},

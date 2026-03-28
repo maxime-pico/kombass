@@ -1904,3 +1904,91 @@ button.active {
   0% { transform: rotate(0deg); }
   50%, 100% { transform: rotate(25deg); }
 }
+
+/* ===== Map Designer ===== */
+.map-designer {
+  padding: 20px;
+  color: #ccc;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.designer-toolbar {
+  margin-bottom: 16px;
+  text-align: center;
+}
+.designer-toolbar h2 {
+  margin: 0 0 12px;
+  color: #eee;
+}
+.designer-controls {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.designer-controls input {
+  width: 60px;
+  margin-left: 4px;
+}
+.designer-tools {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.designer-tool-btn {
+  padding: 6px 14px;
+  background: #333;
+  color: #ccc;
+  border: 2px solid #555;
+  cursor: pointer;
+  border-radius: 4px;
+}
+.designer-tool-btn.active {
+  border-color: #fff;
+  color: #fff;
+  background: #555;
+}
+.designer-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+.designer-grid {
+  border: 1px solid #f1fff0;
+  width: 60vw;
+  max-width: 900px;
+}
+.designer-square {
+  aspect-ratio: 1;
+  border: 0.5px solid #f1fff0;
+  background: #c3ffbd;
+  cursor: pointer;
+}
+.designer-square.designer-flag1 { background: #2266cc; }
+.designer-square.designer-flag2 { background: #cc3333; }
+.designer-square.designer-zone1 { background: #8ec4f7; }
+.designer-square.designer-zone2 { background: #f7a0a0; }
+.designer-square.designer-terrain { background: #3a3a3a; }
+.designer-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  font-size: 13px;
+}
+.legend-swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 1px solid #555;
+}
+.legend-swatch.designer-flag1 { background: #2266cc; }
+.legend-swatch.designer-flag2 { background: #cc3333; }
+.legend-swatch.designer-zone1 { background: #8ec4f7; }
+.legend-swatch.designer-zone2 { background: #f7a0a0; }
+.legend-swatch.designer-terrain { background: #3a3a3a; }

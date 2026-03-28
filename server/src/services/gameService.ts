@@ -108,6 +108,22 @@ export async function updateGameConfig(gameId: string, config: BoardConfig): Pro
 }
 
 /**
+ * Update flag positions for all players in a game
+ */
+export async function updatePlayerFlags(gameId: string, flags: Array<{ x: number; y: number; originX: number; originY: number; inZone: boolean }>): Promise<void> {
+  const players = await prisma.player.findMany({ where: { gameId } });
+  for (const player of players) {
+    const flag = flags[player.playerNumber];
+    if (flag) {
+      await prisma.player.update({
+        where: { id: player.id },
+        data: { flag },
+      });
+    }
+  }
+}
+
+/**
  * Stamp the app version on the game record
  * @param gameId - The game ID
  * @param appVersion - Version string from package.json

@@ -126,7 +126,7 @@ app.post("/api/room/:roomId/join", async (req: Request, res: Response) => {
 app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
   try {
     const { roomId } = req.params;
-    const { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain, flagStayInPlace } = req.body;
+    const { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain, flags, flagStayInPlace } = req.body;
 
     const game = await gameService.getGame(roomId);
     if (!game) {
@@ -134,6 +134,13 @@ app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
     }
 
     await gameService.updateGameConfig(game.id, { boardWidth, boardLength, placementZone, unitsCount, terrainPercentage, unitConfig, terrain, flagStayInPlace });
+
+    // Persist flag positions to player records so the state endpoint returns them correctly
+    const resolvedFlags = (flags && Array.isArray(flags)) ? flags : [
+      { x: 0, y: Math.floor(boardLength / 2), originX: 0, originY: Math.floor(boardLength / 2), inZone: true },
+      { x: boardWidth - 1, y: Math.floor(boardLength / 2), originX: boardWidth - 1, originY: Math.floor(boardLength / 2), inZone: true },
+    ];
+    await gameService.updatePlayerFlags(game.id, resolvedFlags);
 
     const appVersion = process.env.npm_package_version || null;
     if (appVersion) {
@@ -145,7 +152,7 @@ app.post("/api/room/:roomId/settings", async (req: Request, res: Response) => {
     // Broadcast to all sockets in the room (including admin)
     const io = req.app.get("io") as import("socket.io").Server;
     if (io) {
-      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig, terrain, flagStayInPlace });
+      io.to(roomId).emit("settings_confirmed", { boardWidth, boardLength, placementZone, unitsCount, unitConfig, terrain, flags, flagStayInPlace });
     }
 
     return res.json({ ok: true });

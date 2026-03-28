@@ -102,13 +102,14 @@ interface AppState {
   _createRoom: () => Promise<void>;
   _placeUnit: (unitNumber: number, col: number, row: number) => void;
   _startGame: () => Promise<void>;
-  _setBoardSize: (length: number, width: number) => void;
+  _setBoardSize: (length: number, width: number, customFlags?: Array<IFlag>) => void;
   _setGameStarted: () => void;
   _setInRoom: () => void;
   _setIsAdmin: (isAdmin: boolean) => void;
   _setIsPlayer: (isPlayer: 0 | 1) => void;
   _setPlacementZone: (zoneSize: number) => void;
   _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
+  _setFlags: (flags: Array<IFlag>) => void;
   _setUnitConfig: (unitConfig: UnitConfig) => void;
   _setFlagStayInPlace: (flagStayInPlace: boolean) => void;
   _setSelectedUnit: (
@@ -177,6 +178,7 @@ class App extends Component<AppProps, AppState> {
       _setIsPlayer: this._setIsPlayer,
       _setPlacementZone: this._setPlacementZone,
       _setTerrain: this._setTerrain,
+      _setFlags: this._setFlags,
       _setUnitConfig: this._setUnitConfig,
       _setFlagStayInPlace: this._setFlagStayInPlace,
       _setSelectedUnit: this._setSelectedUnit,
@@ -262,6 +264,7 @@ class App extends Component<AppProps, AppState> {
     this._setIsPlayer = this._setIsPlayer.bind(this);
     this._setPlacementZone = this._setPlacementZone.bind(this);
     this._setTerrain = this._setTerrain.bind(this);
+    this._setFlags = this._setFlags.bind(this);
     this._setUnitConfig = this._setUnitConfig.bind(this);
     this._setSelectedUnit = this._setSelectedUnit.bind(this);
     this._setUnitCount = this._setUnitCount.bind(this);
@@ -401,11 +404,11 @@ class App extends Component<AppProps, AppState> {
     });
   };
 
-  _setBoardSize = (length: number, width: number) => {
+  _setBoardSize = (length: number, width: number, customFlags?: Array<IFlag>) => {
     this.setState({
       boardLength: length,
       boardWidth: width,
-      flags: [
+      flags: customFlags || [
         {
           x: 0,
           y: Math.floor(length / 2),
@@ -432,6 +435,10 @@ class App extends Component<AppProps, AppState> {
 
   _setTerrain = (terrain: Array<{ x: number; y: number }>) => {
     this.setState({ terrain });
+  };
+
+  _setFlags = (flags: Array<IFlag>) => {
+    this.setState({ flags });
   };
 
   _setUnitConfig = (unitConfig: UnitConfig) => {
@@ -1478,6 +1485,12 @@ class App extends Component<AppProps, AppState> {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const TestHarness = require("./components/TestHarness").default;
       return <TestHarness />;
+    }
+
+    if (window.location.pathname === "/map-designer") {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const MapDesigner = require("./components/MapDesigner").default;
+      return <MapDesigner />;
     }
 
     return (

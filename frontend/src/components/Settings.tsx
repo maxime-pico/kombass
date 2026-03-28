@@ -30,12 +30,14 @@ function Settings(props: SettingsProps) {
     unitConfig,
     _setUnitConfig,
     _setTerrain,
+    _setFlags,
     _setFlagStayInPlace,
     flagStayInPlace,
     flags,
   } = useContext(gameContext);
 
   const [terrainPercentage, setTerrainPercentage] = useState(0);
+  const [importedMap, setImportedMap] = useState<{ terrain: Array<{ x: number; y: number }>; flags: Array<{ x: number; y: number }> } | null>(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -75,11 +77,18 @@ function Settings(props: SettingsProps) {
   const settingsReady = () => {
     _setUnitConfig(localUnitConfig);
     let terrain: Array<{ x: number; y: number }> = [];
-    if (terrainPercentage > 0) {
+    if (importedMap) {
+      terrain = importedMap.terrain;
+      _setTerrain(terrain);
+      const importedFlags = importedMap.flags.map((f) => ({
+        x: f.x, y: f.y, originX: f.x, originY: f.y, inZone: true,
+      }));
+      _setFlags(importedFlags);
+    } else if (terrainPercentage > 0) {
       terrain = generateTerrain(boardWidth, boardLength, flags, placementZone, terrainPercentage);
       _setTerrain(terrain);
     }
-    const body = { ...settings, terrain, terrainPercentage, randomTerrain: terrainPercentage > 0 };
+    const body = { ...settings, terrain, terrainPercentage, randomTerrain: terrainPercentage > 0 && !importedMap, flags: importedMap ? importedMap.flags.map((f) => ({ x: f.x, y: f.y, originX: f.x, originY: f.y, inZone: true })) : undefined };
     fetch(`${backendUrl}/api/room/${props.roomId}/settings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -98,8 +107,8 @@ function Settings(props: SettingsProps) {
     });
 
 
-    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }>; flagStayInPlace?: boolean }) => {
-      _setBoardSize(settings.boardLength, settings.boardWidth);
+    const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }>; flags?: Array<{ x: number; y: number; originX: number; originY: number; inZone: boolean }>; flagStayInPlace?: boolean }) => {
+      _setBoardSize(settings.boardLength, settings.boardWidth, settings.flags || undefined);
       _setPlacementZone(settings.placementZone);
       _setUnitCount(settings.unitsCount);
       if (settings.unitConfig) {
@@ -200,10 +209,47 @@ function Settings(props: SettingsProps) {
               max="30"
               value={terrainPercentage}
               onChange={(e) => setTerrainPercentage(Math.max(0, Math.min(30, parseInt(e.target.value) || 0)))}
+              disabled={!!importedMap}
             />
             <span style={{ marginLeft: "8px", opacity: 0.6 }}>
-              {terrainPercentage === 0 ? "no destroyed terrain" : `~${terrainPercentage}% of squares destroyed`}
+              {importedMap ? "using imported map" : terrainPercentage === 0 ? "no destroyed terrain" : `~${terrainPercentage}% of squares destroyed`}
             </span>
+          </div>
+          <br />
+          <div className="subtitle">Or import a custom map</div>
+          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+            <label className="button active" style={{ cursor: "pointer", fontSize: "14px", padding: "4px 12px" }}>
+              Import Map JSON
+              <input
+                type="file"
+                accept=".json"
+                style={{ display: "none" }}
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    try {
+                      const data = JSON.parse(reader.result as string);
+                      _setBoardSize(data.boardLength, data.boardWidth);
+                      setImportedMap({ terrain: data.terrain || [], flags: data.flags || [] });
+                    } catch {
+                      console.error("Invalid map file");
+                    }
+                  };
+                  reader.readAsText(file);
+                }}
+              />
+            </label>
+            {importedMap && (
+              <button
+                className="button"
+                style={{ fontSize: "14px", padding: "4px 12px" }}
+                onClick={() => setImportedMap(null)}
+              >
+                Clear
+              </button>
+            )}
           </div>
           <br />
           <div className="subtitle">
