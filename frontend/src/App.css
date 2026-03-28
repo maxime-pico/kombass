@@ -1386,6 +1386,62 @@ button.active {
   margin-top: 10px;
 }
 
+/* Volume control */
+.volume-control {
+  position: fixed;
+  top: 12px;
+  left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  padding: 3px 6px;
+  z-index: 10;
+}
+
+.volume-btn {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-family: "Press Start 2P", "Courier New", Courier, monospace;
+  cursor: pointer;
+  padding: 0 3px;
+  line-height: 1;
+  transition: color 0.2s;
+}
+
+.volume-btn:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.volume-speaker {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.volume-speaker:hover {
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.volume-speaker.muted {
+  color: rgba(255, 80, 80, 0.6);
+}
+
+.volume-level {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 8px;
+  font-family: "Press Start 2P", "Courier New", Courier, monospace;
+  min-width: 14px;
+  text-align: center;
+}
+
 .abandon-button {
   position: fixed;
   top: 12px;

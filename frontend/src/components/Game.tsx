@@ -3,6 +3,7 @@ import Board from "./Board";
 import Panel from "./Panel";
 import Modal from "./Modal";
 import TeamPanel from "./TeamPanel";
+import VolumeControl from "./VolumeControl";
 import { IUnit, ISelectedUnit, IPlayers, IFlag } from "../App";
 import socketService from "../services/socketService";
 import gameService from "../services/gameService";
@@ -286,12 +287,15 @@ class Game extends Component<GameProps, GameStates> {
           />
         </div>
         {this.state.modalStep === null && this.state.opponentAbandoned === null && (
-          <button
-            className="abandon-button"
-            onClick={() => this.setState({ abandonConfirm: true })}
-          >
-            Abandon
-          </button>
+          <>
+            <VolumeControl />
+            <button
+              className="abandon-button"
+              onClick={() => this.setState({ abandonConfirm: true })}
+            >
+              Abandon
+            </button>
+          </>
         )}
         <Panel round={this.props.round} />
       </div>

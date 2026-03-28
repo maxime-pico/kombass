@@ -1,3 +1,5 @@
+import { getGain } from "./volume";
+
 let audioCtx: AudioContext | null = null;
 
 function playNote(
@@ -7,6 +9,9 @@ function playNote(
   duration: number,
   volume: number,
 ) {
+  const vol = getGain();
+  if (vol === 0) return;
+  volume = volume * vol;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain);

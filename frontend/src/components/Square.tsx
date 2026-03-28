@@ -2,6 +2,7 @@ import React, { useState, useEffect, useContext } from "react";
 import Unit from "./Unit";
 import Flag from "./Flag";
 import { AUDIO } from "../utilities/dict";
+import { getGain } from "../utilities/volume";
 import { IUnit } from "../App";
 import gameContext, { isCustomEvent } from "../gameContext";
 
@@ -295,6 +296,7 @@ function Square(props: SquareProps) {
           _screenShake();
           const audio = new Audio();
           audio.src = AUDIO.boom;
+          audio.volume = getGain();
           audio.play();
           setBoom(true);
           if (e.detail.damage > 0) setDamage(e.detail.damage);
