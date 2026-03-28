@@ -297,14 +297,10 @@ button {
 .unitPlacement {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   align-items: center;
-  margin: 1rem 0rem;
-  padding: 2rem;
-  width: 50%;
-  position: absolute;
-  z-index: 100;
-  pointer-events: none;
+  padding: 0.5rem 2rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
 }
 
 .unitPlacement > .title {
@@ -314,35 +310,21 @@ button {
   font-size: 1em;
 }
 
-.unitPlacement.right {
-  transform: translate(30%, 0);
-}
-
-.unitPlacement.left {
-  transform: translate(-30%, 0);
-}
-
 .unitPlacement-container {
-  position: relative;
   display: flex;
   flex-direction: row;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   width: 100%;
-  margin-top: 2rem;
-  margin-bottom: 3rem;
-}
-
-.unitPlacement.left > .unitPlacement-container {
-  flex-direction: row-reverse;
-  justify-content: end;
+  min-height: 5rem;
 }
 
 .unitPlacement-box {
   position: relative;
-  width: 16%;
-  margin: 2% 2%;
-  padding: 0 1.4%;
+  width: 4rem;
+  height: 4rem;
+  margin: 0 0.5rem;
+  padding: 0.2rem;
   background-color: white;
 }
 
@@ -376,6 +358,10 @@ button {
   align-items: center;
   position: relative;
   width: 80%;
+}
+
+.main.placement-main {
+  flex-direction: column;
 }
 
 .teamPanel-container {
@@ -782,13 +768,7 @@ button {
 }
 
 .square.forbidden {
-  /* background: repeating-linear-gradient(
-    45deg,
-    #cecece,
-    #cecece 5px,
-    #949494 5px,
-    #949494 10px
-  ); */
+  cursor: not-allowed;
 }
 
 .board.p1 > .square.forbidden > .square-inside.reachable,

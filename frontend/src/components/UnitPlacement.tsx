@@ -13,41 +13,57 @@ interface UnitPlacementProps {
 // Also exchange unit placement information when proceeding to next step
 
 function UnitPlacement(props: UnitPlacementProps) {
-  const { units, isPlayer, selectedUnit, _startGame, ready } = useContext(gameContext);
+  const { units, isPlayer, selectedUnit, _startGame, ready } =
+    useContext(gameContext);
   const selectedUnitNumber = selectedUnit.unitNumber;
   const allPlaced = props.placedUnits[isPlayer].every(Boolean);
   return (
     <div className="game-container">
-    <div className="main">
-      <Board placement={true} _screenShake={() => {}} />
-      <div className={`unitPlacement${isPlayer ? " left" : " right"}`}>
-        <div className="title"> Place your units!</div>
-        <div className="unitPlacement-container">
-          {props.placedUnits[isPlayer].map((placedUnit, unit_index) => {
-            return (
-              !placedUnit && (
-                <UnitToPlace
-                  key={unit_index}
-                  playerIndex={isPlayer}
-                  unit={units[isPlayer][unit_index]}
-                  selected={selectedUnitNumber === unit_index}
-                />
-              )
-            );
-          })}
+      <div className="main placement-main">
+        <div className="unitPlacement">
+          {!allPlaced && (
+            <div className="title">
+              {" "}
+              Place your units in the{" "}
+              <span style={{ color: isPlayer ? "goldenrod" : "darkcyan" }}>
+                {isPlayer ? "yellow" : "blue"}
+              </span>{" "}
+              zone!
+            </div>
+          )}
+          <div className="unitPlacement-container">
+            {!allPlaced &&
+              props.placedUnits[isPlayer].map((placedUnit, unit_index) => {
+                return (
+                  <div
+                    key={unit_index}
+                    style={{ visibility: placedUnit ? "hidden" : "visible" }}
+                  >
+                    <UnitToPlace
+                      playerIndex={isPlayer}
+                      unit={units[isPlayer][unit_index]}
+                      selected={selectedUnitNumber === unit_index}
+                    />
+                  </div>
+                );
+              })}
+            {allPlaced && !ready[isPlayer] && (
+              <button
+                className="fight-button confirm"
+                onClick={() => _startGame()}
+              >
+                CONFIRM PLACEMENT
+              </button>
+            )}
+            {ready[isPlayer] && (
+              <button className="fight-button inactive" disabled>
+                WAITING FOR OPPONENT...
+              </button>
+            )}
+          </div>
         </div>
+        <Board placement={true} _screenShake={() => {}} />
       </div>
-    </div>
-    <div className="panel">
-      {allPlaced && !ready[isPlayer] && (
-        <button className="fight-button confirm" onClick={() => _startGame()}>
-          CONFIRM PLACEMENT
-        </button>
-      )}
-      {ready[isPlayer] && (
-        <div className="hint">Waiting for opponent to place units...</div>
-      )}
-    </div>
     </div>
   );
 }
