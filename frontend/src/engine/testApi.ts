@@ -3,12 +3,12 @@ import type { IUnit } from "../types";
 type SetStateFn = (state: any) => void;
 type CalculateCombatFn = () => any;
 
-export function setupTestApi(
+export async function setupTestApi(
   setState: SetStateFn,
   getState: () => any,
   calculateCombatResults: CalculateCombatFn,
 ) {
-  const { loadScenario, scenarios } = require("./scenarioLoader");
+  const { loadScenario, scenarios } = await import("./scenarioLoader");
 
   (window as any).__KOMBASS_TEST_API__ = {
     loadScenario: (scenarioNameOrIndex: string | number) => {

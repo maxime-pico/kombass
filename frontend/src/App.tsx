@@ -18,7 +18,7 @@ import { extractRoomIdFromUrl, connectSocket as connectSocketAsync, checkAndJoin
 import { buildReconnectionState, buildRestoredState } from "./engine/reconnectionManager";
 import { buildFinalCombatState } from "./engine/combatOrchestrator";
 import { buildUnitCountState, buildBoardSizeState } from "./engine/gameSetup";
-import { setupTestApi } from "./engine/testApi";
+// testApi is dynamically imported in componentDidMount when VITE_TEST_MODE is set
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
 import { findNextAliveStep } from "./engine/stepLogic";
 import { changePosition as computeChangePosition, undoMove as computeUndoMove } from "./engine/movementEngine";
@@ -1019,11 +1019,13 @@ class App extends Component<AppProps, AppState> {
     preloadAnimatedSprites();
 
     if (import.meta.env.VITE_TEST_MODE === "true") {
-      setupTestApi(
-        (s: any) => this.setState(s),
-        () => this.state,
-        () => this._calculateCombatResults(),
-      );
+      import("./engine/testApi").then(({ setupTestApi }) => {
+        setupTestApi(
+          (s: any) => this.setState(s),
+          () => this.state,
+          () => this._calculateCombatResults(),
+        );
+      });
     }
 
     // Check for room ID in URL
