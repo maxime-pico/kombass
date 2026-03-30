@@ -16,6 +16,8 @@ import { calculateCombatResults } from "./engine";
 import { gamePost, gameGet } from "./services/api";
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
 import { findNextAliveStep } from "./engine/stepLogic";
+import { changePosition as computeChangePosition, undoMove as computeUndoMove } from "./engine/movementEngine";
+import { placeUnit as computePlaceUnit } from "./engine/placementEngine";
 
 export type IPlayer = 0 | 1;
 export type IPlayers = Array<{ name: string; color: string }>;
@@ -585,35 +587,18 @@ class App extends Component<AppProps, AppState> {
 
   // Used when placing the units on the board before the start of the game
   _placeUnit = (unitNumber: number, col: number, row: number) => {
-    let units = this.state.units;
-    let playerNumber = this.state.isPlayer;
-    let currentPlayerUnits = [...units[playerNumber]];
-
-    // replacing x and y coordinates for the unit currently placed
-    let currentPlayerUnit = { ...currentPlayerUnits[unitNumber] };
-    currentPlayerUnit = { ...currentPlayerUnit, x: col, y: row };
-    currentPlayerUnits[unitNumber] = currentPlayerUnit;
-    units[playerNumber] = currentPlayerUnits; // preparing reinsertion in state
-
-    // updating placedUnits Matrix
-    let placedUnits = this.state.placedUnits;
-    let currentPlayerPlacedUnits = [...placedUnits[playerNumber]];
-    let playerPlacedUnits = currentPlayerPlacedUnits[unitNumber];
-    playerPlacedUnits = true;
-    currentPlayerPlacedUnits[unitNumber] = playerPlacedUnits;
-    placedUnits[playerNumber] = currentPlayerPlacedUnits; // preparing reinsertion in state
-
-    // deciding which is the next unit to place
-    let nextUnitNumber = (unitNumber + 1) % this.state.unitsCount;
-
-    this._setSelectedUnit(playerNumber, nextUnitNumber, 0); // select next unit of player
-
-    this.setState({
-      units: units,
-      placedUnits: placedUnits,
+    const { units, placedUnits, nextUnitNumber } = computePlaceUnit({
+      units: this.state.units,
+      placedUnits: this.state.placedUnits,
+      isPlayer: this.state.isPlayer,
+      unitNumber,
+      col,
+      row,
+      unitsCount: this.state.unitsCount,
     });
 
-    // No auto-start — player must click CONFIRM PLACEMENT button
+    this._setSelectedUnit(this.state.isPlayer, nextUnitNumber, 0);
+    this.setState({ units, placedUnits });
   };
 
   _startGame = async () => {
@@ -665,18 +650,17 @@ class App extends Component<AppProps, AppState> {
   };
 
   _undoMove = () => {
-    let futureUnits = [...this.state.futureUnits];
-    let myFutureUnits = [...futureUnits[this.state.isPlayer]];
-    let futureUnitsHistory = [...this.state.futureUnitsHistory];
-    futureUnitsHistory.pop();
-    myFutureUnits = futureUnitsHistory.length
-      ? futureUnitsHistory[futureUnitsHistory.length - 1]
-      : Array(this.state.unitsCount).fill(null);
-    futureUnits[this.state.isPlayer] = [...myFutureUnits];
+    const result = computeUndoMove({
+      futureUnits: this.state.futureUnits,
+      futureUnitsHistory: this.state.futureUnitsHistory,
+      unitsCount: this.state.unitsCount,
+      isPlayer: this.state.isPlayer,
+    });
+
     this.setState({
-      futureUnits: futureUnits,
-      futureUnitsHistory: futureUnitsHistory,
-      movementPaths: Array(this.state.unitsCount).fill(null),
+      futureUnits: result.futureUnits,
+      futureUnitsHistory: result.futureUnitsHistory,
+      movementPaths: result.movementPaths,
     });
     this._changeStep(this.state.step, -1);
   };
@@ -695,53 +679,23 @@ class App extends Component<AppProps, AppState> {
     y: number,
     path?: Array<{ x: number; y: number }>
   ) => {
-    // initialise vars..
-    const life = this.state.units[playerNumber][unitNumber]?.life;
-    let currentPlayerUnit = this.state.units[playerNumber][unitNumber];
-    let futureUnits = [...this.state.futureUnits];
-    let futurePlayerUnits = [...futureUnits[playerNumber]];
-    let futurePlayerUnit = futurePlayerUnits[unitNumber];
-    let opponentNumber = (playerNumber + 1) % 2;
-    let futureOpponentUnits = [...futureUnits[opponentNumber]];
-
-    // Build the updated information to send it to the state
-    futurePlayerUnit = {
-      ...currentPlayerUnit,
-      x: x,
-      y: y,
-      life: life,
-    };
-
-    // Also check if the unit should have the flag
-    if (
-      this.state.flags[opponentNumber].x === x &&
-      this.state.flags[opponentNumber].y === y &&
-      this.state.flags[opponentNumber].inZone &&
-      life > 0
-    ) {
-      futurePlayerUnit = { ...futurePlayerUnit, hasFlag: true };
-    }
-
-    // Update the state with new information
-    let futureUnitsArray = [];
-    futurePlayerUnits[unitNumber] = futurePlayerUnit;
-    futureUnitsArray[opponentNumber] = futureOpponentUnits;
-    futureUnitsArray[playerNumber] = futurePlayerUnits;
-
-    let futureUnitsHistory = [...this.state.futureUnitsHistory];
-    futureUnitsHistory.push(futurePlayerUnits);
-
-    // Store the movement path for animation
-    // If the unit stays in place, clear any stale path from hovering
-    const movementPaths = [...this.state.movementPaths];
-    const originX = currentPlayerUnit.x;
-    const originY = currentPlayerUnit.y;
-    movementPaths[unitNumber] = (x === originX && y === originY) ? null : (path || null);
+    const result = computeChangePosition({
+      units: this.state.units,
+      futureUnits: this.state.futureUnits,
+      futureUnitsHistory: this.state.futureUnitsHistory,
+      movementPaths: this.state.movementPaths,
+      flags: this.state.flags,
+      playerNumber,
+      unitNumber,
+      x,
+      y,
+      path,
+    });
 
     this.setState({
-      futureUnits: futureUnitsArray,
-      futureUnitsHistory: futureUnitsHistory,
-      movementPaths: movementPaths,
+      futureUnits: result.futureUnits,
+      futureUnitsHistory: result.futureUnitsHistory,
+      movementPaths: result.movementPaths,
     });
   };
 

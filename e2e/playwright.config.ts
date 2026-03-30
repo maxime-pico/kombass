@@ -1,5 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
+// Use a separate port for E2E tests locally so we don't conflict with a dev server
+const E2E_FRONTEND_PORT = process.env.CI ? 3000 : 3001;
+
+// Local E2E uses a dedicated "kombass" database to avoid polluting dev data
+const LOCAL_DATABASE_URL = "postgresql://kombass@localhost:5432/kombass";
+
 export default defineConfig({
   testDir: "./tests",
   timeout: 30000,
@@ -7,7 +13,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: [["list"], ["html", { open: "never" }]],
   use: {
-    baseURL: "http://localhost:3000",
+    baseURL: `http://localhost:${E2E_FRONTEND_PORT}`,
     trace: "on-first-retry",
   },
   projects: [
@@ -24,12 +30,13 @@ export default defineConfig({
       url: "http://localhost:9000",
       reuseExistingServer: !process.env.CI,
       timeout: 30000,
+      env: process.env.CI ? {} : { DATABASE_URL: LOCAL_DATABASE_URL },
     },
     {
-      command: "REACT_APP_TEST_MODE=true BROWSER=none npm start",
+      command: `PORT=${E2E_FRONTEND_PORT} REACT_APP_TEST_MODE=true BROWSER=none npm start`,
       cwd: "../frontend",
-      url: "http://localhost:3000",
-      reuseExistingServer: !process.env.CI,
+      url: `http://localhost:${E2E_FRONTEND_PORT}`,
+      reuseExistingServer: false,
       timeout: 120000,
     },
   ],
