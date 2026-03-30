@@ -14,6 +14,11 @@ import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
 import { calculateCombatResults } from "./engine";
 import { gamePost, gameGet } from "./services/api";
+import { extractRoomIdFromUrl, connectSocket as connectSocketAsync, checkAndJoinRoom as checkAndJoinRoomAsync, createAndJoinRoom as createAndJoinRoomAsync } from "./engine/roomManager";
+import { buildReconnectionState, buildRestoredState } from "./engine/reconnectionManager";
+import { buildFinalCombatState } from "./engine/combatOrchestrator";
+import { buildUnitCountState, buildBoardSizeState } from "./engine/gameSetup";
+import { setupTestApi } from "./engine/testApi";
 import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
 import { findNextAliveStep } from "./engine/stepLogic";
 import { changePosition as computeChangePosition, undoMove as computeUndoMove } from "./engine/movementEngine";
@@ -232,72 +237,47 @@ class App extends Component<AppProps, AppState> {
   }
 
   connectSocket = async () => {
-    const socket = await socketService
-      // .connect("https://kombass-server.herokuapp.com/")
-      .connect(import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000", "test")
-      .catch((e: string) => console.log("Error on connect: ", e));
-
-    if (socket) {
+    const connected = await connectSocketAsync();
+    if (connected) {
       this._handlePlayerReady();
       this._handleGameStart();
     }
   };
 
   extractRoomIdFromUrl = (): string | null => {
-    const match = window.location.pathname.match(/^\/game\/([a-z0-9]+)$/i);
-    return match ? match[1] : null;
+    return extractRoomIdFromUrl();
   };
 
   checkAndJoinRoom = async (roomId: string) => {
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
-      const resp = await fetch(`${backendUrl}/api/room/${roomId}/join`, { method: "POST" });
-      if (!resp.ok) {
-        const data = await resp.json();
-        const msg =
-          data.reason === "game_over"
-            ? "This game has ended."
-            : "A game is already in progress in this room and you are not a player.";
-        this.setState({ roomMessage: msg });
-        return;
-      }
-      const { sessionToken } = await resp.json();
-      localStorage.setItem(`kombass_session_token_${roomId}`, sessionToken);
-      await this.connectSocket();
-      if (socketService.socket) {
-        socketService.socket.emit("authenticate", { sessionToken });
-        this.setInRoom();
-        this.setIsAdmin(false);
-        this.setPlayerIndex(1);
-        this.setState({ step: -3, roomMessage: "" });
-      }
-    } catch (_) {
-      this.setState({ roomMessage: "Could not connect to room." });
+    const result = await checkAndJoinRoomAsync(roomId);
+    if (!result.ok) {
+      this.setState({ roomMessage: result.message });
+      return;
+    }
+    await this.connectSocket();
+    if (socketService.socket) {
+      socketService.socket.emit("authenticate", { sessionToken: result.sessionToken });
+      this.setInRoom();
+      this.setIsAdmin(false);
+      this.setPlayerIndex(1);
+      this.setState({ step: -3, roomMessage: "" });
     }
   };
 
   createAndJoinRoom = async () => {
-    try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
-      const resp = await fetch(`${backendUrl}/api/room`, { method: "POST" });
-      if (!resp.ok) {
-        alert("Failed to create room");
-        return;
-      }
-      const { roomId, sessionToken } = await resp.json();
-      localStorage.setItem(`kombass_session_token_${roomId}`, sessionToken);
-      window.history.pushState({}, "", `/game/${roomId}`);
-      this.setState({ roomId });
-      await this.connectSocket();
-      if (socketService.socket) {
-        socketService.socket.emit("authenticate", { sessionToken });
-        this.setInRoom();
-        this.setIsAdmin(true);
-        this.setPlayerIndex(0);
-        this.setState({ step: -3, roomMessage: "" });
-      }
-    } catch (_) {
-      alert("Could not connect to server");
+    const result = await createAndJoinRoomAsync();
+    if (!result.ok) {
+      alert(result.message);
+      return;
+    }
+    this.setState({ roomId: result.roomId });
+    await this.connectSocket();
+    if (socketService.socket) {
+      socketService.socket.emit("authenticate", { sessionToken: result.sessionToken });
+      this.setInRoom();
+      this.setIsAdmin(true);
+      this.setPlayerIndex(0);
+      this.setState({ step: -3, roomMessage: "" });
     }
   };
 
@@ -330,47 +310,11 @@ class App extends Component<AppProps, AppState> {
   };
 
   setUnitCount = (count: number) => {
-    this.setState({
-      units: Array(2).fill(
-        Array(count).fill({
-          strength: 1,
-          range: 1,
-          speed: 3,
-          x: 12,
-          y: 6,
-          life: 1,
-          hasFlag: false,
-          unitType: 0,
-        })
-      ),
-      futureUnits: [Array(count).fill(null), Array(count).fill(null)],
-      movementPaths: Array(count).fill(null),
-      placedUnits: [Array(count).fill(false), Array(count).fill(false)],
-      unitsCount: count,
-    });
+    this.setState(buildUnitCountState(count));
   };
 
   setBoardSize = (length: number, width: number, customFlags?: Array<IFlag>) => {
-    this.setState({
-      boardLength: length,
-      boardWidth: width,
-      flags: customFlags || [
-        {
-          x: 0,
-          y: Math.floor(length / 2),
-          originX: 0,
-          originY: Math.floor(length / 2),
-          inZone: true,
-        },
-        {
-          x: width - 1,
-          y: Math.floor(length / 2),
-          originX: width - 1,
-          originY: Math.floor(length / 2),
-          inZone: true,
-        },
-      ],
-    });
+    this.setState(buildBoardSizeState(length, width, customFlags));
   };
 
   setPlacementZone = (width: number) => {
@@ -643,21 +587,6 @@ class App extends Component<AppProps, AppState> {
     });
   };
 
-  _buildAnimationQueue = (): Array<IAnimationItem> => {
-    return buildAnimationQueue({
-      units: this.state.units,
-      futureUnits: this.state.futureUnits,
-      flags: this.state.flags,
-      playerIndex: this.state.playerIndex,
-      unitsCount: this.state.unitsCount,
-    }, {
-      movementPaths: this.state.movementPaths,
-      terrain: this.state.terrain,
-      boardWidth: this.state.boardWidth,
-      boardLength: this.state.boardLength,
-    });
-  };
-
   _calculateCombatResults = () => {
     console.log(`=== COMBAT CALC END (Player ${this.state.playerIndex}, Round ${this.state.round}) ===`);
     const result = calculateCombatResults({
@@ -670,19 +599,6 @@ class App extends Component<AppProps, AppState> {
     });
     console.log("newFutureUnits (result):", JSON.stringify(result.newFutureUnits));
     return result;
-  };
-
-  _buildBoomQueue = (animationQueue: Array<IAnimationItem>): Array<IBoomEvent> => {
-    return buildBoomQueue(
-      {
-        units: this.state.units,
-        futureUnits: this.state.futureUnits,
-        flags: this.state.flags,
-        playerIndex: this.state.playerIndex,
-        unitsCount: this.state.unitsCount,
-      },
-      animationQueue
-    );
   };
 
   _setAnimationSubPhase = (subPhase: AnimationSubPhase) => {
@@ -870,33 +786,13 @@ class App extends Component<AppProps, AppState> {
       pu.map((u: any, ui: number) => `P${pi}U${ui}: hasFlag=${u?.hasFlag}, life=${u?.life}`)
     ));
 
-    this.setState({
-      units: results.newFutureUnits,
-      futureUnits: [
-        Array(this.state.unitsCount).fill(null),
-        Array(this.state.unitsCount).fill(null),
-      ],
-      futureUnitsHistory: [],
-      movementPaths: Array(this.state.unitsCount).fill(null),
-      waitingForMoves: [false, false],
-      round: this.state.round + 1,
-      step: results.firstLivingUnitIndex,
-      selectedUnit: {
-        playerNumber: this.state.playerIndex,
-        unitNumber: results.firstLivingUnitIndex,
-      },
-      animationPhase: {
-        isAnimating: false,
-        currentAnimationIndex: 0,
-        animationSubPhase: 'idle',
-        queue: [],
-        boomQueue: [],
-        deadUnits: new Set(),
-      },
-      flags: results.flags,
+    const stateUpdate = buildFinalCombatState(results, {
+      unitsCount: this.state.unitsCount,
+      playerIndex: this.state.playerIndex,
+      round: this.state.round,
     });
+    this.setState(stateUpdate);
 
-    // Server already persisted combat results in /moves endpoint
     this.combatResultsBuffer = null;
 
     console.log(`=== COMBAT FINALIZED (Player ${this.state.playerIndex}, Round ${this.state.round + 1}) ===`);
@@ -908,8 +804,28 @@ class App extends Component<AppProps, AppState> {
       console.log(`=== COMBAT START (Player ${this.state.playerIndex}, Round ${this.state.round}) ===`);
 
       // Build animation queue
-      const animationQueue = this._buildAnimationQueue();
-      const boomQueue = this._buildBoomQueue(animationQueue);
+      const animationQueue = buildAnimationQueue({
+        units: this.state.units,
+        futureUnits: this.state.futureUnits,
+        flags: this.state.flags,
+        playerIndex: this.state.playerIndex,
+        unitsCount: this.state.unitsCount,
+      }, {
+        movementPaths: this.state.movementPaths,
+        terrain: this.state.terrain,
+        boardWidth: this.state.boardWidth,
+        boardLength: this.state.boardLength,
+      });
+      const boomQueue = buildBoomQueue(
+        {
+          units: this.state.units,
+          futureUnits: this.state.futureUnits,
+          flags: this.state.flags,
+          playerIndex: this.state.playerIndex,
+          unitsCount: this.state.unitsCount,
+        },
+        animationQueue
+      );
 
       // [LOCATION D] Log queue sizes (test mode only)
       if (import.meta.env.VITE_TEST_MODE === "true") {
@@ -1017,78 +933,19 @@ class App extends Component<AppProps, AppState> {
       const data = await res.json();
 
       // Connect socket for live notifications
-      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
-      await socketService.connect(backendUrl, "test");
+      await connectSocketAsync();
       if (socketService.socket) {
         socketService.socket.emit("authenticate", { sessionToken });
       }
 
-      const playerNumber = data.playerNumber as 0 | 1;
-      const opponentNumber = (playerNumber === 0 ? 1 : 0) as 0 | 1;
-
-      // Reconstruct futureUnits
-      const futureUnits: Array<Array<IUnit>> = [
-        Array(data.unitsCount).fill(null),
-        Array(data.unitsCount).fill(null),
-      ];
-      if (data.futureUnits?.[playerNumber]) {
-        futureUnits[playerNumber] = data.futureUnits[playerNumber];
-      }
-      if (data.futureUnits?.[opponentNumber]) {
-        futureUnits[opponentNumber] = data.futureUnits[opponentNumber];
-      }
-
-      // Find first living unit
-      const myUnits = data.units?.[playerNumber] || [];
-      let firstLivingUnitIndex = 0;
-      for (let i = 0; i < data.unitsCount; i++) {
-        if (myUnits[i]?.life > 0) {
-          firstLivingUnitIndex = i;
-          break;
-        }
-      }
+      const stateUpdate = buildReconnectionState(data);
 
       this.setState(
-        {
-          playerIndex: playerNumber,
-          isAdmin: data.isAdmin,
-          boardWidth: data.boardWidth,
-          boardLength: data.boardLength,
-          placementZone: data.placementZone,
-          unitsCount: data.unitsCount,
-          units: data.units,
-          futureUnits,
-          flags: data.flags,
-          ready: [true, true],
-          terrain: data.terrain || [],
-          flagStayInPlace: data.flagStayInPlace ?? false,
-          unitConfig: data.unitConfig || undefined,
-          round: data.round,
-          step: data.futureUnits?.[playerNumber] ? data.unitsCount : data.step,
-          isInRoom: true,
-          gameStarted: true,
-          selectedUnit: data.futureUnits?.[playerNumber]
-            ? { playerNumber: -1, unitNumber: -1 }
-            : { playerNumber, unitNumber: firstLivingUnitIndex },
-          waitingForMoves: (() => {
-            const wfm = [false, false];
-            wfm[playerNumber] = data.futureUnits?.[playerNumber] != null;
-            wfm[opponentNumber] = data.futureUnits?.[opponentNumber] != null;
-            return wfm;
-          })(),
-          bufferOpponentUnits: Array(data.unitsCount).fill(null),
-          futureUnitsHistory: [],
-          placedUnits: [
-            Array(data.unitsCount).fill(true),
-            Array(data.unitsCount).fill(true),
-          ],
-          isSyncing: false,
-        },
+        stateUpdate,
         () => {
           console.log(
             `Reconnected to game at step ${this.state.step}, round ${this.state.round}`
           );
-          // Register socket listeners for live events
           this._handlePlayerReady();
           this._handleOpponentReconnected();
         }
@@ -1110,103 +967,9 @@ class App extends Component<AppProps, AppState> {
     isAdmin: boolean;
   }) => {
     console.log("Game state restored:", message);
-
-    const { gameState, playerNumber, isAdmin } = message;
-    const { game, players } = gameState;
-
-    // Find my player and opponent player
-    const myPlayer = players.find((p: any) => p.playerNumber === playerNumber);
-    const opponentPlayer = players.find((p: any) => p.playerNumber !== playerNumber);
-
-    // Reconstruct units array [player0Units, player1Units]
-    const units: Array<Array<IUnit>> = [[], []];
-    units[playerNumber] = myPlayer.units;
-    units[(playerNumber + 1) % 2] = opponentPlayer.units;
-
-    // Reconstruct futureUnits array
-    const futureUnits: Array<Array<IUnit>> = [
-      Array(game.unitsCount).fill(null),
-      Array(game.unitsCount).fill(null),
-    ];
-    if (myPlayer.futureUnits) {
-      futureUnits[playerNumber] = myPlayer.futureUnits;
-    }
-    if (opponentPlayer.futureUnits) {
-      futureUnits[(playerNumber + 1) % 2] = opponentPlayer.futureUnits;
-    }
-
-    // Reconstruct flags array
-    const flags: Array<IFlag> = [
-      { x: 0, y: Math.floor(game.boardLength / 2), originX: 0, originY: Math.floor(game.boardLength / 2), inZone: false },
-      { x: game.boardWidth - 1, y: Math.floor(game.boardLength / 2), originX: game.boardWidth - 1, originY: Math.floor(game.boardLength / 2), inZone: false },
-    ];
-    flags[playerNumber] = myPlayer.flag;
-    flags[(playerNumber + 1) % 2] = opponentPlayer.flag;
-
-    // Reconstruct ready array
-    const ready = [true, true]; // Both always ready in active game
-
-    // Find first living unit for selectedUnit
-    let firstLivingUnitIndex = 0;
-    for (let i = 0; i < game.unitsCount; i++) {
-      if (myPlayer.units[i]?.life > 0) {
-        firstLivingUnitIndex = i;
-        break;
-      }
-    }
-
-    // Restore state (skips all setup phases)
+    const stateUpdate = buildRestoredState(message, this.state.roomId);
     this.setState(
-      {
-        // Identity
-        playerIndex: playerNumber as 0 | 1,
-        isAdmin,
-
-        // Board config
-        boardWidth: game.boardWidth,
-        boardLength: game.boardLength,
-        placementZone: game.placementZone,
-        unitsCount: game.unitsCount,
-
-        // Game state
-        units,
-        futureUnits,
-        flags,
-        ready,
-        terrain: game.terrain || [],
-        flagStayInPlace: game.flagStayInPlace ?? false,
-        unitConfig: game.unitConfig || undefined,
-        round: game.round,
-        roomId: game.roomId || this.state.roomId,
-        // If player has submitted moves (futureUnits populated), they're at confirmation phase (step = unitsCount)
-        // Otherwise use the step from the database
-        step: myPlayer.futureUnits !== null ? game.unitsCount : game.step,
-
-        // Navigation state (skip intro/rooms/settings/placement)
-        isInRoom: true,
-        gameStarted: true,
-
-        // Selected unit — deselect if player already submitted moves
-        selectedUnit: myPlayer.futureUnits !== null
-          ? { playerNumber: -1, unitNumber: -1 }
-          : { playerNumber, unitNumber: firstLivingUnitIndex },
-
-        // Restore transient state based on futureUnits presence
-        // If a player has futureUnits, they've submitted moves and are waiting
-        waitingForMoves: [
-          myPlayer.futureUnits !== null,
-          opponentPlayer.futureUnits !== null,
-        ],
-        bufferOpponentUnits: Array(game.unitsCount).fill(null),
-        futureUnitsHistory: [],
-        placedUnits: [
-          Array(game.unitsCount).fill(true),
-          Array(game.unitsCount).fill(true),
-        ],
-
-        // Clear syncing overlay
-        isSyncing: false,
-      },
+      stateUpdate,
       () => {
         console.log(
           `Reconnected to game at step ${this.state.step}, round ${this.state.round}`
@@ -1256,106 +1019,11 @@ class App extends Component<AppProps, AppState> {
     preloadAnimatedSprites();
 
     if (import.meta.env.VITE_TEST_MODE === "true") {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const { loadScenario, scenarios } = require("./engine/scenarioLoader");
-      (window as any).__KOMBASS_TEST_API__ = {
-        loadScenario: (scenarioNameOrIndex: string | number) => {
-          const scenario =
-            typeof scenarioNameOrIndex === "number"
-              ? scenarios[scenarioNameOrIndex]
-              : scenarios.find((s: any) => s.name === scenarioNameOrIndex);
-          if (!scenario) {
-            console.error("Unknown scenario:", scenarioNameOrIndex);
-            return;
-          }
-          const loaded = loadScenario(scenario);
-          this.setState({
-            units: loaded.units,
-            futureUnits: loaded.futureUnits,
-            flags: loaded.flags,
-            unitsCount: loaded.unitsCount,
-            playerIndex: loaded.playerIndex,
-            step: loaded.step,
-            gameStarted: true,
-            ready: [true, true],
-            isTestScenario: loaded.isTestScenario || false,
-            flagStayInPlace: loaded.flagStayInPlace ?? false,
-            terrain: loaded.terrain || [],
-          });
-        },
-        getState: () => ({ ...this.state }),
-        triggerCombat: () => this._calculateCombatResults(),
-        setStep: (step: number) => this.setState({ step }),
-        getScenarios: () => scenarios.map((s: any, i: number) => ({ index: i, name: s.name, description: s.description })),
-        /**
-         * Load a confirm-step scenario for testing undo/step-skip with dead units.
-         * Sets up 3 units where unit 1 is dead. Starts at confirm step (step=unitsCount=3).
-         * Units 0 and 2 have already "moved" (futureUnits populated).
-         * Test: undo twice — second undo should skip dead unit 1 and go to unit 0.
-         */
-        loadUndoScenario: () => {
-          const aliveUnit = (x: number, y: number) => ({
-            x, y, strength: 2, range: 2, speed: 2, life: 2,
-            hasFlag: false, unitType: 1,
-          });
-          const dead = {
-            x: 5, y: 5, strength: 0, range: 0, speed: 0, life: -1,
-            hasFlag: false, unitType: 1,
-          };
-          const units: IUnit[][] = [
-            [aliveUnit(2, 2), dead, aliveUnit(8, 8)],
-            [aliveUnit(18, 18), aliveUnit(17, 17), aliveUnit(16, 16)],
-          ];
-          // Units 0 and 2 have "moved" — unit 0 moved to (3,3), unit 2 moved to (9,9)
-          const movedUnit0 = { ...aliveUnit(3, 3) };
-          const movedUnit2 = { ...aliveUnit(9, 9) };
-          const futureUnits: Array<Array<IUnit>> = [
-            [movedUnit0, null as any, movedUnit2],
-            Array(3).fill(null),
-          ];
-          // History: player's units snapshot after each move (unit 0, then unit 2)
-          const futureUnitsHistory: Array<Array<IUnit>> = [
-            [movedUnit0, null as any, null as any],  // after unit 0 moved
-            [movedUnit0, null as any, movedUnit2],    // after unit 2 moved
-          ];
-          this.setState({
-            units,
-            futureUnits,
-            futureUnitsHistory,
-            flags: [
-              { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
-              { x: 20, y: 10, originX: 20, originY: 10, inZone: true },
-            ],
-            unitsCount: 3,
-            playerIndex: 0,
-            step: 3,
-            gameStarted: true,
-            ready: [true, true],
-            isTestScenario: true,
-            boardLength: 21,
-            boardWidth: 21,
-            selectedUnit: { playerNumber: -1, unitNumber: -1 },
-            round: 2,
-          });
-        },
-      };
-
-      // Auto-load scenario from sessionStorage if present
-      const storedScenario = sessionStorage.getItem("KOMBASS_TEST_SCENARIO");
-      if (storedScenario) {
-        sessionStorage.removeItem("KOMBASS_TEST_SCENARIO");
-        setTimeout(() => {
-          (window as any).__KOMBASS_TEST_API__.loadScenario(storedScenario);
-        }, 0);
-      }
-
-      const undoScenario = sessionStorage.getItem("KOMBASS_UNDO_SCENARIO");
-      if (undoScenario) {
-        sessionStorage.removeItem("KOMBASS_UNDO_SCENARIO");
-        setTimeout(() => {
-          (window as any).__KOMBASS_TEST_API__.loadUndoScenario();
-        }, 0);
-      }
+      setupTestApi(
+        (s: any) => this.setState(s),
+        () => this.state,
+        () => this._calculateCombatResults(),
+      );
     }
 
     // Check for room ID in URL

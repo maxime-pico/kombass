@@ -807,7 +807,7 @@ function Board(props: BoardProps) {
       placement,
       false
     );
-    const containsUnits =
+    const unitOnSquare =
       containsUnitsPlayer.unit && containsUnitsPlayer.display
         ? containsUnitsPlayer
         : containsUnitsOpponent.unit && containsUnitsOpponent.display
@@ -872,8 +872,8 @@ function Board(props: BoardProps) {
       };
     }
 
-    const containsFlag = containsFlag(col, row);
-    const isReachable = isReachable(unit, col, row, placement, selectedUnitBfsSet);
+    const flagOnSquare = containsFlag(col, row);
+    const squareReachable = isReachable(unit, col, row, placement, selectedUnitBfsSet);
     const manhattanOnlyReachable = !placement && isManhattanOnlyReachable(unit, col, row, selectedUnitBfsSet);
     const key = `${col},${row}`;
     const opponentCanReach = opponentReachGrid.borders.has(key);
@@ -881,11 +881,11 @@ function Board(props: BoardProps) {
     const opponentReachCorners = null; // corners disabled for now
     const ownReachBorders = ownUnmovedReachGrid.borders.get(key) || null;
     const hoveredReachBorders = hoveredReachGrid?.borders.get(key) || null;
-    const isForbidden = isForbidden(unit, col, row, placement);
-    const isInDanger = isInDanger(col, row, placement);
-    const dangerClasses = getDangerClasses(col, row, isInDanger);
+    const squareForbidden = isForbidden(unit, col, row, placement);
+    const squareInDanger = isInDanger(col, row, placement);
+    const dangerClasses = getDangerClasses(col, row, squareInDanger);
     const dangerHighlighted = isDangerHighlighted(col, row);
-    const isFlagZone = isFlagZone(col, row);
+    const squareIsFlagZone = isFlagZone(col, row);
     return (
       <Square
         changePosition={changePositionWithPath}
@@ -894,16 +894,16 @@ function Board(props: BoardProps) {
         screenShake={props.screenShake}
         boardWidth={boardWidth}
         col={col}
-        containsFlag={containsFlag}
+        containsFlag={flagOnSquare}
         ghostUnit={containsGhostUnits}
         containsOpponentGhostUnits={containsOpponentGhostUnits}
-        isFlagZone={isFlagZone}
-        isForbidden={isForbidden}
+        isFlagZone={squareIsFlagZone}
+        isForbidden={squareForbidden}
         isTerrain={isTerrainSquare(col, row)}
-        isInDanger={isInDanger}
+        isInDanger={squareInDanger}
         dangerClasses={dangerClasses}
         dangerHighlighted={dangerHighlighted}
-        isReachable={isReachable}
+        isReachable={squareReachable}
         manhattanOnlyReachable={manhattanOnlyReachable}
         opponentCanReach={opponentCanReach}
         opponentReachBorders={opponentReachBorders}
@@ -918,7 +918,7 @@ function Board(props: BoardProps) {
         key={`${col} ${row}`}
         row={row}
         selected={isSelected(col, row, selectedUnit)}
-        unit={containsUnits}
+        unit={unitOnSquare}
       />
     );
   };
