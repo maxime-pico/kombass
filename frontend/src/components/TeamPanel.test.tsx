@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import TeamPanel from './TeamPanel';
-import { IUnit, ISelectedUnit } from '../App';
+import { IUnit, ISelectedUnit } from '../types';
 
 describe('TeamPanel Component', () => {
   const mockUnits: Array<IUnit> = [

@@ -4,7 +4,7 @@ import Panel from "./Panel";
 import Modal from "./Modal";
 import TeamPanel from "./TeamPanel";
 import VolumeControl from "./VolumeControl";
-import { IUnit, ISelectedUnit, IPlayers, IFlag } from "../App";
+import { IUnit, ISelectedUnit, IPlayers, IFlag } from "../types";
 import socketService from "../services/socketService";
 import gameService from "../services/gameService";
 

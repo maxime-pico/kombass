@@ -1,5 +1,5 @@
 import { CombatInput } from "./combatEngine";
-import { IAnimationItem, IBoomEvent, IFlag } from "../App";
+import { IAnimationItem, IBoomEvent, IFlag } from "../types";
 
 export interface AnimationBuildOptions {
   movementPaths?: Array<Array<{ x: number; y: number }> | null>;

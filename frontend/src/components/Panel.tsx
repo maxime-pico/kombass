@@ -4,7 +4,7 @@ import socketService from "../services/socketService";
 import gameService from "../services/gameService";
 import { gamePost } from "../services/api";
 import { playPingSound } from "../utilities/sound";
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 
 interface PanelProps {
   round: number;

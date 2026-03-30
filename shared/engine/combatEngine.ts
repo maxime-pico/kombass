@@ -2,10 +2,8 @@ import { IUnit, IFlag, CombatInput, CombatResult } from "../types";
 
 /**
  * Check if two units are in combat range, from the attacker's perspective.
- * Light (range=1) uses Euclidean squared: dx² + dy² ≤ 1
+ * Light (range=1) uses Euclidean squared: dx² + dy² ≤ 2 (hits diagonals)
  * Medium/Heavy use Manhattan distance: |dx| + |dy| ≤ range
- *
- * When both are Light (range=1), both use Euclidean squared ≤ 2.
  */
 export function isInCombatRange(
   attackerX: number,
@@ -20,14 +18,9 @@ export function isInCombatRange(
   const dx = Math.abs(attackerX - defenderX);
   const dy = Math.abs(attackerY - defenderY);
 
-  // Both Light (range=1): symmetric Euclidean squared ≤ 2
-  if (attackerRange === 1 && defenderRange === 1) {
-    return dx ** 2 + dy ** 2 <= 2;
-  }
-
-  // Attacker is Light (range=1): Euclidean squared ≤ 1
+  // Light (range=1): Euclidean squared ≤ 2 (hits diagonals)
   if (attackerRange === 1) {
-    return dx ** 2 + dy ** 2 <= 1;
+    return dx ** 2 + dy ** 2 <= 2;
   }
 
   // Attacker is Medium/Heavy: Manhattan distance ≤ range

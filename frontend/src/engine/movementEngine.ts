@@ -2,7 +2,7 @@
  * Pure functions for unit movement logic.
  * Extracted from App.tsx _changePosition and _undoMove for testability.
  */
-import { IUnit, IFlag } from "../App";
+import { IUnit, IFlag } from "../types";
 
 export interface ChangePositionInput {
   units: IUnit[][];

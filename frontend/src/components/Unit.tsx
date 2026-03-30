@@ -1,7 +1,7 @@
 import React from "react";
 import { UNITS } from "../utilities/dict";
 import Flag from "./Flag";
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 import AnimatedLightUnit from "./AnimatedLightUnit";
 import AnimatedMediumUnit from "./AnimatedMediumUnit";
 import AnimatedHeavyUnit from "./AnimatedHeavyUnit";

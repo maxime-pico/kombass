@@ -1,5 +1,5 @@
 import { placeUnit } from "../placementEngine";
-import { IUnit } from "../../App";
+import { IUnit } from "../../types";
 
 function makeUnit(overrides: Partial<IUnit> = {}): IUnit {
   return {

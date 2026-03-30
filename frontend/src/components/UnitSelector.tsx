@@ -1,7 +1,7 @@
 import React, { useContext } from "react";
 import gameContext from "../gameContext";
 import Unit from "./Unit";
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 
 interface UnitSelectorProps {
   unit: IUnit;

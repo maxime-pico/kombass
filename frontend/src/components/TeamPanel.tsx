@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
 import Unit from "./Unit";
-import { IUnit, ISelectedUnit } from "../App";
+import { IUnit, ISelectedUnit } from "../types";
 import gameContext, { isCustomEvent } from "../gameContext";
 
 interface TeamPanelProps {

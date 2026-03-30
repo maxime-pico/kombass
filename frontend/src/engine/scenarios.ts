@@ -1,4 +1,4 @@
-import { IUnit, IFlag } from "../App";
+import { IUnit, IFlag } from "../types";
 import { CombatInput } from "./combatEngine";
 
 /**

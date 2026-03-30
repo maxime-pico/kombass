@@ -1,5 +1,5 @@
 import { scenarios, TestScenario } from "./scenarios";
-import { IUnit, IFlag } from "../App";
+import { IUnit, IFlag } from "../types";
 
 export interface LoadedScenario {
   units: IUnit[][];

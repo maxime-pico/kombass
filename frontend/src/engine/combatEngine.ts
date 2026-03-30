@@ -1,19 +1,6 @@
-import { IUnit, IFlag } from "../App";
-
-export interface CombatInput {
-  units: IUnit[][];
-  futureUnits: IUnit[][];
-  flags: IFlag[];
-  isPlayer: 0 | 1;
-  unitsCount: number;
-  flagStayInPlace?: boolean;
-}
-
-export interface CombatResult {
-  newFutureUnits: IUnit[][];
-  flags: IFlag[];
-  firstLivingUnitIndex: number;
-}
+import { IUnit, IFlag } from "../types";
+import type { CombatInput, CombatResult } from "../types";
+export type { CombatInput, CombatResult };
 
 /**
  * Check if two units are in combat range, from the attacker's perspective.

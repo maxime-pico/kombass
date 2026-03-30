@@ -1,6 +1,6 @@
 import { checkWinCondition } from "../winCondition";
 import { unit } from "../scenarios";
-import { IFlag } from "../../App";
+import { IFlag } from "../../types";
 
 const defaultFlags: IFlag[] = [
   { x: 0, y: 10, originX: 0, originY: 10, inZone: true },

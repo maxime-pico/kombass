@@ -1,6 +1,6 @@
 import React from "react";
 import Unit from "./Unit";
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 
 interface UnitToPlaceProps {
   unit: IUnit;

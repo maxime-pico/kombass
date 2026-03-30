@@ -1,5 +1,5 @@
 import React from "react";
-import { IUnit, ISelectedUnit, IFlag, IPlayers, IAnimationPhase } from "./App";
+import { IUnit, ISelectedUnit, IFlag, IPlayers, IAnimationPhase } from "./types";
 import type { UnitConfig } from "./utilities/dict";
 import { defaultUnitConfig } from "./utilities/dict";
 

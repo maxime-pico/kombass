@@ -1,10 +1,6 @@
-import { IUnit, IFlag } from "../App";
-
-export interface WinResult {
-  gameOver: string;
-  winner: number | null;
-  loser: number | null;
-}
+import { IUnit, IFlag } from "../types";
+import type { WinResult } from "../types";
+export type { WinResult };
 
 /**
  * Pure function to check win conditions.

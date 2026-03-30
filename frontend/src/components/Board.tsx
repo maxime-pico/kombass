@@ -1,7 +1,7 @@
 import React, { useCallback, useContext, useMemo, useRef, useState } from "react";
 import Square from "./Square";
 import Embuscade from "./Embuscade";
-import { IUnit, ISelectedUnit } from "../App";
+import { IUnit, ISelectedUnit } from "../types";
 import gameContext, { dispatchCustomEvent } from "../gameContext";
 
 interface BoardProps {

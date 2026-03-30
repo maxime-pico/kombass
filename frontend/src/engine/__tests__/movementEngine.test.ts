@@ -1,5 +1,5 @@
 import { changePosition, undoMove } from "../movementEngine";
-import { IUnit, IFlag } from "../../App";
+import { IUnit, IFlag } from "../../types";
 
 function makeUnit(overrides: Partial<IUnit> = {}): IUnit {
   return {

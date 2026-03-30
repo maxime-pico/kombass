@@ -2,7 +2,7 @@
  * Pure functions for unit placement logic.
  * Extracted from App.tsx _placeUnit for testability.
  */
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 
 export interface PlaceUnitInput {
   units: IUnit[][];

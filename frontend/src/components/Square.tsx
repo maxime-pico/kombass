@@ -3,7 +3,7 @@ import Unit from "./Unit";
 import Flag from "./Flag";
 import { AUDIO } from "../utilities/dict";
 import { getGain } from "../utilities/volume";
-import { IUnit } from "../App";
+import { IUnit } from "../types";
 import gameContext, { isCustomEvent } from "../gameContext";
 
 interface SquareProps {

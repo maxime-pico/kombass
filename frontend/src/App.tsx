@@ -8,7 +8,7 @@ import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
-import { UNITS, SPRITES, defaultUnitConfig, UnitConfig } from "./utilities/dict";
+import { UNITS, SPRITES, defaultUnitConfig } from "./utilities/dict";
 import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
 import gameService from "./services/gameService";
@@ -18,63 +18,7 @@ import { buildAnimationQueue, buildBoomQueue } from "./engine/animationEngine";
 import { findNextAliveStep } from "./engine/stepLogic";
 import { changePosition as computeChangePosition, undoMove as computeUndoMove } from "./engine/movementEngine";
 import { placeUnit as computePlaceUnit } from "./engine/placementEngine";
-
-export type IPlayer = 0 | 1;
-export type IPlayers = Array<{ name: string; color: string }>;
-export type IUnit = {
-  strength: number;
-  range: number;
-  speed: number;
-  x: number;
-  y: number;
-  life: number;
-  hasFlag: boolean;
-  unitType: number; // 0=light, 1=medium, 2=heavy (sprite/cycling index, decoupled from stats)
-};
-export type ISelectedUnit = {
-  playerNumber: number;
-  unitNumber: number;
-};
-export type IFlag = { x: number; y: number; originX: number; originY: number; inZone: boolean };
-
-export type IGameSettings = {
-  boardWidth: number;
-  boardLength: number;
-  placementZone: number;
-  unitsCount: number;
-  unitConfig?: UnitConfig;
-  terrain?: Array<{ x: number; y: number }>;
-  randomTerrain?: boolean;
-  flagStayInPlace?: boolean;
-};
-
-export type IAnimationItem = {
-  player: 0 | 1;
-  unitIndex: number;
-  unit: IUnit;
-  fromX: number;
-  fromY: number;
-  toX: number;
-  toY: number;
-  path?: Array<{ x: number; y: number }>;
-};
-
-export type IBoomEvent = {
-  afterAnimationIndex: number;
-  x: number;
-  y: number;
-};
-
-export type AnimationSubPhase = 'idle' | 'pre-move' | 'moving' | 'post-move' | 'scanning' | 'targeting' | 'combat';
-
-export type IAnimationPhase = {
-  isAnimating: boolean;
-  currentAnimationIndex: number;
-  animationSubPhase: AnimationSubPhase;
-  queue: Array<IAnimationItem>;
-  boomQueue: Array<IBoomEvent>;
-  deadUnits: Set<string>; // Format: "player_unitIndex" (e.g., "0_2" for player 0, unit 2)
-};
+import type { IUnit, IFlag, IGameSettings, IPlayer, IPlayers, ISelectedUnit, IAnimationItem, IBoomEvent, AnimationSubPhase, IAnimationPhase, UnitConfig } from "./types";
 
 function preloading(url: string) {
   var img = new Image();
