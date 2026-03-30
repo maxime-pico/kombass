@@ -30,24 +30,24 @@ function TeamPanel(props: TeamPanelProps) {
   return (
     <div className="teamPanel-container">
       <div className="teamPanel">
-        {units.map((unit, unit_index) => {
+        {units.map((unit, unitIdx) => {
           if (!unit) return null;
           selected =
             (selectedUnit.playerNumber === playerIndex &&
-            selectedUnit.unitNumber === unit_index) ||
+            selectedUnit.unitNumber === unitIdx) ||
             (hoveredUnit?.player === playerIndex &&
-            hoveredUnit?.index === unit_index);
+            hoveredUnit?.index === unitIdx);
 
           // Check if unit is dead during animation
-          const unitKey = `${playerIndex}_${unit_index}`;
+          const unitKey = `${playerIndex}_${unitIdx}`;
           const isDeadDuringAnimation = animationPhase.isAnimating && animationPhase.deadUnits.has(unitKey);
           const isDead = unit.life < 1 || isDeadDuringAnimation;
 
           return (
-            <div key={unit_index} className="teamPanel-box">
+            <div key={unitIdx} className="teamPanel-box">
               {isDead ? (
                 <div
-                  className={`unitPanel-foreground p${playerIndex + 1}${
+                  className={`unitPanel-foreground p${playerIndex}${
                     selected ? " selected" : ""
                   }`}
                 ></div>
@@ -59,7 +59,7 @@ function TeamPanel(props: TeamPanelProps) {
                 isGhost={false}
               />
               <div
-                className={`unitPanel-background p${playerIndex + 1}${
+                className={`unitPanel-background p${playerIndex}${
                   selected ? " selected" : ""
                 }`}
               ></div>

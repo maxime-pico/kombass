@@ -215,7 +215,7 @@ export function submitMoves(state: GameState, input: MoveInput): TransitionResul
     units: state.units,
     futureUnits: newFutureUnits as IUnit[][],
     flags: state.flags,
-    isPlayer: 0,
+    playerIndex: 0,
     unitsCount: state.unitsCount,
     flagStayInPlace: state.flagStayInPlace,
   });

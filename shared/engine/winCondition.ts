@@ -16,18 +16,18 @@ export function checkWinCondition(
   let deadUnits = [0, 0];
   let isFlagInZone = [false, false];
 
-  units.forEach((playerUnits, player_index) => {
-    let ownFlag = flags[player_index];
+  units.forEach((playerUnits, playerIdx) => {
+    let ownFlag = flags[playerIdx];
     const fx = ownFlag.originX ?? ownFlag.x;
     const fy = ownFlag.originY ?? ownFlag.y;
     playerUnits.forEach((unit) => {
-      deadUnits[player_index] =
-        unit?.life > 0 ? deadUnits[player_index] : deadUnits[player_index] + 1;
+      deadUnits[playerIdx] =
+        unit?.life > 0 ? deadUnits[playerIdx] : deadUnits[playerIdx] + 1;
       let flagInZone =
         unit?.hasFlag &&
         unit?.life > 0 &&
         Math.abs(unit.x - fx) + Math.abs(unit.y - fy) <= 3;
-      isFlagInZone[player_index] = isFlagInZone[player_index] || flagInZone;
+      isFlagInZone[playerIdx] = isFlagInZone[playerIdx] || flagInZone;
     });
   });
 

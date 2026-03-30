@@ -7,7 +7,7 @@ import { defaultUnitConfig } from "../utilities/dict";
 import { generateTerrain } from "../engine/terrainGenerator";
 
 interface SettingsProps {
-  _selectUnits: () => void;
+  selectUnits: () => void;
   roomId: string;
 }
 
@@ -16,22 +16,22 @@ const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
 function Settings(props: SettingsProps) {
   const {
     isAdmin,
-    _setIsAdmin,
-    _setIsPlayer,
-    _setGameStarted,
+    setIsAdmin,
+    setPlayerIndex,
+    setGameStarted,
     gameStarted,
     boardWidth,
     boardLength,
-    _setBoardSize,
+    setBoardSize,
     placementZone,
-    _setPlacementZone,
+    setPlacementZone,
     unitsCount,
-    _setUnitCount,
+    setUnitCount,
     unitConfig,
-    _setUnitConfig,
-    _setTerrain,
-    _setFlags,
-    _setFlagStayInPlace,
+    setUnitConfig,
+    setTerrain,
+    setFlags,
+    setFlagStayInPlace,
     flagStayInPlace,
     flags,
   } = useContext(gameContext);
@@ -75,18 +75,18 @@ function Settings(props: SettingsProps) {
   };
 
   const settingsReady = () => {
-    _setUnitConfig(localUnitConfig);
+    setUnitConfig(localUnitConfig);
     let terrain: Array<{ x: number; y: number }> = [];
     if (importedMap) {
       terrain = importedMap.terrain;
-      _setTerrain(terrain);
+      setTerrain(terrain);
       const importedFlags = importedMap.flags.map((f) => ({
         x: f.x, y: f.y, originX: f.x, originY: f.y, inZone: true,
       }));
-      _setFlags(importedFlags);
+      setFlags(importedFlags);
     } else if (terrainPercentage > 0) {
       terrain = generateTerrain(boardWidth, boardLength, flags, placementZone, terrainPercentage);
-      _setTerrain(terrain);
+      setTerrain(terrain);
     }
     const body = { ...settings, terrain, terrainPercentage, randomTerrain: terrainPercentage > 0 && !importedMap, flags: importedMap ? importedMap.flags.map((f) => ({ x: f.x, y: f.y, originX: f.x, originY: f.y, inZone: true })) : undefined };
     fetch(`${backendUrl}/api/room/${props.roomId}/settings`, {
@@ -101,34 +101,34 @@ function Settings(props: SettingsProps) {
     const socket = socketService.socket;
 
     gameService.onJoinedGame(socket, (options) => {
-      _setIsAdmin(options.admin);
-      _setIsPlayer(options.player);
-      _setGameStarted();
+      setIsAdmin(options.admin);
+      setPlayerIndex(options.player);
+      setGameStarted();
     });
 
 
     const onConfirmed = (settings: { boardWidth: number; boardLength: number; placementZone: number; unitsCount: number; unitConfig?: UnitConfig; terrain?: Array<{ x: number; y: number }>; flags?: Array<{ x: number; y: number; originX: number; originY: number; inZone: boolean }>; flagStayInPlace?: boolean }) => {
-      _setBoardSize(settings.boardLength, settings.boardWidth, settings.flags || undefined);
-      _setPlacementZone(settings.placementZone);
-      _setUnitCount(settings.unitsCount);
+      setBoardSize(settings.boardLength, settings.boardWidth, settings.flags || undefined);
+      setPlacementZone(settings.placementZone);
+      setUnitCount(settings.unitsCount);
       if (settings.unitConfig) {
-        _setUnitConfig(settings.unitConfig);
+        setUnitConfig(settings.unitConfig);
         setLocalUnitConfig(settings.unitConfig);
       }
       if (settings.terrain) {
-        _setTerrain(settings.terrain);
+        setTerrain(settings.terrain);
       }
       if (settings.flagStayInPlace !== undefined) {
-        _setFlagStayInPlace(settings.flagStayInPlace);
+        setFlagStayInPlace(settings.flagStayInPlace);
       }
-      props._selectUnits();
+      props.selectUnits();
     };
     gameService.onSettingsConfirmed(socket, onConfirmed);
 
     return () => {
       socket.off("settings_confirmed", onConfirmed);
     };
-  }, [_setIsAdmin, _setIsPlayer, _setGameStarted, _setBoardSize, _setPlacementZone, _setUnitCount, _setUnitConfig, _setFlagStayInPlace, props]);
+  }, [setIsAdmin, setPlayerIndex, setGameStarted, setBoardSize, setPlacementZone, setUnitCount, setUnitConfig, setFlagStayInPlace, props]);
 
   return (
     <div>
@@ -160,7 +160,7 @@ function Settings(props: SettingsProps) {
               min="20"
               value={boardWidth}
               onChange={(e) =>
-                _setBoardSize(boardLength, parseInt(e.target.value))
+                setBoardSize(boardLength, parseInt(e.target.value))
               }
             />
             Width
@@ -171,7 +171,7 @@ function Settings(props: SettingsProps) {
               min="20"
               value={boardLength}
               onChange={(e) =>
-                _setBoardSize(parseInt(e.target.value), boardWidth)
+                setBoardSize(parseInt(e.target.value), boardWidth)
               }
             />
           </div>
@@ -186,7 +186,7 @@ function Settings(props: SettingsProps) {
               name="placementZone"
               min="1"
               value={placementZone}
-              onChange={(e) => _setPlacementZone(parseInt(e.target.value))}
+              onChange={(e) => setPlacementZone(parseInt(e.target.value))}
             />
           </div>
           <div className="subtitle">How many units per player?</div>
@@ -197,7 +197,7 @@ function Settings(props: SettingsProps) {
               name="unitsCount"
               min="1"
               value={unitsCount}
-              onChange={(e) => _setUnitCount(parseInt(e.target.value))}
+              onChange={(e) => setUnitCount(parseInt(e.target.value))}
             />
           </div>
           <br />
@@ -231,7 +231,7 @@ function Settings(props: SettingsProps) {
                   reader.onload = () => {
                     try {
                       const data = JSON.parse(reader.result as string);
-                      _setBoardSize(data.boardLength, data.boardWidth);
+                      setBoardSize(data.boardLength, data.boardWidth);
                       setImportedMap({ terrain: data.terrain || [], flags: data.flags || [] });
                     } catch {
                       console.error("Invalid map file");
@@ -275,7 +275,7 @@ function Settings(props: SettingsProps) {
                   <input
                     type="checkbox"
                     checked={flagStayInPlace}
-                    onChange={(e) => _setFlagStayInPlace(e.target.checked)}
+                    onChange={(e) => setFlagStayInPlace(e.target.checked)}
                   />
                   Flag stays in place when carrier dies
                 </label>
@@ -374,7 +374,7 @@ function Settings(props: SettingsProps) {
             <button
               className={`button ${gameStarted ? "active" : "disabled"}`}
               onClick={() => {
-                // props._selectUnits();
+                // props.selectUnits();
                 settingsReady();
               }}
               disabled={!gameStarted}

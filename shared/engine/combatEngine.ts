@@ -50,23 +50,23 @@ export function isInFlagZone(x: number, y: number, flags: IFlag[]): boolean {
  * - Flag capture/return is tracked via hasFlag property
  */
 export function calculateCombatResults(input: CombatInput): CombatResult {
-  const { units, futureUnits, isPlayer, unitsCount, flagStayInPlace } = input;
+  const { units, futureUnits, playerIndex, unitsCount, flagStayInPlace } = input;
   let flags = [...input.flags];
-  const opponentNumber = ((isPlayer + 1) % 2) as 0 | 1;
+  const opponentNumber = ((playerIndex + 1) % 2) as 0 | 1;
 
-  let myFutureUnits = [...futureUnits[isPlayer]];
+  let myFutureUnits = [...futureUnits[playerIndex]];
   let futureOpponentUnits = [...futureUnits[opponentNumber]];
 
-  myFutureUnits.forEach((myUnit, my_unit_index) => {
+  myFutureUnits.forEach((myUnit, myUnitIdx) => {
     let life = myUnit?.life;
     let strength = myUnit?.strength;
     let damageTaken = 0;
     let x = myUnit?.x;
     let y = myUnit?.y;
 
-    futureOpponentUnits.forEach((opponentUnit, unit_index) => {
+    futureOpponentUnits.forEach((opponentUnit, unitIdx) => {
       // Only consider living units at beginning of turn
-      if (units[opponentNumber][unit_index]?.life > 0) {
+      if (units[opponentNumber][unitIdx]?.life > 0) {
         let a = opponentUnit?.x;
         let b = opponentUnit?.y;
         let opponentStrength = opponentUnit?.strength;
@@ -98,7 +98,7 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
               y: b,
               life: opponentUnit?.life - strength,
             };
-            futureOpponentUnits[unit_index] = opponentUnit;
+            futureOpponentUnits[unitIdx] = opponentUnit;
           }
           // Accumulate damage to my unit
           if (canOpponentHitMe) {
@@ -106,8 +106,8 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
           }
         }
       } else {
-        opponentUnit = { ...units[opponentNumber][unit_index] };
-        futureOpponentUnits[unit_index] = opponentUnit;
+        opponentUnit = { ...units[opponentNumber][unitIdx] };
+        futureOpponentUnits[unitIdx] = opponentUnit;
       }
     });
 
@@ -115,14 +115,14 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
       ...myUnit,
       life: life - damageTaken,
     };
-    myFutureUnits[my_unit_index] = myUnit;
+    myFutureUnits[myUnitIdx] = myUnit;
   });
 
   // Make sure no units end up missing
-  units[isPlayer].forEach((myUnit, myUnit_index) => {
-    if (myUnit?.life < 1) myFutureUnits[myUnit_index] = myUnit;
+  units[playerIndex].forEach((myUnit, myUnitIdx) => {
+    if (myUnit?.life < 1) myFutureUnits[myUnitIdx] = myUnit;
     if (myUnit === null)
-      myFutureUnits[myUnit_index] = {
+      myFutureUnits[myUnitIdx] = {
         x: -1,
         y: -1,
         life: -1,
@@ -136,34 +136,34 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
 
   // Build result
   let newFutureUnits: IUnit[][] = [];
-  newFutureUnits[isPlayer] = myFutureUnits;
+  newFutureUnits[playerIndex] = myFutureUnits;
   newFutureUnits[opponentNumber] = futureOpponentUnits;
 
   // Check how to update flags as a result
-  units.forEach((playerUnits, playerIndex) => {
+  units.forEach((playerUnits, pIdx) => {
     playerUnits.forEach((element, index) => {
       if (!element) return;
       if (element.life < 1) return;  // Skip already-dead units from prior rounds
       let hadFlag = element.hasFlag;
-      let opponentFlag = flags[(playerIndex + 1) % 2];
-      if (hadFlag && newFutureUnits[playerIndex][index]?.life < 1) {
+      let opponentFlag = flags[(pIdx + 1) % 2];
+      if (hadFlag && newFutureUnits[pIdx][index]?.life < 1) {
         if (flagStayInPlace) {
           // Drop flag at the dead unit's future position
-          const deadUnit = newFutureUnits[playerIndex][index];
-          opponentFlag = { ...flags[(playerIndex + 1) % 2], x: deadUnit.x, y: deadUnit.y, inZone: true };
+          const deadUnit = newFutureUnits[pIdx][index];
+          opponentFlag = { ...flags[(pIdx + 1) % 2], x: deadUnit.x, y: deadUnit.y, inZone: true };
         } else {
           // Return flag to home base (origin)
-          const orig = flags[(playerIndex + 1) % 2];
+          const orig = flags[(pIdx + 1) % 2];
           opponentFlag = { ...orig, x: orig.originX ?? orig.x, y: orig.originY ?? orig.y, inZone: true };
         }
-        flags[(playerIndex + 1) % 2] = opponentFlag;
+        flags[(pIdx + 1) % 2] = opponentFlag;
       } else if (
         !hadFlag &&
-        newFutureUnits[playerIndex][index]?.hasFlag &&
-        newFutureUnits[playerIndex][index]?.life > 0
+        newFutureUnits[pIdx][index]?.hasFlag &&
+        newFutureUnits[pIdx][index]?.life > 0
       ) {
-        opponentFlag = { ...flags[(playerIndex + 1) % 2], inZone: false };
-        flags[(playerIndex + 1) % 2] = opponentFlag;
+        opponentFlag = { ...flags[(pIdx + 1) % 2], inZone: false };
+        flags[(pIdx + 1) % 2] = opponentFlag;
       }
     });
   });

@@ -1,6 +1,6 @@
 /**
  * Pure functions for unit movement logic.
- * Extracted from App.tsx _changePosition and _undoMove for testability.
+ * Extracted from App.tsx changePosition and undoMove for testability.
  */
 import { IUnit, IFlag } from "../types";
 
@@ -83,7 +83,7 @@ export interface UndoMoveInput {
   futureUnits: IUnit[][];
   futureUnitsHistory: IUnit[][];
   unitsCount: number;
-  isPlayer: 0 | 1;
+  playerIndex: 0 | 1;
 }
 
 export interface UndoMoveResult {
@@ -97,7 +97,7 @@ export interface UndoMoveResult {
  * Pops the last entry from history and reverts futureUnits.
  */
 export function undoMove(input: UndoMoveInput): UndoMoveResult {
-  const { futureUnits, isPlayer, unitsCount } = input;
+  const { futureUnits, playerIndex, unitsCount } = input;
   const newHistory = [...input.futureUnitsHistory];
   newHistory.pop();
 
@@ -106,7 +106,7 @@ export function undoMove(input: UndoMoveInput): UndoMoveResult {
     : Array(unitsCount).fill(null);
 
   const newFutureUnits = [...futureUnits];
-  newFutureUnits[isPlayer] = [...myFutureUnits];
+  newFutureUnits[playerIndex] = [...myFutureUnits];
 
   return {
     futureUnits: newFutureUnits,

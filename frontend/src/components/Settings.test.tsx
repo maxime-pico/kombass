@@ -31,22 +31,22 @@ import gameService from "../services/gameService";
 
 const defaultContextValue = {
   isAdmin: false,
-  _setIsAdmin: vi.fn(),
-  _setIsPlayer: vi.fn(),
-  _setGameStarted: vi.fn(),
+  setIsAdmin: vi.fn(),
+  setPlayerIndex: vi.fn(),
+  setGameStarted: vi.fn(),
   gameStarted: false,
   boardWidth: 20,
   boardLength: 20,
-  _setBoardSize: vi.fn(),
+  setBoardSize: vi.fn(),
   placementZone: 5,
-  _setPlacementZone: vi.fn(),
+  setPlacementZone: vi.fn(),
   unitsCount: 5,
-  _setUnitCount: vi.fn(),
+  setUnitCount: vi.fn(),
   unitConfig: defaultUnitConfig(),
-  _setUnitConfig: vi.fn(),
-  _setTerrain: vi.fn(),
-  _setFlags: vi.fn(),
-  _setFlagStayInPlace: vi.fn(),
+  setUnitConfig: vi.fn(),
+  setTerrain: vi.fn(),
+  setFlags: vi.fn(),
+  setFlagStayInPlace: vi.fn(),
   flagStayInPlace: false,
   flags: [
     { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
@@ -57,7 +57,7 @@ const defaultContextValue = {
 function renderSettings(selectUnitsMock: Mock) {
   return render(
     <gameContext.Provider value={defaultContextValue as any}>
-      <Settings _selectUnits={selectUnitsMock} roomId="testroom" />
+      <Settings selectUnits={selectUnitsMock} roomId="testroom" />
     </gameContext.Provider>
   );
 }
@@ -66,7 +66,7 @@ describe("Settings READY button gating", () => {
   it("READY button is disabled when gameStarted is false", () => {
     const { getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, gameStarted: false, isAdmin: true } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
     expect(getByText("READY").closest("button")).toBeDisabled();
@@ -75,7 +75,7 @@ describe("Settings READY button gating", () => {
   it("READY button is enabled when gameStarted is true", () => {
     const { getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, gameStarted: true, isAdmin: true } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
     expect(getByText("READY").closest("button")).not.toBeDisabled();
@@ -93,7 +93,7 @@ describe("Settings component socket events", () => {
   });
 
 
-  it("calls _selectUnits when settings_confirmed is received", () => {
+  it("calls selectUnits when settings_confirmed is received", () => {
     const mockSelectUnits = vi.fn();
     renderSettings(mockSelectUnits);
 
@@ -106,12 +106,12 @@ describe("Settings component socket events", () => {
     expect(mockSelectUnits).toHaveBeenCalledTimes(1);
   });
 
-  it("updates context values from settings_confirmed payload before calling _selectUnits", () => {
+  it("updates context values from settings_confirmed payload before calling selectUnits", () => {
     const mockSelectUnits = vi.fn();
     const mockSetUnitCount = vi.fn();
     render(
-      <gameContext.Provider value={{ ...defaultContextValue, _setUnitCount: mockSetUnitCount } as any}>
-        <Settings _selectUnits={mockSelectUnits} roomId="testroom" />
+      <gameContext.Provider value={{ ...defaultContextValue, setUnitCount: mockSetUnitCount } as any}>
+        <Settings selectUnits={mockSelectUnits} roomId="testroom" />
       </gameContext.Provider>
     );
     act(() => {
@@ -123,12 +123,12 @@ describe("Settings component socket events", () => {
     expect(mockSelectUnits).toHaveBeenCalledTimes(1);
   });
 
-  it("applies flags from settings_confirmed payload via _setBoardSize", () => {
+  it("applies flags from settings_confirmed payload via setBoardSize", () => {
     const mockSelectUnits = vi.fn();
     const mockSetBoardSize = vi.fn();
     render(
-      <gameContext.Provider value={{ ...defaultContextValue, _setBoardSize: mockSetBoardSize } as any}>
-        <Settings _selectUnits={mockSelectUnits} roomId="testroom" />
+      <gameContext.Provider value={{ ...defaultContextValue, setBoardSize: mockSetBoardSize } as any}>
+        <Settings selectUnits={mockSelectUnits} roomId="testroom" />
       </gameContext.Provider>
     );
     const customFlags = [
@@ -176,8 +176,8 @@ describe("Custom map import", () => {
   it("imports map file and updates board size", async () => {
     const mockSetBoardSize = vi.fn();
     const { container } = render(
-      <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true, _setBoardSize: mockSetBoardSize } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+      <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true, setBoardSize: mockSetBoardSize } as any}>
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -196,7 +196,7 @@ describe("Custom map import", () => {
   it("shows 'using imported map' and disables terrain slider after import", async () => {
     const { container, getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -223,10 +223,10 @@ describe("Custom map import", () => {
         ...defaultContextValue,
         isAdmin: true,
         gameStarted: true,
-        _setTerrain: mockSetTerrain,
-        _setFlags: mockSetFlags,
+        setTerrain: mockSetTerrain,
+        setFlags: mockSetFlags,
       } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -242,10 +242,10 @@ describe("Custom map import", () => {
       fireEvent.click(getByText("READY"));
     });
 
-    // Should have called _setTerrain with the imported terrain
+    // Should have called setTerrain with the imported terrain
     expect(mockSetTerrain).toHaveBeenCalledWith(testMapData.terrain);
 
-    // Should have called _setFlags with full flag objects
+    // Should have called setFlags with full flag objects
     expect(mockSetFlags).toHaveBeenCalledWith([
       { x: 0, y: 0, originX: 0, originY: 0, inZone: true },
       { x: 11, y: 9, originX: 11, originY: 9, inZone: true },
@@ -263,7 +263,7 @@ describe("Custom map import", () => {
   it("clearing imported map re-enables terrain slider", async () => {
     const { container, getByText, queryByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true } as any}>
-        <Settings _selectUnits={vi.fn()} roomId="testroom" />
+        <Settings selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 

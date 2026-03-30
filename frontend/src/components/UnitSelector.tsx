@@ -10,7 +10,7 @@ interface UnitSelectorProps {
 }
 
 function UnitSelector(props: UnitSelectorProps) {
-  const { _circleUnit } = useContext(gameContext);
+  const { circleUnit } = useContext(gameContext);
   const unit = props.unit;
   const playerIndex = props.playerIndex;
   const unitIndex = props.unitIndex;
@@ -19,7 +19,7 @@ function UnitSelector(props: UnitSelectorProps) {
     <div className="taskForceSelector-unit">
       <div
         className="triangle up"
-        onClick={() => _circleUnit(playerIndex, unitIndex, currentType, 1)}
+        onClick={() => circleUnit(playerIndex, unitIndex, currentType, 1)}
       ></div>
       <div className="unit-box">
         <Unit
@@ -31,7 +31,7 @@ function UnitSelector(props: UnitSelectorProps) {
       </div>
       <div
         className="triangle down"
-        onClick={() => _circleUnit(playerIndex, unitIndex, currentType, -1)}
+        onClick={() => circleUnit(playerIndex, unitIndex, currentType, -1)}
       ></div>
     </div>
   ) : null;

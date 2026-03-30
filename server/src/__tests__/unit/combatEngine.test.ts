@@ -73,7 +73,7 @@ describe("calculateCombatResults (shared)", () => {
         [unit({ x: 6, y: 5, strength: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
     expect(result.newFutureUnits[0][0]?.life).toBe(0);
@@ -89,13 +89,13 @@ describe("calculateCombatResults (shared)", () => {
     const resultP0 = calculateCombatResults({
       units: sharedUnits,
       futureUnits: sharedUnits.map((arr) => arr.map((u) => ({ ...u }))),
-      flags: farFlags, isPlayer: 0, unitsCount: 1,
+      flags: farFlags, playerIndex: 0, unitsCount: 1,
     });
 
     const resultP1 = calculateCombatResults({
       units: sharedUnits,
       futureUnits: sharedUnits.map((arr) => arr.map((u) => ({ ...u }))),
-      flags: farFlags, isPlayer: 1, unitsCount: 1,
+      flags: farFlags, playerIndex: 1, unitsCount: 1,
     });
 
     expect(resultP0.newFutureUnits[0][0]?.life).toBe(resultP1.newFutureUnits[0][0]?.life);
@@ -116,7 +116,7 @@ describe("calculateCombatResults (shared)", () => {
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
     expect(result.newFutureUnits[0][0]?.life).toBe(2);
@@ -133,7 +133,7 @@ describe("calculateCombatResults (shared)", () => {
         [unit({ x: 5, y: 5, strength: 2, speed: 2, life: -1 })],
         [unit({ x: 10, y: 10, strength: 2, speed: 2, life: 2 })],
       ],
-      flags: farFlags, isPlayer: 0, unitsCount: 1,
+      flags: farFlags, playerIndex: 0, unitsCount: 1,
     });
     expect(result.newFutureUnits[0][0]?.life).toBe(-1);
     expect(result.newFutureUnits[1][0]?.life).toBe(2);

@@ -70,7 +70,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 6, y: 5, strength: 2, range: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -92,7 +92,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 6, y: 5, strength: 2, range: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -114,7 +114,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 6, y: 6, strength: 1, speed: 3, life: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -140,7 +140,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -162,7 +162,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 6, y: 5, strength: 1, speed: 3, life: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -192,7 +192,7 @@ export const scenarios: TestScenario[] = [
         ],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -220,7 +220,7 @@ export const scenarios: TestScenario[] = [
         ],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -248,7 +248,7 @@ export const scenarios: TestScenario[] = [
         ],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -273,7 +273,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: true },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -299,7 +299,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -322,7 +322,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 7, y: 5, strength: 3, range: 3, speed: 1, life: 3, unitType: 2 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -344,7 +344,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 10, y: 5, strength: 2, range: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -369,7 +369,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
       flagStayInPlace: true,
     },
@@ -397,7 +397,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
       flagStayInPlace: false,
     },
@@ -425,7 +425,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 10, y: 10, originX: 21, originY: 20, inZone: true },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     expected: {
@@ -458,7 +458,7 @@ export const scenarios: TestScenario[] = [
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false }, // Flag was picked up
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 2,
       flagStayInPlace: true,
     },
@@ -483,7 +483,7 @@ export const scenarios: TestScenario[] = [
         [unit({ x: 15, y: 15, strength: 2, range: 2, speed: 2, life: 2, unitType: 1 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     },
     terrain: [

@@ -156,7 +156,7 @@ describe("undoMove", () => {
       futureUnits: [[movedUnit], [null as any]],
       futureUnitsHistory: [previousUnits, [movedUnit]],
       unitsCount: 1,
-      isPlayer: 0,
+      playerIndex: 0,
     });
 
     expect(result.futureUnitsHistory).toHaveLength(1);
@@ -170,7 +170,7 @@ describe("undoMove", () => {
       futureUnits: [[movedUnit], [null as any]],
       futureUnitsHistory: [[movedUnit]],
       unitsCount: 2,
-      isPlayer: 0,
+      playerIndex: 0,
     });
 
     expect(result.futureUnitsHistory).toHaveLength(0);
@@ -182,7 +182,7 @@ describe("undoMove", () => {
       futureUnits: [[makeUnit()], [null as any]],
       futureUnitsHistory: [[makeUnit()]],
       unitsCount: 3,
-      isPlayer: 0,
+      playerIndex: 0,
     });
 
     expect(result.movementPaths).toEqual([null, null, null]);

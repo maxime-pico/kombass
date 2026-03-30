@@ -7,15 +7,15 @@ import { IUnit } from "../types";
 import gameContext, { isCustomEvent } from "../gameContext";
 
 interface SquareProps {
-  _changePosition: (
+  changePosition: (
     playerNumber: number,
     unitNumber: number,
     x: number,
     y: number,
   ) => void;
-  _changeStep: (step: number, direction: -1 | 1) => void;
-  _placeUnit: (unitNumber: number, col: number, row: number) => void;
-  _screenShake: () => void;
+  changeStep: (step: number, direction: -1 | 1) => void;
+  placeUnit: (unitNumber: number, col: number, row: number) => void;
+  screenShake: () => void;
   boardWidth: number;
   col: number;
   containsFlag: Array<boolean>;
@@ -89,7 +89,7 @@ interface SquareProps {
 function Square(props: SquareProps) {
   const {
     animationPhase,
-    isPlayer,
+    playerIndex,
     players,
     selectedUnit,
     step,
@@ -117,16 +117,16 @@ function Square(props: SquareProps) {
   // Extract unit and ghostUnit at the top
   const unit = props.unit;
   const ghostUnit = props.ghostUnit;
-  const { _screenShake, col, row, containsOpponentGhostUnits } = props;
+  const { screenShake, col, row, containsOpponentGhostUnits } = props;
 
-  const _clickedSquare = () => {
+  const clickedSquare = () => {
     if (step !== unitsCount) {
       if (props.isReachable && !props.isForbidden) {
         if (step === -1) {
-          props._placeUnit(selectedUnit.unitNumber, col, row);
+          props.placeUnit(selectedUnit.unitNumber, col, row);
         } else {
-          props._changeStep(step, 1);
-          props._changePosition(isPlayer, selectedUnit.unitNumber, col, row);
+          props.changeStep(step, 1);
+          props.changePosition(playerIndex, selectedUnit.unitNumber, col, row);
         }
       }
     }
@@ -293,7 +293,7 @@ function Square(props: SquareProps) {
       const handleBoom = (e: Event) => {
         if (!isCustomEvent(e)) throw new Error("not a custom event");
         if (e.detail.x === col && e.detail.y === row) {
-          _screenShake();
+          screenShake();
           const audio = new Audio();
           audio.src = AUDIO.boom;
           audio.volume = getGain();
@@ -316,7 +316,7 @@ function Square(props: SquareProps) {
     boom,
     col,
     row,
-    _screenShake,
+    screenShake,
   ]);
 
   // Reset boom animation after 1 second
@@ -331,7 +331,7 @@ function Square(props: SquareProps) {
     }
   }, [boom]);
 
-  const _getArrowClass = (seg: NonNullable<SquareProps['arrowSegment']>): string => {
+  const getArrowClass = (seg: NonNullable<SquareProps['arrowSegment']>): string => {
     if (seg.type === 'start') return `arrow-start-${seg.to}`;
     if (seg.type === 'head') return `arrow-head-${seg.from}`;
     // Body: determine if straight or corner
@@ -374,7 +374,7 @@ function Square(props: SquareProps) {
         }${props.isTerrain ? " terrain" : ""}${bgcol ? " contains-flag" : ""}${isFlagZone ? " flag-zone" : ""}${
           boom ? " boom" : ""
         }`}
-        onClick={() => _clickedSquare()}
+        onClick={() => clickedSquare()}
         onTouchEnd={void 0}
         onMouseEnter={() => props.onSquareHover(col, row)}
         onMouseLeave={() => props.onSquareHoverEnd()}
@@ -474,7 +474,7 @@ function Square(props: SquareProps) {
           <div className={`hovered-reach-border${props.hoveredReachBorders.top ? " hrb-top" : ""}${props.hoveredReachBorders.right ? " hrb-right" : ""}${props.hoveredReachBorders.bottom ? " hrb-bottom" : ""}${props.hoveredReachBorders.left ? " hrb-left" : ""}`} />
         )}
         {props.arrowSegment && !animationPhase.isAnimating && (
-          <div className={`move-arrow ${_getArrowClass(props.arrowSegment)}`} />
+          <div className={`move-arrow ${getArrowClass(props.arrowSegment)}`} />
         )}
         {damage ? <div className="floating-damage">-{damage}</div> : null}
         {opponentReachCorners && !animationPhase.isAnimating && (

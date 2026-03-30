@@ -40,7 +40,7 @@ export interface CombatInput {
   units: IUnit[][];
   futureUnits: IUnit[][];
   flags: IFlag[];
-  isPlayer: 0 | 1;
+  playerIndex: 0 | 1;
   unitsCount: number;
   flagStayInPlace?: boolean;
 }

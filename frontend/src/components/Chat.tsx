@@ -51,7 +51,7 @@ function buildSettingsMessages(
 
 function Chat() {
   const {
-    isPlayer,
+    playerIndex,
     gameStarted,
     step,
     boardWidth,
@@ -69,20 +69,20 @@ function Chat() {
   const [hasUnread, setHasUnread] = useState(false);
   const [history, updateHistory] = useState<any>([]);
 
-  const _focusChat = () => {
+  const focusChat = () => {
     if (chatInput.current) chatInput.current.focus();
   };
 
-  const _handleKeypress = (keyCode: number) => {
+  const handleKeypress = (keyCode: number) => {
     //it triggers by pressing the enter key
     if (keyCode === 13) {
-      _sendMessage();
+      sendMessage();
     }
   };
 
-  const _sendMessage = () => {
+  const sendMessage = () => {
     if (socketService.socket) {
-      let newMessage = { who: `${isPlayer + 1}`, content: message };
+      let newMessage = { who: `${playerIndex + 1}`, content: message };
       chatService.sendMessage(socketService.socket, newMessage).then(() => {
         // Use functional update to avoid stale closure over history
         updateHistory((prevHistory: any) => [...prevHistory, newMessage]);
@@ -199,7 +199,7 @@ function Chat() {
         onClick={() => {
           setCollapsed(!collapsed);
           if (collapsed && gameStarted) {
-            _focusChat();
+            focusChat();
             setInputFocused(true);
             setHasUnread(false);
           }
@@ -215,7 +215,7 @@ function Chat() {
         className={`collapsible ${collapsed ? "collapsed" : ""} ${
           !gameStarted ? "waiting" : ""
         }`}
-        onClick={() => { _focusChat(); setHasUnread(false); }}
+        onClick={() => { focusChat(); setHasUnread(false); }}
       >
         <div className="chat-content">
           <div>
@@ -237,12 +237,12 @@ function Chat() {
               type="text"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onKeyPress={(e) => inputFocused && _handleKeypress(e.charCode)}
+              onKeyPress={(e) => inputFocused && handleKeypress(e.charCode)}
               style={{ width: `${message.length + 1}ch` }}
             />
             <div className={`caret ${inputFocused && "focused"}`}> </div>
           </div>
-          <button onClick={() => _sendMessage()}>{">>"}</button>
+          <button onClick={() => sendMessage()}>{">>"}</button>
         </div>
       </div>
     </div>

@@ -2,7 +2,7 @@ import React, { useContext, useState } from "react";
 import gameContext from "../gameContext";
 
 export function IntroScreen() {
-  const { _createRoom } = useContext(gameContext);
+  const { createRoom } = useContext(gameContext);
   const [joinCode, setJoinCode] = useState("");
   const [joinError, setJoinError] = useState("");
 
@@ -22,7 +22,7 @@ export function IntroScreen() {
       </div>
       <div className="subtitle">Are you sure you want to play?</div>
       <div>
-        <button className="button active" onClick={() => _createRoom()}>
+        <button className="button active" onClick={() => createRoom()}>
           {" "}
           PLAY{" "}
         </button>

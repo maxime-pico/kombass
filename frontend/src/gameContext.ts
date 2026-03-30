@@ -13,51 +13,51 @@ export function isCustomEvent(event: Event): event is CustomEvent {
 }
 
 export interface IGameContextProps {
-  _applyBufferedMoves: () => void;
-  _applyMoves: () => Promise<any>;
-  _changeStep: (step: number, direction: -1 | 1) => void;
-  _changePosition: (
+  applyBufferedMoves: () => void;
+  applyMoves: () => Promise<any>;
+  changeStep: (step: number, direction: -1 | 1) => void;
+  changePosition: (
     playerNumber: number,
     unitNumber: number,
     x: number,
     y: number,
     path?: Array<{ x: number; y: number }>
   ) => void;
-  _circlePlayer: () => void;
-  _circleUnit: (
+  circlePlayer: () => void;
+  circleUnit: (
     playerIndex: number,
     unitIndex: number,
     currentType: number,
     direction: number
   ) => void;
-  _createRoom: () => Promise<void>;
-  _placeUnit: (unitNumber: number, col: number, row: number) => void;
-  _startGame: () => Promise<void>;
-  _setBoardSize: (length: number, width: number, customFlags?: Array<IFlag>) => void;
-  _setGameStarted: () => void;
-  _setInRoom: (inRoom: boolean) => void;
-  _setIsAdmin: (isAdmin: boolean) => void;
-  _setIsPlayer: (isPlayer: 0 | 1) => void;
-  _setPlacementZone: (zoneSize: number) => void;
-  _setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
-  _setFlags: (flags: Array<IFlag>) => void;
-  _setUnitConfig: (unitConfig: UnitConfig) => void;
-  _setFlagStayInPlace: (flagStayInPlace: boolean) => void;
-  _setSelectedUnit: (
+  createRoom: () => Promise<void>;
+  placeUnit: (unitNumber: number, col: number, row: number) => void;
+  startGame: () => Promise<void>;
+  setBoardSize: (length: number, width: number, customFlags?: Array<IFlag>) => void;
+  setGameStarted: () => void;
+  setInRoom: (inRoom: boolean) => void;
+  setIsAdmin: (isAdmin: boolean) => void;
+  setPlayerIndex: (playerIndex: 0 | 1) => void;
+  setPlacementZone: (zoneSize: number) => void;
+  setTerrain: (terrain: Array<{ x: number; y: number }>) => void;
+  setFlags: (flags: Array<IFlag>) => void;
+  setUnitConfig: (unitConfig: UnitConfig) => void;
+  setFlagStayInPlace: (flagStayInPlace: boolean) => void;
+  setSelectedUnit: (
     playerNumber: number,
     unitNumber: number,
     step: number
   ) => void;
-  _setUnitCount: (unitCount: number) => void;
-  _setWaitingForMoves: (ready: boolean, player: number) => void;
-  _undoMove: () => void;
-  _updateBufferOpponentUnits: (bufferOpponentUnits: Array<IUnit>) => void;
-  _updateMovesListener: (update: {
+  setUnitCount: (unitCount: number) => void;
+  setWaitingForMoves: (ready: boolean, player: number) => void;
+  undoMove: () => void;
+  updateBufferOpponentUnits: (bufferOpponentUnits: Array<IUnit>) => void;
+  updateMovesListener: (update: {
     units: Array<IUnit>;
     round: number;
   }) => void;
-  _updateOpponentUnits: (opponentsFutureunits: Array<IUnit>) => void;
-  _waitingForMoves: (e: Event) => void;
+  updateOpponentUnits: (opponentsFutureunits: Array<IUnit>) => void;
+  onWaitingForMoves: (e: Event) => void;
   boardLength: number;
   boardWidth: number;
   bufferOpponentUnits: Array<IUnit>;
@@ -66,7 +66,7 @@ export interface IGameContextProps {
   gameStarted: boolean;
   isAdmin: boolean;
   isInRoom: boolean;
-  isPlayer: 0 | 1;
+  playerIndex: 0 | 1;
   placedUnits: Array<Array<boolean>>;
   placementZone: number;
   player: 0 | 1;
@@ -86,33 +86,33 @@ export interface IGameContextProps {
 }
 
 const defaultState: IGameContextProps = {
-  _applyBufferedMoves: () => {},
-  _applyMoves: async () => {},
-  _changeStep: () => {},
-  _changePosition: () => {},
-  _circlePlayer: () => {},
-  _circleUnit: () => {},
-  _createRoom: async () => {},
-  _placeUnit: () => {},
-  _startGame: async () => {},
-  _setBoardSize: () => {},
-  _setGameStarted: () => {},
-  _setInRoom: () => {},
-  _setIsAdmin: () => {},
-  _setIsPlayer: () => {},
-  _setPlacementZone: () => {},
-  _setTerrain: () => {},
-  _setFlags: () => {},
-  _setUnitConfig: () => {},
-  _setFlagStayInPlace: () => {},
-  _setSelectedUnit: () => {},
-  _setUnitCount: () => {},
-  _setWaitingForMoves: () => {},
-  _undoMove: () => {},
-  _updateBufferOpponentUnits: () => {},
-  _updateMovesListener: () => {},
-  _updateOpponentUnits: () => {},
-  _waitingForMoves: () => {},
+  applyBufferedMoves: () => {},
+  applyMoves: async () => {},
+  changeStep: () => {},
+  changePosition: () => {},
+  circlePlayer: () => {},
+  circleUnit: () => {},
+  createRoom: async () => {},
+  placeUnit: () => {},
+  startGame: async () => {},
+  setBoardSize: () => {},
+  setGameStarted: () => {},
+  setInRoom: () => {},
+  setIsAdmin: () => {},
+  setPlayerIndex: () => {},
+  setPlacementZone: () => {},
+  setTerrain: () => {},
+  setFlags: () => {},
+  setUnitConfig: () => {},
+  setFlagStayInPlace: () => {},
+  setSelectedUnit: () => {},
+  setUnitCount: () => {},
+  setWaitingForMoves: () => {},
+  undoMove: () => {},
+  updateBufferOpponentUnits: () => {},
+  updateMovesListener: () => {},
+  updateOpponentUnits: () => {},
+  onWaitingForMoves: () => {},
   boardLength: 21,
   boardWidth: 22,
   bufferOpponentUnits: Array(5).fill(null),
@@ -124,7 +124,7 @@ const defaultState: IGameContextProps = {
   gameStarted: false,
   isAdmin: true,
   isInRoom: false,
-  isPlayer: 0,
+  playerIndex: 0,
   placedUnits: [Array(5).fill(false), Array(5).fill(false)],
   placementZone: 5,
   player: 0,

@@ -1,6 +1,6 @@
 /**
  * Pure function to find the next alive step, skipping dead units.
- * Extracted from App.tsx _changeStep for testability.
+ * Extracted from App.tsx changeStep for testability.
  */
 export function findNextAliveStep(
   currentStep: number,

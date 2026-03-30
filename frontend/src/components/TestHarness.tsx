@@ -20,11 +20,11 @@ function TestHarness() {
         const result = calculateCombatResults(scenario.input);
         const animQueue = buildAnimationQueue(scenario.input);
         const boomQueue = buildBoomQueue(scenario.input, animQueue);
-        const isPlayer = scenario.input.isPlayer;
-        const opponentNumber = ((isPlayer + 1) % 2) as 0 | 1;
+        const playerIndex = scenario.input.playerIndex;
+        const opponentNumber = ((playerIndex + 1) % 2) as 0 | 1;
 
         const myLifeOk = scenario.expected.myUnitsLife.every(
-          (expectedLife, i) => result.newFutureUnits[isPlayer][i]?.life === expectedLife
+          (expectedLife, i) => result.newFutureUnits[playerIndex][i]?.life === expectedLife
         );
         const oppLifeOk = scenario.expected.opponentUnitsLife.every(
           (expectedLife, i) => result.newFutureUnits[opponentNumber][i]?.life === expectedLife
@@ -39,7 +39,7 @@ function TestHarness() {
 
         const passed = myLifeOk && oppLifeOk && flagsOk && boomCountOk;
         let failDetails = [];
-        if (!myLifeOk) failDetails.push(`my: expected [${scenario.expected.myUnitsLife}] got [${result.newFutureUnits[isPlayer].map((u) => u?.life)}]`);
+        if (!myLifeOk) failDetails.push(`my: expected [${scenario.expected.myUnitsLife}] got [${result.newFutureUnits[playerIndex].map((u) => u?.life)}]`);
         if (!oppLifeOk) failDetails.push(`opp: expected [${scenario.expected.opponentUnitsLife}] got [${result.newFutureUnits[opponentNumber].map((u) => u?.life)}]`);
         if (!boomCountOk) failDetails.push(`boomCount: expected ${scenario.expected.expectedBoomCount} got ${boomQueue.length}`);
 
@@ -47,7 +47,7 @@ function TestHarness() {
           scenarioName: scenario.name,
           passed,
           details: passed
-            ? `My units: [${result.newFutureUnits[isPlayer].map((u) => u?.life).join(",")}] Opp: [${result.newFutureUnits[opponentNumber].map((u) => u?.life).join(",")}] Booms: ${boomQueue.length}`
+            ? `My units: [${result.newFutureUnits[playerIndex].map((u) => u?.life).join(",")}] Opp: [${result.newFutureUnits[opponentNumber].map((u) => u?.life).join(",")}] Booms: ${boomQueue.length}`
             : `FAIL — ${failDetails.join(" | ")}`,
         };
       } catch (e: any) {

@@ -6,21 +6,21 @@ import gameContext, { dispatchCustomEvent } from "../gameContext";
 
 interface BoardProps {
   placement: boolean;
-  _screenShake: () => void;
+  screenShake: () => void;
 }
 
 function Board(props: BoardProps) {
   // Placement was false by default
   const {
-    _changeStep,
-    _changePosition,
-    _placeUnit,
+    changeStep,
+    changePosition,
+    placeUnit,
     animationPhase,
     boardLength,
     boardWidth,
     flags,
     futureUnits,
-    isPlayer,
+    playerIndex,
     placedUnits,
     placementZone,
     ready,
@@ -38,7 +38,7 @@ function Board(props: BoardProps) {
   // BFS flood-fill: returns set of squares reachable via adjacent steps.
   // Uses Manhattan distance from origin as the range constraint (not step count),
   // matching the arrow pathfinding logic — allows detour paths around terrain.
-  const _bfsReachableSet = (unit: IUnit, flagToAvoid: any): Set<string> => {
+  const bfsReachableSet = (unit: IUnit, flagToAvoid: any): Set<string> => {
     const reachable = new Set<string>();
     const sx = unit.x, sy = unit.y;
     const queue: [number, number][] = [[sx, sy]];
@@ -65,7 +65,7 @@ function Board(props: BoardProps) {
     return reachable;
   };
 
-  const _isReachable = (
+  const isReachable = (
     unit: IUnit,
     col: number,
     row: number,
@@ -74,12 +74,12 @@ function Board(props: BoardProps) {
   ) => {
     let isReachable = false;
     if (isTerrainSquare(col, row)) return false;
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
     if (placement) {
       const flagZone = ownFlag
         ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
         : false;
-      isReachable = isPlayer
+      isReachable = playerIndex
         ? col > boardWidth - placementZone - 1
         : col < placementZone;
       isReachable = isReachable && !flagZone;
@@ -103,7 +103,7 @@ function Board(props: BoardProps) {
   };
 
   // Manhattan-reachable but not BFS-reachable (for dimmed visual)
-  const _isManhattanOnlyReachable = (
+  const isManhattanOnlyReachable = (
     unit: IUnit,
     col: number,
     row: number,
@@ -111,7 +111,7 @@ function Board(props: BoardProps) {
   ) => {
     if (!unit || !bfsSet) return false;
     if (isTerrainSquare(col, row)) return false;
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
     const flagZone =
       ownFlag && !unit?.hasFlag
         ? Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3
@@ -120,14 +120,14 @@ function Board(props: BoardProps) {
     return manhattanReachable && !bfsSet.has(`${col},${row}`);
   };
 
-  const _opponentCanReach = (
+  const opponentCanReach = (
     units: Array<IUnit>,
     col: number,
     row: number,
     placement: boolean
   ) => {
     let opponentCanReach = false;
-    let opponentFlag = flags[(isPlayer + 1) % 2];
+    let opponentFlag = flags[(playerIndex + 1) % 2];
     if (!placement) {
       units.forEach((unit) => {
         let x = unit ? unit.x : 999;
@@ -149,7 +149,7 @@ function Board(props: BoardProps) {
   type BorderInfo = { top: boolean; right: boolean; bottom: boolean; left: boolean };
 
   // Helper: compute perimeter borders from a set of reachable squares
-  const _computeReachGrid = (reachable: Set<string>) => {
+  const computeReachGrid = (reachable: Set<string>) => {
     const borders = new Map<string, BorderInfo>();
     reachable.forEach((key) => {
       const [c, r] = key.split(",").map(Number);
@@ -164,7 +164,7 @@ function Board(props: BoardProps) {
   };
 
   // Merge multiple per-unit border maps: OR borders so each unit keeps its own perimeter
-  const _mergeReachGrids = (grids: Array<{ borders: Map<string, BorderInfo> }>) => {
+  const mergeReachGrids = (grids: Array<{ borders: Map<string, BorderInfo> }>) => {
     const merged = new Map<string, BorderInfo>();
     for (const grid of grids) {
       grid.borders.forEach((b, key) => {
@@ -218,7 +218,7 @@ function Board(props: BoardProps) {
       return empty;
     }
 
-    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
+    const unit = units[playerIndex]?.[selectedUnit.unitNumber];
     if (!unit) return empty;
 
     const sx = unit.x, sy = unit.y;
@@ -226,7 +226,7 @@ function Board(props: BoardProps) {
 
     if (sx === tx && sy === ty) return empty;
 
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
 
     const isBlocked = (nx: number, ny: number): boolean => {
       if (nx < 0 || nx >= boardWidth || ny < 0 || ny >= boardLength) return true;
@@ -239,7 +239,7 @@ function Board(props: BoardProps) {
     };
 
     const isForbiddenSquare = (nx: number, ny: number): boolean => {
-      return futureUnits[isPlayer].some((u, idx) =>
+      return futureUnits[playerIndex].some((u, idx) =>
         u && idx !== selectedUnit.unitNumber && u.x === nx && u.y === ny
       );
     };
@@ -335,19 +335,19 @@ function Board(props: BoardProps) {
 
     return segMap;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hoveredSquare, step, unitsCount, units, isPlayer, selectedUnit, flags, boardWidth, boardLength, futureUnits, terrain, props.placement, animationPhase.isAnimating]);
+  }, [hoveredSquare, step, unitsCount, units, playerIndex, selectedUnit, flags, boardWidth, boardLength, futureUnits, terrain, props.placement, animationPhase.isAnimating]);
 
-  // Wrap _changePosition to include the current arrow path for animation
-  const _changePositionWithPath = useCallback(
+  // Wrap changePosition to include the current arrow path for animation
+  const changePositionWithPath = useCallback(
     (playerNumber: number, unitNumber: number, x: number, y: number) => {
-      _changePosition(playerNumber, unitNumber, x, y, arrowPathCoordsRef.current.length > 0 ? [...arrowPathCoordsRef.current] : undefined);
+      changePosition(playerNumber, unitNumber, x, y, arrowPathCoordsRef.current.length > 0 ? [...arrowPathCoordsRef.current] : undefined);
     },
-    [_changePosition]
+    [changePosition]
   );
 
   // Precompute opponent per-unit grids and merged grid
   const { opponentReachGrid, opponentPerUnitGrids } = useMemo(() => {
-    const opponentPlayer = (isPlayer + 1) % 2;
+    const opponentPlayer = (playerIndex + 1) % 2;
     const opponentUnits = units[opponentPlayer];
     const emptyResult = { opponentReachGrid: { borders: new Map<string, BorderInfo>() }, opponentPerUnitGrids: new Map<number, { borders: Map<string, BorderInfo> }>() };
     if (!opponentUnits || props.placement) return emptyResult;
@@ -358,86 +358,86 @@ function Board(props: BoardProps) {
     opponentUnits.forEach((unit, index) => {
       if (!unit || unit.life <= 0) return;
       const flagToAvoid = opponentFlag;
-      const reachable = _bfsReachableSet(unit, flagToAvoid);
+      const reachable = bfsReachableSet(unit, flagToAvoid);
       if (reachable.size > 0) {
-        const grid = _computeReachGrid(reachable);
+        const grid = computeReachGrid(reachable);
         allGrids.push(grid);
         perUnit.set(index, grid);
       }
     });
     return {
-      opponentReachGrid: allGrids.length > 0 ? _mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
+      opponentReachGrid: allGrids.length > 0 ? mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
       opponentPerUnitGrids: perUnit,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, isPlayer, boardLength, boardWidth, flags, props.placement]);
+  }, [units, playerIndex, boardLength, boardWidth, flags, props.placement]);
 
   // Precompute own unmoved per-unit grids and merged grid
   const { ownUnmovedReachGrid, ownPerUnitGrids } = useMemo(() => {
     const emptyResult = { ownUnmovedReachGrid: { borders: new Map<string, BorderInfo>() }, ownPerUnitGrids: new Map<number, { borders: Map<string, BorderInfo> }>() };
-    const ownUnits = units[isPlayer];
+    const ownUnits = units[playerIndex];
     if (!ownUnits || props.placement || step < 0 || step >= unitsCount) return emptyResult;
 
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
     const allGrids: Array<{ borders: Map<string, BorderInfo> }> = [];
     const perUnit = new Map<number, { borders: Map<string, BorderInfo> }>();
     ownUnits.forEach((unit, index) => {
       if (index < step || !unit || unit.life <= 0) return;
       const flagToAvoid = ownFlag && !unit.hasFlag ? ownFlag : null;
-      const reachable = _bfsReachableSet(unit, flagToAvoid);
+      const reachable = bfsReachableSet(unit, flagToAvoid);
       if (reachable.size > 0) {
-        const grid = _computeReachGrid(reachable);
+        const grid = computeReachGrid(reachable);
         allGrids.push(grid);
         perUnit.set(index, grid);
       }
     });
     return {
-      ownUnmovedReachGrid: allGrids.length > 0 ? _mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
+      ownUnmovedReachGrid: allGrids.length > 0 ? mergeReachGrids(allGrids) : { borders: new Map<string, BorderInfo>() },
       ownPerUnitGrids: perUnit,
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, isPlayer, boardLength, boardWidth, flags, props.placement, step, unitsCount, terrain]);
+  }, [units, playerIndex, boardLength, boardWidth, flags, props.placement, step, unitsCount, terrain]);
 
   // Get the hovered unit's individual reach grid
   const hoveredReachGrid = useMemo(() => {
     if (!hoveredUnit) return null;
-    const opponentPlayer = (isPlayer + 1) % 2;
+    const opponentPlayer = (playerIndex + 1) % 2;
     if (hoveredUnit.player === opponentPlayer) {
       return opponentPerUnitGrids.get(hoveredUnit.index) || null;
     }
-    if (hoveredUnit.player === isPlayer) {
+    if (hoveredUnit.player === playerIndex) {
       return ownPerUnitGrids.get(hoveredUnit.index) || null;
     }
     return null;
-  }, [hoveredUnit, isPlayer, opponentPerUnitGrids, ownPerUnitGrids]);
+  }, [hoveredUnit, playerIndex, opponentPerUnitGrids, ownPerUnitGrids]);
 
   // BFS reachable set for the currently selected unit (movement phase only)
   const selectedUnitBfsSet = useMemo(() => {
     if (props.placement || step < 0 || step >= unitsCount) return undefined;
-    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
+    const unit = units[playerIndex]?.[selectedUnit.unitNumber];
     if (!unit || unit.life <= 0) return undefined;
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
     const flagToAvoid = ownFlag && !unit.hasFlag ? ownFlag : null;
-    return _bfsReachableSet(unit, flagToAvoid);
+    return bfsReachableSet(unit, flagToAvoid);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [units, isPlayer, selectedUnit.unitNumber, step, unitsCount, flags, props.placement, boardWidth, boardLength, terrain]);
+  }, [units, playerIndex, selectedUnit.unitNumber, step, unitsCount, flags, props.placement, boardWidth, boardLength, terrain]);
 
   // placement was default false
-  const _isForbidden = (
+  const isForbidden = (
     unit: IUnit,
     col: number,
     row: number,
     placement: boolean
   ) => {
     const unitNumber = selectedUnit?.unitNumber;
-    const ownFlag = flags[isPlayer];
+    const ownFlag = flags[playerIndex];
     let isForbidden = false;
 
     if (isTerrainSquare(col, row)) return true;
 
     if (placement) {
-      units[isPlayer].forEach((unit, unit_index) => {
-        if (placedUnits[isPlayer][unit_index]) {
+      units[playerIndex].forEach((unit, unitIdx) => {
+        if (placedUnits[playerIndex][unitIdx]) {
           isForbidden = isForbidden || (unit.x === col && unit.y === row);
         }
       });
@@ -446,16 +446,16 @@ function Board(props: BoardProps) {
           isForbidden ||
           Math.abs(col - (ownFlag.originX ?? ownFlag.x)) + Math.abs(row - (ownFlag.originY ?? ownFlag.y)) <= 3;
       }
-      isForbidden = isPlayer
+      isForbidden = playerIndex
         ? isForbidden || col <= boardWidth - placementZone - 1
         : isForbidden || col >= placementZone;
     } else {
-      futureUnits[isPlayer].forEach((unit, unit_index) => {
-        if (unit && unitNumber !== unit_index) {
+      futureUnits[playerIndex].forEach((unit, unitIdx) => {
+        if (unit && unitNumber !== unitIdx) {
           isForbidden = isForbidden || (unit.x === col && unit.y === row);
         }
       });
-      if (!units[isPlayer][unitNumber]?.hasFlag) {
+      if (!units[playerIndex][unitNumber]?.hasFlag) {
         if (ownFlag && ownFlag.x !== -1) {
           isForbidden =
             isForbidden ||
@@ -466,7 +466,7 @@ function Board(props: BoardProps) {
     return isForbidden;
   };
 
-  const _isFlagZone = (col: number, row: number) => {
+  const isFlagZone = (col: number, row: number) => {
     let isFlagZone = false;
 
     flags.forEach((flag) => {
@@ -485,7 +485,7 @@ function Board(props: BoardProps) {
   // first cell determines if it's a player zero unit creating danger
   // second cell determines if it's a player one unit creating danger
   // third cell determines ??? I removed it, I couldn't read the code
-  const _unitInRange = (col: number, row: number, unit: IUnit, ux: number, uy: number): boolean => {
+  const unitInRange = (col: number, row: number, unit: IUnit, ux: number, uy: number): boolean => {
     if (unit.range > 1) {
       return Math.abs(col - ux) + Math.abs(row - uy) <= unit.range;
     } else {
@@ -493,7 +493,7 @@ function Board(props: BoardProps) {
     }
   };
 
-  const _notInFlagZone = (col: number, row: number): boolean => {
+  const notInFlagZone = (col: number, row: number): boolean => {
     const flag1 = flags[0];
     const notInReachFlag1 =
       flag1 &&
@@ -507,7 +507,7 @@ function Board(props: BoardProps) {
     return !!(notInReachFlag1 && notInReachFlag2);
   };
 
-  const _isInDanger = (col: number, row: number, placement: boolean) => {
+  const isInDanger = (col: number, row: number, placement: boolean) => {
     let isInDanger = [false, false];
     const currentUnit = selectedUnit.unitNumber;
 
@@ -515,7 +515,7 @@ function Board(props: BoardProps) {
 
     if (isTerrainSquare(col, row)) return isInDanger;
 
-    if (!_notInFlagZone(col, row)) return isInDanger;
+    if (!notInFlagZone(col, row)) return isInDanger;
 
     // During animation, compute danger from animation queue positions
     if (animationPhase.isAnimating) {
@@ -528,7 +528,7 @@ function Board(props: BoardProps) {
       for (let i = 0; i < currentAnimationIndex; i++) {
         const anim = queue[i];
         if (deadUnits.has(`${anim.player}_${anim.unitIndex}`)) continue;
-        if (_unitInRange(col, row, anim.unit, anim.toX, anim.toY)) {
+        if (unitInRange(col, row, anim.unit, anim.toX, anim.toY)) {
           isInDanger[anim.player] = true;
         }
       }
@@ -539,7 +539,7 @@ function Board(props: BoardProps) {
         const [cx, cy] = animationSubPhase === 'pre-move'
           ? [current.fromX, current.fromY]
           : [current.toX, current.toY];
-        if (_unitInRange(col, row, current.unit, cx, cy)) {
+        if (unitInRange(col, row, current.unit, cx, cy)) {
           isInDanger[current.player] = true;
         }
       }
@@ -547,18 +547,18 @@ function Board(props: BoardProps) {
       // Not-yet-animated units in the queue: use ORIGIN positions (they haven't moved yet)
       for (let i = currentAnimationIndex + 1; i < queue.length; i++) {
         const anim = queue[i];
-        if (_unitInRange(col, row, anim.unit, anim.fromX, anim.fromY)) {
+        if (unitInRange(col, row, anim.unit, anim.fromX, anim.fromY)) {
           isInDanger[anim.player] = true;
         }
       }
 
       // Units NOT in the queue at all (didn't move): use units[] pre-round positions
-      units.forEach((player, player_index) => {
-        player.forEach((unit, unit_index) => {
-          if (inQueueSet.has(`${player_index}_${unit_index}`)) return;
+      units.forEach((player, playerIdx) => {
+        player.forEach((unit, unitIdx) => {
+          if (inQueueSet.has(`${playerIdx}_${unitIdx}`)) return;
           if (!unit || unit.life <= 0) return;
-          if (_unitInRange(col, row, unit, unit.x, unit.y)) {
-            isInDanger[player_index] = true;
+          if (unitInRange(col, row, unit, unit.x, unit.y)) {
+            isInDanger[playerIdx] = true;
           }
         });
       });
@@ -568,31 +568,31 @@ function Board(props: BoardProps) {
 
     // Normal (non-animation) logic
     // Future units (already moved by current player)
-    futureUnits.forEach((player, player_index) => {
-      player.forEach((unit, unit_index) => {
-        if (unit && isPlayer === player_index) {
-          if (_unitInRange(col, row, unit, unit.x, unit.y)) {
-            isInDanger[player_index] = true;
+    futureUnits.forEach((player, playerIdx) => {
+      player.forEach((unit, unitIdx) => {
+        if (unit && playerIndex === playerIdx) {
+          if (unitInRange(col, row, unit, unit.x, unit.y)) {
+            isInDanger[playerIdx] = true;
           }
         }
       });
     });
 
     // Current units
-    units.forEach((player, player_index) => {
-      player.forEach((unit, unit_index) => {
+    units.forEach((player, playerIdx) => {
+      player.forEach((unit, unitIdx) => {
         if (
-          (step === unitsCount && player_index !== isPlayer) ||
+          (step === unitsCount && playerIdx !== playerIndex) ||
           step !== unitsCount
         ) {
           if (
             unit &&
             unit.life > 0 &&
-            (player_index !== isPlayer || unit_index >= currentUnit) &&
-            ready[player_index]
+            (playerIdx !== playerIndex || unitIdx >= currentUnit) &&
+            ready[playerIdx]
           ) {
-            if (_unitInRange(col, row, unit, unit.x, unit.y)) {
-              isInDanger[player_index] = true;
+            if (unitInRange(col, row, unit, unit.x, unit.y)) {
+              isInDanger[playerIdx] = true;
             }
           }
         }
@@ -603,7 +603,7 @@ function Board(props: BoardProps) {
   };
 
   // Compute CSS classes for danger zone rendering during animation
-  const _getDangerClasses = (col: number, row: number, isInDanger: boolean[]): string => {
+  const getDangerClasses = (col: number, row: number, isInDanger: boolean[]): string => {
     if (!isInDanger.some(Boolean)) return '';
     if (!animationPhase.isAnimating) return 'in-danger';
 
@@ -616,8 +616,8 @@ function Board(props: BoardProps) {
         ? [current.fromX, current.fromY]
         : [current.toX, current.toY];
 
-      const isCurrentUnitZone = _notInFlagZone(col, row) &&
-        _unitInRange(col, row, current.unit, cx, cy);
+      const isCurrentUnitZone = notInFlagZone(col, row) &&
+        unitInRange(col, row, current.unit, cx, cy);
 
       if (isCurrentUnitZone && animationSubPhase === 'scanning') {
         classes.push('danger-scanning');
@@ -638,9 +638,9 @@ function Board(props: BoardProps) {
 
   // Determines whether a square's danger overlay should be highlighted (brighter)
   // per player. Highlighted when the source unit is selected, hovered, or animated.
-  const _isDangerHighlighted = (col: number, row: number): boolean[] => {
+  const isDangerHighlighted = (col: number, row: number): boolean[] => {
     const highlighted = [false, false];
-    if (!_notInFlagZone(col, row)) return highlighted;
+    if (!notInFlagZone(col, row)) return highlighted;
 
     // During animation: highlight the currently-animated unit's danger zone
     if (animationPhase.isAnimating) {
@@ -650,7 +650,7 @@ function Board(props: BoardProps) {
         const [cx, cy] = animationSubPhase === 'pre-move'
           ? [current.fromX, current.fromY]
           : [current.toX, current.toY];
-        if (_unitInRange(col, row, current.unit, cx, cy)) {
+        if (unitInRange(col, row, current.unit, cx, cy)) {
           highlighted[current.player] = true;
         }
       }
@@ -663,7 +663,7 @@ function Board(props: BoardProps) {
       const hUnits = units[hPlayer];
       if (hUnits && hUnits[hoveredUnit.index]) {
         const hu = hUnits[hoveredUnit.index];
-        if (hu.life > 0 && _unitInRange(col, row, hu, hu.x, hu.y)) {
+        if (hu.life > 0 && unitInRange(col, row, hu, hu.x, hu.y)) {
           highlighted[hPlayer] = true;
         }
       }
@@ -671,9 +671,9 @@ function Board(props: BoardProps) {
 
     // Selected unit (during movement phase)
     if (step >= 0 && step < unitsCount) {
-      const selUnit = units[isPlayer]?.[selectedUnit.unitNumber];
-      if (selUnit && selUnit.life > 0 && _unitInRange(col, row, selUnit, selUnit.x, selUnit.y)) {
-        highlighted[isPlayer] = true;
+      const selUnit = units[playerIndex]?.[selectedUnit.unitNumber];
+      if (selUnit && selUnit.life > 0 && unitInRange(col, row, selUnit, selUnit.x, selUnit.y)) {
+        highlighted[playerIndex] = true;
       }
     }
 
@@ -682,7 +682,7 @@ function Board(props: BoardProps) {
 
   // Determines whether current square (row, col) contains a unit or not and if so
   // what type it is and if it should be displayed
-  const _containsUnits = (
+  const containsUnits = (
     units: Array<IUnit>,
     col: number,
     row: number,
@@ -701,7 +701,7 @@ function Board(props: BoardProps) {
     // - Hide ghost units while animations play (to avoid duplicates)
     const isAnimatingCombat = animationPhase.isAnimating && step === unitsCount;
     const shouldUseOriginalPositions =
-      isAnimatingCombat && player === isPlayer && !ghost;
+      isAnimatingCombat && player === playerIndex && !ghost;
     const shouldHideGhosts = isAnimatingCombat && ghost;
 
     // for each unit in the current player array
@@ -709,7 +709,7 @@ function Board(props: BoardProps) {
       let isPlaced = placement ? placedUnits[player][index] : true;
 
       // only continue if we are considering units that have not been moved or placed yet
-      if (placement || ghost || index >= currentUnit || player !== isPlayer) {
+      if (placement || ghost || index >= currentUnit || player !== playerIndex) {
         // only continue if the unit we look at is supposed to be in current square
         if (
           unit &&
@@ -735,9 +735,9 @@ function Board(props: BoardProps) {
             display = true; // Show own units at original positions
           } else {
             display =
-              ((ghost || !ready[player]) && player !== isPlayer) ||
-              (step === unitsCount && !ghost && player === isPlayer) ||
-              (waitingForMoves[isPlayer] && !ghost && player === isPlayer)
+              ((ghost || !ready[player]) && player !== playerIndex) ||
+              (step === unitsCount && !ghost && player === playerIndex) ||
+              (waitingForMoves[playerIndex] && !ghost && player === playerIndex)
                 ? false // Hide: ghosts of opponent, opponent units if not ready, own units during combat or when waiting for opponent
                 : true;
           }
@@ -746,7 +746,7 @@ function Board(props: BoardProps) {
     });
 
     // Dim non-active own units during movement phase
-    const isMovementPhase = !placement && !ghost && player === isPlayer && step < unitsCount;
+    const isMovementPhase = !placement && !ghost && player === playerIndex && step < unitsCount;
     const opacity = isMovementPhase && unitNumber !== null && unitNumber !== selectedUnit.unitNumber ? 0.4 : 1;
 
     return {
@@ -758,7 +758,7 @@ function Board(props: BoardProps) {
     };
   };
 
-  const _containsFlag = (col: number, row: number) => {
+  const containsFlag = (col: number, row: number) => {
     const flag1 = flags[0];
     const flag2 = flags[1];
     // Check if any future unit has picked up a dropped flag
@@ -779,7 +779,7 @@ function Board(props: BoardProps) {
     return containsFlag;
   };
 
-  const _isSelected = (
+  const isSelected = (
     col: number,
     row: number,
     selectedUnit: ISelectedUnit
@@ -790,20 +790,20 @@ function Board(props: BoardProps) {
 
   const renderSquare = (col: number, row: number) => {
     const placement = props.placement;
-    const unit = units[isPlayer]?.[selectedUnit.unitNumber];
-    const containsUnitsPlayer = _containsUnits(
-      units[isPlayer],
+    const unit = units[playerIndex]?.[selectedUnit.unitNumber];
+    const containsUnitsPlayer = containsUnits(
+      units[playerIndex],
       col,
       row,
-      isPlayer,
+      playerIndex,
       placement,
       false
     );
-    const containsUnitsOpponent = _containsUnits(
-      units[(isPlayer + 1) % 2],
+    const containsUnitsOpponent = containsUnits(
+      units[(playerIndex + 1) % 2],
       col,
       row,
-      (isPlayer + 1) % 2,
+      (playerIndex + 1) % 2,
       placement,
       false
     );
@@ -839,19 +839,19 @@ function Board(props: BoardProps) {
     };
 
     if (!placement) {
-      containsGhostUnitsPlayer = _containsUnits(
-        futureUnits[isPlayer],
+      containsGhostUnitsPlayer = containsUnits(
+        futureUnits[playerIndex],
         col,
         row,
-        isPlayer,
+        playerIndex,
         placement,
         true
       );
-      containsGhostUnitsOpponent = _containsUnits(
-        futureUnits[(isPlayer + 1) % 2],
+      containsGhostUnitsOpponent = containsUnits(
+        futureUnits[(playerIndex + 1) % 2],
         col,
         row,
-        (isPlayer + 1) % 2,
+        (playerIndex + 1) % 2,
         placement,
         true
       );
@@ -872,26 +872,26 @@ function Board(props: BoardProps) {
       };
     }
 
-    const containsFlag = _containsFlag(col, row);
-    const isReachable = _isReachable(unit, col, row, placement, selectedUnitBfsSet);
-    const manhattanOnlyReachable = !placement && _isManhattanOnlyReachable(unit, col, row, selectedUnitBfsSet);
+    const containsFlag = containsFlag(col, row);
+    const isReachable = isReachable(unit, col, row, placement, selectedUnitBfsSet);
+    const manhattanOnlyReachable = !placement && isManhattanOnlyReachable(unit, col, row, selectedUnitBfsSet);
     const key = `${col},${row}`;
     const opponentCanReach = opponentReachGrid.borders.has(key);
     const opponentReachBorders = opponentReachGrid.borders.get(key) || null;
     const opponentReachCorners = null; // corners disabled for now
     const ownReachBorders = ownUnmovedReachGrid.borders.get(key) || null;
     const hoveredReachBorders = hoveredReachGrid?.borders.get(key) || null;
-    const isForbidden = _isForbidden(unit, col, row, placement);
-    const isInDanger = _isInDanger(col, row, placement);
-    const dangerClasses = _getDangerClasses(col, row, isInDanger);
-    const dangerHighlighted = _isDangerHighlighted(col, row);
-    const isFlagZone = _isFlagZone(col, row);
+    const isForbidden = isForbidden(unit, col, row, placement);
+    const isInDanger = isInDanger(col, row, placement);
+    const dangerClasses = getDangerClasses(col, row, isInDanger);
+    const dangerHighlighted = isDangerHighlighted(col, row);
+    const isFlagZone = isFlagZone(col, row);
     return (
       <Square
-        _changePosition={_changePositionWithPath}
-        _changeStep={_changeStep}
-        _placeUnit={_placeUnit}
-        _screenShake={props._screenShake}
+        changePosition={changePositionWithPath}
+        changeStep={changeStep}
+        placeUnit={placeUnit}
+        screenShake={props.screenShake}
         boardWidth={boardWidth}
         col={col}
         containsFlag={containsFlag}
@@ -917,7 +917,7 @@ function Board(props: BoardProps) {
         arrowSegment={arrowPath.get(`${col},${row}`) || null}
         key={`${col} ${row}`}
         row={row}
-        selected={_isSelected(col, row, selectedUnit)}
+        selected={isSelected(col, row, selectedUnit)}
         unit={containsUnits}
       />
     );
@@ -925,7 +925,7 @@ function Board(props: BoardProps) {
 
   return (
     <div
-      className={`board p${isPlayer + 1}`}
+      className={`board p${playerIndex}`}
       style={{
         pointerEvents: animationPhase.isAnimating ? 'none' : 'auto',
       }}

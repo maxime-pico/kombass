@@ -5,17 +5,17 @@ import UnitSelector from "./UnitSelector";
 interface TaskForceSelectorProps {}
 
 function TaskForceSelector(props: TaskForceSelectorProps) {
-  const { units, isPlayer } = useContext(gameContext);
-  const currentPlayersUnits = units[isPlayer];
+  const { units, playerIndex } = useContext(gameContext);
+  const currentPlayersUnits = units[playerIndex];
   return (
     <div className="taskForceSelector-container">
-      {currentPlayersUnits.map((unit, unit_index) => {
+      {currentPlayersUnits.map((unit, unitIdx) => {
         return (
           <UnitSelector
-            key={unit_index}
+            key={unitIdx}
             unit={unit}
-            unitIndex={unit_index}
-            playerIndex={isPlayer}
+            unitIndex={unitIdx}
+            playerIndex={playerIndex}
           />
         );
       })}

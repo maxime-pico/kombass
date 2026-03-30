@@ -14,7 +14,7 @@ interface GameProps {
   unitsCount: number;
   players: IPlayers;
   selectedUnit: ISelectedUnit;
-  _changeStep: (step: number, direction: -1 | 1) => void;
+  changeStep: (step: number, direction: -1 | 1) => void;
   round: number;
   step: number;
   ready: Array<boolean>;
@@ -43,8 +43,8 @@ class Game extends Component<GameProps, GameStates> {
       ratingHover: null,
       modalStep: null,
     };
-    this._screenShake = this._screenShake.bind(this);
-    this._confirmAbandon = this._confirmAbandon.bind(this);
+    this.screenShake = this.screenShake.bind(this);
+    this.confirmAbandon = this.confirmAbandon.bind(this);
   }
 
   componentDidMount() {
@@ -61,7 +61,7 @@ class Game extends Component<GameProps, GameStates> {
     }
   }
 
-  _screenShake() {
+  screenShake() {
     this.setState({
       shake: true,
     });
@@ -70,7 +70,7 @@ class Game extends Component<GameProps, GameStates> {
     }, 1000);
   }
 
-  _confirmAbandon = () => {
+  confirmAbandon = () => {
     if (socketService.socket) {
       gameService.abandonGame(socketService.socket, this.props.playerNumber);
     }
@@ -90,16 +90,16 @@ class Game extends Component<GameProps, GameStates> {
     let winner = null;
     let loser = null;
 
-    units.forEach((player, player_index) => {
-      let ownFlag = flags[player_index];
-      units[player_index].forEach((unit, unit_index) => {
-        deadUnits[player_index] =
-          unit?.life > 0 ? deadUnits[player_index] : deadUnits[player_index] + 1;
+    units.forEach((player, playerIdx) => {
+      let ownFlag = flags[playerIdx];
+      units[playerIdx].forEach((unit, unitIdx) => {
+        deadUnits[playerIdx] =
+          unit?.life > 0 ? deadUnits[playerIdx] : deadUnits[playerIdx] + 1;
         let flagInZone =
           unit?.hasFlag &&
           unit?.life > 0 &&
           Math.abs(unit.x - (ownFlag.originX ?? ownFlag.x)) + Math.abs(unit.y - (ownFlag.originY ?? ownFlag.y)) <= 3;
-        isFlagInZone[player_index] = isFlagInZone[player_index] || flagInZone;
+        isFlagInZone[playerIdx] = isFlagInZone[playerIdx] || flagInZone;
       });
     });
 
@@ -155,7 +155,7 @@ class Game extends Component<GameProps, GameStates> {
         this.props.selectedUnit.unitNumber
       ]?.life < 1
     ) {
-      this.props._changeStep(this.props.step, 1);
+      this.props.changeStep(this.props.step, 1);
     }
 
     return (
@@ -260,7 +260,7 @@ class Game extends Component<GameProps, GameStates> {
                 Are you sure you want to abandon? Only cowards do that...
               </div>
               <div className="abandon-confirm-buttons">
-                <button className="button active" onClick={this._confirmAbandon}>
+                <button className="button active" onClick={this.confirmAbandon}>
                   Abandon
                 </button>
                 <button
@@ -279,7 +279,7 @@ class Game extends Component<GameProps, GameStates> {
             units={this.props.units[0]}
             selectedUnit={this.props.selectedUnit}
           />
-          <Board _screenShake={this._screenShake} placement={false} />
+          <Board screenShake={this.screenShake} placement={false} />
           <TeamPanel
             playerIndex={1}
             units={this.props.units[1]}

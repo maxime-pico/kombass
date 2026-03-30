@@ -16,7 +16,7 @@ describe("placeUnit", () => {
     const result = placeUnit({
       units,
       placedUnits,
-      isPlayer: 0,
+      playerIndex: 0,
       unitNumber: 0,
       col: 3,
       row: 4,
@@ -34,7 +34,7 @@ describe("placeUnit", () => {
     const result = placeUnit({
       units,
       placedUnits,
-      isPlayer: 0,
+      playerIndex: 0,
       unitNumber: 0,
       col: 1,
       row: 1,
@@ -52,7 +52,7 @@ describe("placeUnit", () => {
     const result = placeUnit({
       units,
       placedUnits,
-      isPlayer: 0,
+      playerIndex: 0,
       unitNumber: 0,
       col: 2,
       row: 2,
@@ -70,7 +70,7 @@ describe("placeUnit", () => {
     const result = placeUnit({
       units,
       placedUnits,
-      isPlayer: 0,
+      playerIndex: 0,
       unitNumber: 1, // last unit
       col: 1,
       row: 1,
@@ -88,7 +88,7 @@ describe("placeUnit", () => {
     placeUnit({
       units,
       placedUnits,
-      isPlayer: 0,
+      playerIndex: 0,
       unitNumber: 0,
       col: 3,
       row: 3,

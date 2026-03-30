@@ -79,10 +79,10 @@ function computeBfsPath(
  * - Interleave both players' animations
  */
 export function buildAnimationQueue(input: CombatInput, options?: AnimationBuildOptions): IAnimationItem[] {
-  const { units, futureUnits, isPlayer, flags } = input;
-  const myUnits = units[isPlayer];
-  const myFutureUnits = futureUnits[isPlayer];
-  const opponentNumber = (isPlayer + 1) % 2;
+  const { units, futureUnits, playerIndex, flags } = input;
+  const myUnits = units[playerIndex];
+  const myFutureUnits = futureUnits[playerIndex];
+  const opponentNumber = (playerIndex + 1) % 2;
   const opponentUnits = units[opponentNumber];
   const opponentFutureUnits = futureUnits[opponentNumber];
 
@@ -102,12 +102,12 @@ export function buildAnimationQueue(input: CombatInput, options?: AnimationBuild
         path = computeBfsPath(
           fromX, fromY, toX, toY,
           unit.speed, unit.hasFlag,
-          terrainSet, flags, isPlayer,
+          terrainSet, flags, playerIndex,
           boardWidth, boardLength,
         );
       }
       return {
-        player: isPlayer,
+        player: playerIndex,
         unitIndex: index,
         unit: myFutureUnits[index],
         fromX, fromY, toX, toY,
@@ -176,9 +176,9 @@ export function buildBoomQueue(
   input: CombatInput,
   animationQueue: IAnimationItem[]
 ): IBoomEvent[] {
-  const { futureUnits, flags, isPlayer } = input;
-  const myFutureUnits = futureUnits[isPlayer];
-  const opponentNumber = (isPlayer + 1) % 2;
+  const { futureUnits, flags, playerIndex } = input;
+  const myFutureUnits = futureUnits[playerIndex];
+  const opponentNumber = (playerIndex + 1) % 2;
   const opponentFutureUnits = futureUnits[opponentNumber];
 
   // Helper: Find animation index for a unit
@@ -202,18 +202,18 @@ export function buildBoomQueue(
   };
 
   // ORIGINAL PAIR-BASED LOGIC: Iterate through all unit pairs
-  myFutureUnits.forEach((myUnit, my_unit_index) => {
+  myFutureUnits.forEach((myUnit, myUnitIdx) => {
     if (!myUnit || myUnit.life <= 0) return;
 
-    const myAnimIndex = findAnimationIndex(isPlayer, my_unit_index);
+    const myAnimIndex = findAnimationIndex(playerIndex, myUnitIdx);
     if (myAnimIndex === -1) return;
 
-    opponentFutureUnits.forEach((opponentUnit, opponent_unit_index) => {
+    opponentFutureUnits.forEach((opponentUnit, opponentUnitIdx) => {
       if (!opponentUnit || opponentUnit.life <= 0) return;
 
       const opponentAnimIndex = findAnimationIndex(
         opponentNumber,
-        opponent_unit_index
+        opponentUnitIdx
       );
       if (opponentAnimIndex === -1) return;
 

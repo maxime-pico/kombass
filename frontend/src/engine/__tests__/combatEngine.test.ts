@@ -61,12 +61,12 @@ describe("calculateCombatResults", () => {
   scenarios.forEach((scenario) => {
     test(`${scenario.name}: ${scenario.description}`, () => {
       const result = calculateCombatResults(scenario.input);
-      const isPlayer = scenario.input.isPlayer;
-      const opponentNumber = ((isPlayer + 1) % 2) as 0 | 1;
+      const playerIndex = scenario.input.playerIndex;
+      const opponentNumber = ((playerIndex + 1) % 2) as 0 | 1;
 
       // Check my units' life
       scenario.expected.myUnitsLife.forEach((expectedLife, i) => {
-        expect(result.newFutureUnits[isPlayer][i]?.life).toBe(expectedLife);
+        expect(result.newFutureUnits[playerIndex][i]?.life).toBe(expectedLife);
       });
 
       // Check opponent units' life
@@ -93,7 +93,7 @@ describe("calculateCombatResults", () => {
         [unit({ x: 10, y: 10, strength: 2, speed: 2, life: 2 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
 
@@ -114,7 +114,7 @@ describe("calculateCombatResults", () => {
         [unit({ x: 10, y: 10, strength: 2, speed: 2, life: 2 })],
       ],
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
 
@@ -140,7 +140,7 @@ describe("calculateCombatResults", () => {
       units: sharedUnits,
       futureUnits: sharedUnits.map((arr) => arr.map((u) => ({ ...u }))),
       flags: farFlags,
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
 
@@ -148,7 +148,7 @@ describe("calculateCombatResults", () => {
       units: sharedUnits,
       futureUnits: sharedUnits.map((arr) => arr.map((u) => ({ ...u }))),
       flags: farFlags,
-      isPlayer: 1,
+      playerIndex: 1,
       unitsCount: 1,
     });
 
@@ -170,7 +170,7 @@ describe("calculateCombatResults", () => {
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
       flagStayInPlace: true,
     });
@@ -196,7 +196,7 @@ describe("calculateCombatResults", () => {
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
       flagStayInPlace: false,
     });
@@ -228,7 +228,7 @@ describe("calculateCombatResults", () => {
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 21, y: 20, originX: 21, originY: 20, inZone: false },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 2,
       flagStayInPlace: true,
     });
@@ -251,7 +251,7 @@ describe("calculateCombatResults", () => {
         { x: 0, y: 20, originX: 0, originY: 20, inZone: true },
         { x: 10, y: 10, originX: 21, originY: 20, inZone: true },
       ],
-      isPlayer: 0,
+      playerIndex: 0,
       unitsCount: 1,
     });
 

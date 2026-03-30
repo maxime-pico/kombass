@@ -14,25 +14,24 @@ function Panel(props: PanelProps) {
   const {
     animationPhase,
     bufferOpponentUnits,
-    isPlayer,
+    playerIndex,
     roomId,
     step,
     futureUnits,
     unitsCount,
     waitingForMoves,
-    _applyBufferedMoves,
-    _applyMoves,
-    _setWaitingForMoves,
-    _undoMove,
-    _updateMovesListener,
-    _updateOpponentUnits,
-    _waitingForMoves,
+    applyBufferedMoves,
+    applyMoves,
+    setWaitingForMoves,
+    undoMove,
+    updateMovesListener,
+    updateOpponentUnits,
   } = useContext(gameContext);
 
-  const _sendMoves = async () => {
+  const sendMoves = async () => {
     try {
       const res = await gamePost(roomId, "moves", {
-        futureUnits: futureUnits[isPlayer],
+        futureUnits: futureUnits[playerIndex],
         round: props.round,
       });
       if (!res.ok) {
@@ -44,12 +43,12 @@ function Panel(props: PanelProps) {
 
       if (data.waiting) {
         // First submitter — wait for combat_results socket event
-        _setWaitingForMoves(true, isPlayer);
+        setWaitingForMoves(true, playerIndex);
       } else {
         // Second submitter — combat happened, set opponent's futureUnits from response
-        _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
-        _setWaitingForMoves(true, isPlayer);
-        _setWaitingForMoves(true, (isPlayer + 1) % 2);
+        updateOpponentUnits(data.futureUnits[(playerIndex + 1) % 2]);
+        setWaitingForMoves(true, playerIndex);
+        setWaitingForMoves(true, (playerIndex + 1) % 2);
       }
     } catch (error) {
       console.error("Submit moves request failed:", error);
@@ -65,9 +64,9 @@ function Panel(props: PanelProps) {
       gameService.onCombatResults(
         socketService.socket,
         (data: { futureUnits: Array<Array<IUnit>>; combatResult: any; winner?: number }) => {
-          if (waitingRef.current[isPlayer]) playPingSound();
-          _updateOpponentUnits(data.futureUnits[(isPlayer + 1) % 2]);
-          _setWaitingForMoves(true, (isPlayer + 1) % 2);
+          if (waitingRef.current[playerIndex]) playPingSound();
+          updateOpponentUnits(data.futureUnits[(playerIndex + 1) % 2]);
+          setWaitingForMoves(true, (playerIndex + 1) % 2);
         }
       );
 
@@ -76,51 +75,51 @@ function Panel(props: PanelProps) {
         // Opponent submitted — no action needed, we still need to submit our own
       });
     }
-  }, [_updateOpponentUnits, _setWaitingForMoves, isPlayer]);
+  }, [updateOpponentUnits, setWaitingForMoves, playerIndex]);
 
   return (
     <div className="panel">
-      {step === unitsCount && waitingForMoves[isPlayer] && (
+      {step === unitsCount && waitingForMoves[playerIndex] && (
         <button
           className={`fight-button ${
             animationPhase.isAnimating
               ? "inactive"
-              : waitingForMoves[(isPlayer + 1) % 2]
+              : waitingForMoves[(playerIndex + 1) % 2]
               ? "active"
               : "inactive"
           }`}
           onClick={() => {
             if (step === unitsCount && !animationPhase.isAnimating) {
-              _applyMoves().then(() => {
+              applyMoves().then(() => {
                 document.removeEventListener(
                   "ready_for_moves",
-                  _waitingForMoves
+                  waitingForMoves
                 );
                 console.log("apply moves with buffer being");
                 console.log(bufferOpponentUnits);
                 if (
                   bufferOpponentUnits.filter((unit) => unit !== null).length
                 ) {
-                  _setWaitingForMoves(true, (isPlayer + 1) % 2);
+                  setWaitingForMoves(true, (playerIndex + 1) % 2);
                 }
               });
             }
           }}
-          disabled={!waitingForMoves[(isPlayer + 1) % 2] || animationPhase.isAnimating}
+          disabled={!waitingForMoves[(playerIndex + 1) % 2] || animationPhase.isAnimating}
         >
           {animationPhase.isAnimating
             ? "FIGHTING..."
-            : waitingForMoves[(isPlayer + 1) % 2]
+            : waitingForMoves[(playerIndex + 1) % 2]
             ? "FIGHT!"
             : "WAITING FOR OPPONENT TO MOVE THEIR ASS"}
         </button>
       )}
-      {step === unitsCount && !waitingForMoves[isPlayer] && (
+      {step === unitsCount && !waitingForMoves[playerIndex] && (
         <button
           className="fight-button confirm"
           onClick={() => {
             if (step === unitsCount && !animationPhase.isAnimating) {
-              _sendMoves();
+              sendMoves();
             }
           }}
           disabled={animationPhase.isAnimating}
@@ -128,10 +127,10 @@ function Panel(props: PanelProps) {
           CONFIRM MOVES
         </button>
       )}
-      {step !== 0 && !waitingForMoves[isPlayer] && (
+      {step !== 0 && !waitingForMoves[playerIndex] && (
         <button
           className="undo-button"
-          onClick={() => _undoMove()}
+          onClick={() => undoMove()}
           disabled={animationPhase.isAnimating}
         >
           Undo

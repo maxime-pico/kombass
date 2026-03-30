@@ -58,8 +58,8 @@ describe('TeamPanel Component', () => {
         />
       );
 
-      // Check that player 2 class is applied (p2)
-      const backgrounds = container.querySelectorAll('.unitPanel-background.p2');
+      // Check that player 1 class is applied (p1, 0-indexed)
+      const backgrounds = container.querySelectorAll('.unitPanel-background.p1');
       expect(backgrounds.length).toBe(4);
     });
   });

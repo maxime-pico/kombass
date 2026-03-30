@@ -6,7 +6,7 @@ export interface LoadedScenario {
   futureUnits: IUnit[][];
   flags: IFlag[];
   unitsCount: number;
-  isPlayer: 0 | 1;
+  playerIndex: 0 | 1;
   step: number;
   isTestScenario?: boolean;
   flagStayInPlace?: boolean;
@@ -22,7 +22,7 @@ export function loadScenario(scenario: TestScenario): LoadedScenario {
     futureUnits: scenario.input.futureUnits,
     flags: scenario.input.flags,
     unitsCount: scenario.input.unitsCount,
-    isPlayer: scenario.input.isPlayer,
+    playerIndex: scenario.input.playerIndex,
     // step = unitsCount puts app in combat phase, ready to play
     step: scenario.input.unitsCount,
     isTestScenario: true,
