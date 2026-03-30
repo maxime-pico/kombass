@@ -8,6 +8,8 @@ import IntroScreen from "./components/IntroScreen";
 import Game from "./components/Game";
 import UnitSelection from "./components/UnitSelection";
 import UnitPlacement from "./components/UnitPlacement";
+import TestHarness from "./components/TestHarness";
+import MapDesigner from "./components/MapDesigner";
 import { UNITS, SPRITES, defaultUnitConfig } from "./utilities/dict";
 import socketService from "./services/socketService";
 import GameContext, { dispatchCustomEvent, isCustomEvent } from "./gameContext";
@@ -1050,14 +1052,10 @@ class App extends Component<AppProps, AppState> {
   render() {
     // Render test harness if in test mode and on /test route
     if (import.meta.env.VITE_TEST_MODE === "true" && window.location.pathname === "/test") {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const TestHarness = require("./components/TestHarness").default;
       return <TestHarness />;
     }
 
     if (window.location.pathname === "/map-designer") {
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const MapDesigner = require("./components/MapDesigner").default;
       return <MapDesigner />;
     }
 
