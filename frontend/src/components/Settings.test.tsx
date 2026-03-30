@@ -1,23 +1,26 @@
-jest.mock('../services/socketService', () => {
+import { vi, type Mock } from 'vitest';
+
+const { mockEmitter } = vi.hoisted(() => {
   const { EventEmitter } = require("events");
-  const emitter = new EventEmitter();
-  emitter.off = emitter.removeListener.bind(emitter);
-  return {
-    __esModule: true,
-    default: { socket: emitter, connect: jest.fn() },
-    __mockEmitter: emitter,
-  };
+  const mockEmitter = new EventEmitter();
+  mockEmitter.off = mockEmitter.removeListener.bind(mockEmitter);
+  return { mockEmitter };
 });
 
-jest.mock('../services/gameService', () => ({
+vi.mock('../services/socketService', () => ({
+  __esModule: true,
+  default: { socket: mockEmitter, connect: vi.fn() },
+}));
+
+vi.mock('../services/gameService', () => ({
   __esModule: true,
   default: {
-    onJoinedGame: jest.fn(),
-    onSettingsConfirmed: jest.fn(),
+    onJoinedGame: vi.fn(),
+    onSettingsConfirmed: vi.fn(),
   },
 }));
 
-global.fetch = jest.fn().mockResolvedValue({ ok: true }) as any;
+global.fetch = vi.fn().mockResolvedValue({ ok: true }) as any;
 
 import React from "react";
 import { render, act, fireEvent, waitFor } from "@testing-library/react";
@@ -26,28 +29,24 @@ import gameContext from "../gameContext";
 import { defaultUnitConfig } from "../utilities/dict";
 import gameService from "../services/gameService";
 
-// Access the shared mock emitter (same object used by the mock)
-const socketServiceModule = require('../services/socketService');
-const mockEmitter = socketServiceModule.__mockEmitter as import("events").EventEmitter;
-
 const defaultContextValue = {
   isAdmin: false,
-  _setIsAdmin: jest.fn(),
-  _setIsPlayer: jest.fn(),
-  _setGameStarted: jest.fn(),
+  _setIsAdmin: vi.fn(),
+  _setIsPlayer: vi.fn(),
+  _setGameStarted: vi.fn(),
   gameStarted: false,
   boardWidth: 20,
   boardLength: 20,
-  _setBoardSize: jest.fn(),
+  _setBoardSize: vi.fn(),
   placementZone: 5,
-  _setPlacementZone: jest.fn(),
+  _setPlacementZone: vi.fn(),
   unitsCount: 5,
-  _setUnitCount: jest.fn(),
+  _setUnitCount: vi.fn(),
   unitConfig: defaultUnitConfig(),
-  _setUnitConfig: jest.fn(),
-  _setTerrain: jest.fn(),
-  _setFlags: jest.fn(),
-  _setFlagStayInPlace: jest.fn(),
+  _setUnitConfig: vi.fn(),
+  _setTerrain: vi.fn(),
+  _setFlags: vi.fn(),
+  _setFlagStayInPlace: vi.fn(),
   flagStayInPlace: false,
   flags: [
     { x: 0, y: 10, originX: 0, originY: 10, inZone: true },
@@ -55,7 +54,7 @@ const defaultContextValue = {
   ],
 };
 
-function renderSettings(selectUnitsMock: jest.Mock) {
+function renderSettings(selectUnitsMock: Mock) {
   return render(
     <gameContext.Provider value={defaultContextValue as any}>
       <Settings _selectUnits={selectUnitsMock} roomId="testroom" />
@@ -67,7 +66,7 @@ describe("Settings READY button gating", () => {
   it("READY button is disabled when gameStarted is false", () => {
     const { getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, gameStarted: false, isAdmin: true } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
     expect(getByText("READY").closest("button")).toBeDisabled();
@@ -76,7 +75,7 @@ describe("Settings READY button gating", () => {
   it("READY button is enabled when gameStarted is true", () => {
     const { getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, gameStarted: true, isAdmin: true } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
     expect(getByText("READY").closest("button")).not.toBeDisabled();
@@ -86,8 +85,7 @@ describe("Settings READY button gating", () => {
 describe("Settings component socket events", () => {
   beforeEach(() => {
     mockEmitter.removeAllListeners();
-    // Restore implementations (reset by resetMocks: true in react-scripts jest config)
-    (gameService.onSettingsConfirmed as jest.Mock).mockImplementation(
+    (gameService.onSettingsConfirmed as Mock).mockImplementation(
       (socket: any, listener: (s: any) => void) => {
         socket.on('settings_confirmed', listener);
       }
@@ -96,7 +94,7 @@ describe("Settings component socket events", () => {
 
 
   it("calls _selectUnits when settings_confirmed is received", () => {
-    const mockSelectUnits = jest.fn();
+    const mockSelectUnits = vi.fn();
     renderSettings(mockSelectUnits);
 
     act(() => {
@@ -109,8 +107,8 @@ describe("Settings component socket events", () => {
   });
 
   it("updates context values from settings_confirmed payload before calling _selectUnits", () => {
-    const mockSelectUnits = jest.fn();
-    const mockSetUnitCount = jest.fn();
+    const mockSelectUnits = vi.fn();
+    const mockSetUnitCount = vi.fn();
     render(
       <gameContext.Provider value={{ ...defaultContextValue, _setUnitCount: mockSetUnitCount } as any}>
         <Settings _selectUnits={mockSelectUnits} roomId="testroom" />
@@ -126,8 +124,8 @@ describe("Settings component socket events", () => {
   });
 
   it("applies flags from settings_confirmed payload via _setBoardSize", () => {
-    const mockSelectUnits = jest.fn();
-    const mockSetBoardSize = jest.fn();
+    const mockSelectUnits = vi.fn();
+    const mockSetBoardSize = vi.fn();
     render(
       <gameContext.Provider value={{ ...defaultContextValue, _setBoardSize: mockSetBoardSize } as any}>
         <Settings _selectUnits={mockSelectUnits} roomId="testroom" />
@@ -166,9 +164,9 @@ describe("Custom map import", () => {
   }
 
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockEmitter.removeAllListeners();
-    (gameService.onSettingsConfirmed as jest.Mock).mockImplementation(
+    (gameService.onSettingsConfirmed as Mock).mockImplementation(
       (socket: any, listener: (s: any) => void) => {
         socket.on("settings_confirmed", listener);
       }
@@ -176,10 +174,10 @@ describe("Custom map import", () => {
   });
 
   it("imports map file and updates board size", async () => {
-    const mockSetBoardSize = jest.fn();
+    const mockSetBoardSize = vi.fn();
     const { container } = render(
       <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true, _setBoardSize: mockSetBoardSize } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -198,7 +196,7 @@ describe("Custom map import", () => {
   it("shows 'using imported map' and disables terrain slider after import", async () => {
     const { container, getByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -217,9 +215,9 @@ describe("Custom map import", () => {
   });
 
   it("sends imported terrain and flags when READY is clicked", async () => {
-    (global.fetch as jest.Mock).mockResolvedValue({ ok: true });
-    const mockSetTerrain = jest.fn();
-    const mockSetFlags = jest.fn();
+    (global.fetch as Mock).mockResolvedValue({ ok: true });
+    const mockSetTerrain = vi.fn();
+    const mockSetFlags = vi.fn();
     const { container, getByText } = render(
       <gameContext.Provider value={{
         ...defaultContextValue,
@@ -228,7 +226,7 @@ describe("Custom map import", () => {
         _setTerrain: mockSetTerrain,
         _setFlags: mockSetFlags,
       } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 
@@ -255,7 +253,7 @@ describe("Custom map import", () => {
 
     // fetch should have been called with terrain in body
     expect(global.fetch).toHaveBeenCalled();
-    const fetchCall = (global.fetch as jest.Mock).mock.calls[0];
+    const fetchCall = (global.fetch as Mock).mock.calls[0];
     const body = JSON.parse(fetchCall[1].body);
     expect(body.terrain).toEqual(testMapData.terrain);
     expect(body.flags).toBeTruthy();
@@ -265,7 +263,7 @@ describe("Custom map import", () => {
   it("clearing imported map re-enables terrain slider", async () => {
     const { container, getByText, queryByText } = render(
       <gameContext.Provider value={{ ...defaultContextValue, isAdmin: true, gameStarted: true } as any}>
-        <Settings _selectUnits={jest.fn()} roomId="testroom" />
+        <Settings _selectUnits={vi.fn()} roomId="testroom" />
       </gameContext.Provider>
     );
 

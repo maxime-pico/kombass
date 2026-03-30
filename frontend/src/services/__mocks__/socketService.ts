@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { Socket } from "socket.io-client";
 
 /**
@@ -6,11 +7,11 @@ import { Socket } from "socket.io-client";
  */
 
 const mockSocket = {
-  emit: jest.fn(),
-  on: jest.fn(),
-  off: jest.fn(),
-  connect: jest.fn(),
-  disconnect: jest.fn(),
+  emit: vi.fn(),
+  on: vi.fn(),
+  off: vi.fn(),
+  connect: vi.fn(),
+  disconnect: vi.fn(),
 } as unknown as Socket;
 
 class MockSocketService {
@@ -22,9 +23,9 @@ class MockSocketService {
 
   // Test helper: reset mock state between tests
   public resetMock() {
-    (mockSocket.emit as jest.Mock).mockClear();
-    (mockSocket.on as jest.Mock).mockClear();
-    (mockSocket.off as jest.Mock).mockClear();
+    (mockSocket.emit as ReturnType<typeof vi.fn>).mockClear();
+    (mockSocket.on as ReturnType<typeof vi.fn>).mockClear();
+    (mockSocket.off as ReturnType<typeof vi.fn>).mockClear();
   }
 }
 

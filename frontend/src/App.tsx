@@ -234,7 +234,7 @@ class App extends Component<AppProps, AppState> {
   connectSocket = async () => {
     const socket = await socketService
       // .connect("https://kombass-server.herokuapp.com/")
-      .connect(process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000", "test")
+      .connect(import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000", "test")
       .catch((e: string) => console.log("Error on connect: ", e));
 
     if (socket) {
@@ -250,7 +250,7 @@ class App extends Component<AppProps, AppState> {
 
   checkAndJoinRoom = async (roomId: string) => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
       const resp = await fetch(`${backendUrl}/api/room/${roomId}/join`, { method: "POST" });
       if (!resp.ok) {
         const data = await resp.json();
@@ -278,7 +278,7 @@ class App extends Component<AppProps, AppState> {
 
   createAndJoinRoom = async () => {
     try {
-      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
       const resp = await fetch(`${backendUrl}/api/room`, { method: "POST" });
       if (!resp.ok) {
         alert("Failed to create room");
@@ -912,7 +912,7 @@ class App extends Component<AppProps, AppState> {
       const boomQueue = this._buildBoomQueue(animationQueue);
 
       // [LOCATION D] Log queue sizes (test mode only)
-      if (process.env.REACT_APP_TEST_MODE === "true") {
+      if (import.meta.env.VITE_TEST_MODE === "true") {
         console.log(`[APPLY] animationQueue size: ${animationQueue.length}, boomQueue size: ${boomQueue.length}`);
         if (boomQueue.length === 0) {
           console.warn(
@@ -1017,7 +1017,7 @@ class App extends Component<AppProps, AppState> {
       const data = await res.json();
 
       // Connect socket for live notifications
-      const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+      const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
       await socketService.connect(backendUrl, "test");
       if (socketService.socket) {
         socketService.socket.emit("authenticate", { sessionToken });
@@ -1255,7 +1255,7 @@ class App extends Component<AppProps, AppState> {
     });
     preloadAnimatedSprites();
 
-    if (process.env.REACT_APP_TEST_MODE === "true") {
+    if (import.meta.env.VITE_TEST_MODE === "true") {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const { loadScenario, scenarios } = require("./engine/scenarioLoader");
       (window as any).__KOMBASS_TEST_API__ = {
@@ -1379,7 +1379,7 @@ class App extends Component<AppProps, AppState> {
 
   render() {
     // Render test harness if in test mode and on /test route
-    if (process.env.REACT_APP_TEST_MODE === "true" && window.location.pathname === "/test") {
+    if (import.meta.env.VITE_TEST_MODE === "true" && window.location.pathname === "/test") {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const TestHarness = require("./components/TestHarness").default;
       return <TestHarness />;

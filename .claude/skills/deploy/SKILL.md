@@ -10,7 +10,7 @@ Deploy Kombass to production. Run after manual testing is complete and the user 
 Run frontend tests, backend compile check, and E2E tests:
 
 ```bash
-cd /Users/Max/repos/kombass/frontend && CI=true npm test
+cd /Users/Max/repos/kombass/frontend && npm test
 cd /Users/Max/repos/kombass/server && npm run postinstall
 ```
 

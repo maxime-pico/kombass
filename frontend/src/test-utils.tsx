@@ -1,3 +1,4 @@
+import { vi } from 'vitest';
 import React, { ReactElement } from 'react';
 import { render, RenderOptions } from '@testing-library/react';
 import gameContext, { IGameContextProps } from './gameContext';
@@ -75,7 +76,7 @@ export function createMockSocket() {
   const listeners: { [key: string]: Function[] } = {};
 
   return {
-    emit: jest.fn(),
+    emit: vi.fn(),
     on: jest.fn((event: string, callback: Function) => {
       if (!listeners[event]) {
         listeners[event] = [];

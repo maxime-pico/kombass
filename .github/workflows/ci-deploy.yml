@@ -14,9 +14,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - run: npm ci --legacy-peer-deps
+      - run: npm ci
         working-directory: frontend
-      - run: CI=true npm test
+      - run: npm test
         working-directory: frontend
 
   test-backend:
@@ -68,7 +68,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://kombass:testpassword@localhost:5432/kombass
       - name: Install frontend dependencies
-        run: npm ci --legacy-peer-deps
+        run: npm ci
         working-directory: frontend
       - name: Install E2E dependencies
         run: npm ci
@@ -81,7 +81,7 @@ jobs:
         working-directory: e2e
         env:
           CI: true
-          REACT_APP_TEST_MODE: "true"
+          VITE_TEST_MODE: "true"
           DATABASE_URL: postgresql://kombass:testpassword@localhost:5432/kombass
       - name: Upload Playwright report on failure
         uses: actions/upload-artifact@v4

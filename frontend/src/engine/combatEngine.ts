@@ -94,7 +94,7 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
         });
 
         // Trace log for pair evaluation (test mode only)
-        if (process.env.REACT_APP_TEST_MODE === "true") {
+        if (import.meta.env.VITE_TEST_MODE === "true") {
           console.log(
             `[COMBAT] P0U${my_unit_index}(str=${strength},life=${life}) vs P1U${unit_index}(str=${opponentStrength},life=${opponentUnit?.life}): canHit=${canIHitOpponent} canBeHit=${canOpponentHitMe} inFlagZone=${inFlagZone}`
           );
@@ -118,7 +118,7 @@ export function calculateCombatResults(input: CombatInput): CombatResult {
         }
 
         // Trace log final life (test mode only)
-        if (process.env.REACT_APP_TEST_MODE === "true") {
+        if (import.meta.env.VITE_TEST_MODE === "true") {
           console.log(
             `[COMBAT] P0U${my_unit_index} final life after opponent U${unit_index}: ${life - damageTaken}`
           );

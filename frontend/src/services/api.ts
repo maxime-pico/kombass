@@ -1,4 +1,4 @@
-const BASE_URL = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+const BASE_URL = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
 
 function getToken(roomId: string): string | null {
   return localStorage.getItem(`kombass_session_token_${roomId}`);

@@ -33,7 +33,7 @@ export default defineConfig({
       env: process.env.CI ? {} : { DATABASE_URL: LOCAL_DATABASE_URL },
     },
     {
-      command: `PORT=${E2E_FRONTEND_PORT} REACT_APP_TEST_MODE=true BROWSER=none npm start`,
+      command: `VITE_TEST_MODE=true npx vite --port ${E2E_FRONTEND_PORT}`,
       cwd: "../frontend",
       url: `http://localhost:${E2E_FRONTEND_PORT}`,
       reuseExistingServer: false,

@@ -1,3 +1,4 @@
+import { vi } from "vitest";
 import { Socket } from "socket.io-client";
 
 /**
@@ -6,14 +7,14 @@ import { Socket } from "socket.io-client";
  */
 
 class MockChatService {
-  public onChatConnected = jest.fn(
+  public onChatConnected = vi.fn(
     async (socket: Socket, listener: (options: any) => void) => {
       // Store listener for test control
       return Promise.resolve();
     }
   );
 
-  public sendMessage = jest.fn(
+  public sendMessage = vi.fn(
     async (
       socket: Socket,
       message: {
@@ -26,7 +27,7 @@ class MockChatService {
     }
   );
 
-  public onMessageReceived = jest.fn(
+  public onMessageReceived = vi.fn(
     async (
       socket: Socket,
       listener: (message: { who: string; content: string }) => void

@@ -11,7 +11,7 @@ interface SettingsProps {
   roomId: string;
 }
 
-const backendUrl = process.env.REACT_APP_BACKEND_URL ?? "http://localhost:9000";
+const backendUrl = import.meta.env.VITE_BACKEND_URL ?? "http://localhost:9000";
 
 function Settings(props: SettingsProps) {
   const {

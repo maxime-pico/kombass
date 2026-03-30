@@ -1,22 +1,24 @@
+import { vi } from 'vitest';
+
 // Mock modules MUST be at the top before any imports
-jest.mock('../services/socketService', () => ({
+vi.mock('../services/socketService', () => ({
   __esModule: true,
   default: {
     socket: {
-      emit: jest.fn(),
-      on: jest.fn(),
-      off: jest.fn(),
-      connect: jest.fn(),
-      disconnect: jest.fn(),
+      emit: vi.fn(),
+      on: vi.fn(),
+      off: vi.fn(),
+      connect: vi.fn(),
+      disconnect: vi.fn(),
     },
-    connect: jest.fn(),
+    connect: vi.fn(),
   },
 }));
 
-jest.mock('../services/chatService', () => {
-  const sendMessage = jest.fn().mockResolvedValue(undefined);
-  const onChatConnected = jest.fn().mockResolvedValue(undefined);
-  const onMessageReceived = jest.fn().mockResolvedValue(undefined);
+vi.mock('../services/chatService', () => {
+  const sendMessage = vi.fn().mockResolvedValue(undefined);
+  const onChatConnected = vi.fn().mockResolvedValue(undefined);
+  const onMessageReceived = vi.fn().mockReturnValue(() => {});
 
   return {
     __esModule: true,
@@ -28,8 +30,8 @@ jest.mock('../services/chatService', () => {
   };
 });
 
-jest.mock('../utilities/sound', () => ({
-  playChatPing: jest.fn(),
+vi.mock('../utilities/sound', () => ({
+  playChatPing: vi.fn(),
 }));
 
 import React, { useState } from 'react';
@@ -43,12 +45,12 @@ import chatService from '../services/chatService';
 
 describe('Chat Component', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
-    jest.useFakeTimers();
+    vi.clearAllMocks();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    jest.useRealTimers();
+    vi.useRealTimers();
   });
 
   const getCollapsible = () => document.querySelector('#chat .collapsible');
@@ -104,7 +106,7 @@ describe('Chat Component', () => {
       expect(screen.queryByText(/KRAU/)).not.toBeInTheDocument();
 
       // Advance past initial delay + some typing time
-      act(() => { jest.advanceTimersByTime(15000); });
+      act(() => { vi.advanceTimersByTime(15000); });
 
       expect(screen.getByText(/KRAU COM SYSTEM/)).toBeInTheDocument();
       expect(screen.getByText(/MISSION BRIEFING/)).toBeInTheDocument();
@@ -117,7 +119,7 @@ describe('Chat Component', () => {
 
       expect(getCollapsible()).toHaveClass('collapsed');
 
-      act(() => { jest.advanceTimersByTime(1200); });
+      act(() => { vi.advanceTimersByTime(1200); });
 
       expect(getCollapsible()).not.toHaveClass('collapsed');
     });
@@ -211,7 +213,7 @@ describe('Chat Component', () => {
         contextValue: { step: -2, gameStarted: true },
       });
 
-      act(() => { jest.advanceTimersByTime(5000); });
+      act(() => { vi.advanceTimersByTime(5000); });
 
       const adminMessages = screen.getAllByText(/KRAU COM SYSTEM|MILITARY GRADE ENCRYPTION|----/);
       adminMessages.forEach(msg => {
@@ -249,7 +251,7 @@ describe('Chat Component', () => {
     });
 
     test('expanding when gameStarted=true focuses input', async () => {
-      jest.useRealTimers();
+      vi.useRealTimers();
       renderWithContext(<Chat />, {
         contextValue: { gameStarted: true },
       });
@@ -280,7 +282,7 @@ describe('Chat Component', () => {
     });
 
     test('typing updates message state', async () => {
-      jest.useRealTimers();
+      vi.useRealTimers();
       renderWithContext(<Chat />, {
         contextValue: { gameStarted: true },
       });

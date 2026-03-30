@@ -5,7 +5,7 @@ import App from './App';
 import reportWebVitals from './reportWebVitals';
 import 'bootstrap/dist/css/bootstrap.css';
 
-console.log(`Kombass v${process.env.REACT_APP_VERSION}`);
+console.log(`Kombass v${import.meta.env.VITE_APP_VERSION ?? 'dev'}`);
 
 const container = document.getElementById('root');
 if (!container) throw new Error('Root element not found');
