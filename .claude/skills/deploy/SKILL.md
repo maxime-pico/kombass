@@ -16,12 +16,11 @@ cd /Users/Max/repos/kombass/server && npm run postinstall
 
 If either fails, surface the errors and stop — do NOT commit.
 
-Then run the E2E suite (requires Node 20+ via nvm):
+Then run the E2E suite:
 
 ```bash
 # Kill any leftover E2E frontend on port 3001
 kill $(lsof -t -i :3001) 2>/dev/null || true
-source ~/.nvm/nvm.sh && nvm use 20
 cd /Users/Max/repos/kombass/e2e && npx playwright test --ignore-snapshots --reporter=list
 ```
 

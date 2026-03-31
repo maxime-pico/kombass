@@ -223,7 +223,34 @@ describe('Chat Component', () => {
   });
 
   describe('Message History Accumulation (Critical Bug)', () => {
-    test.skip('[BUG] message history accumulates for both players across multiple messages', async () => {});
+    test('message history accumulates across multiple messages', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true, playerIndex: 0 },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox');
+      const sendBtn = screen.getByText('>>');
+
+      // Send first message
+      await userEvent.type(input, 'First');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledTimes(1);
+      });
+
+      // Send second message
+      await userEvent.type(input, 'Second');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledTimes(2);
+      });
+    });
 
     test('[BUG - Manual Reproduction] stale closure causes message loss', () => {
       expect(true).toBe(true);
@@ -294,14 +321,131 @@ describe('Chat Component', () => {
       expect(input.value).toBe('Hello World');
     });
 
-    test.skip('[TODO] Enter key sends message when focused - mock setup issue', async () => {});
-    test.skip('[TODO] send button triggers message send - mock setup issue', async () => {});
-    test.skip('message cleared after sending', async () => {});
+    test('Enter key sends message when focused', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox') as HTMLInputElement;
+      await userEvent.type(input, 'Hello');
+      expect(input.value).toBe('Hello');
+
+      // Press Enter (charCode 13 triggers sendMessage)
+      fireEvent.keyPress(input, { charCode: 13 });
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledWith(
+          socketService.socket,
+          { who: '1', content: 'Hello' }
+        );
+      });
+    });
+
+    test('send button triggers message send', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox') as HTMLInputElement;
+      await userEvent.type(input, 'Test msg');
+
+      const sendBtn = screen.getByText('>>');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledWith(
+          socketService.socket,
+          { who: '1', content: 'Test msg' }
+        );
+      });
+    });
+
+    test('message cleared after sending', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox') as HTMLInputElement;
+      await userEvent.type(input, 'Clear me');
+      expect(input.value).toBe('Clear me');
+
+      const sendBtn = screen.getByText('>>');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(input.value).toBe('');
+      });
+    });
   });
 
-  describe.skip('Socket Integration', () => {
-    test('registers message listener on mount', () => {});
-    test('sendMessage called with correct format for player 0', async () => {});
-    test('sendMessage called with correct format for player 1', async () => {});
+  describe('Socket Integration', () => {
+    test('registers message listener on mount', () => {
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true },
+      });
+
+      expect(chatService.onMessageReceived).toHaveBeenCalledWith(
+        socketService.socket,
+        expect.any(Function)
+      );
+    });
+
+    test('sendMessage called with correct format for player 0', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true, playerIndex: 0 },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'P0 msg');
+
+      const sendBtn = screen.getByText('>>');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledWith(
+          socketService.socket,
+          { who: '1', content: 'P0 msg' }
+        );
+      });
+    });
+
+    test('sendMessage called with correct format for player 1', async () => {
+      vi.useRealTimers();
+      renderWithContext(<Chat />, {
+        contextValue: { gameStarted: true, playerIndex: 1 },
+      });
+
+      const header = screen.getByText(/Communication system/i);
+      fireEvent.click(header);
+
+      const input = screen.getByRole('textbox');
+      await userEvent.type(input, 'P1 msg');
+
+      const sendBtn = screen.getByText('>>');
+      fireEvent.click(sendBtn);
+
+      await waitFor(() => {
+        expect(chatService.sendMessage).toHaveBeenCalledWith(
+          socketService.socket,
+          { who: '2', content: 'P1 msg' }
+        );
+      });
+    });
   });
 });

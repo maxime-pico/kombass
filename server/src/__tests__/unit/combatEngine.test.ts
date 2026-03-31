@@ -35,7 +35,10 @@ describe("isInCombatRange (shared)", () => {
 
   test("Light vs non-Light uses Euclidean squared for Light attacker", () => {
     expect(isInCombatRange(0, 0, 1, 1, 1, 0, 3, 3)).toBe(true);
-    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 3, 3)).toBe(false);
+    // (0,0) to (1,1): dx²+dy² = 2 ≤ 2, so Light CAN hit diagonal
+    expect(isInCombatRange(0, 0, 1, 1, 1, 1, 3, 3)).toBe(true);
+    // (0,0) to (2,0): dx²+dy² = 4 > 2, out of range
+    expect(isInCombatRange(0, 0, 1, 1, 2, 0, 3, 3)).toBe(false);
   });
 
   test("non-Light vs Light uses Manhattan for non-Light attacker", () => {

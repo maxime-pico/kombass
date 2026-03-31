@@ -51,16 +51,12 @@ describe("buildAnimationQueue", () => {
 });
 
 describe("buildBoomQueue - specific behavior", () => {
-  test("light_euclidean_range: CURRENTLY FAILS - expects 2 booms but gets 0", () => {
-    // This test documents the known bug: two Lights diagonal (dx=1, dy=1)
-    // Combat engine sees them as in range (Euclidean² = 2 ≤ 2, special case for both Light)
-    // But boom builder does NOT have the special case, uses dx² + dy² ≤ 1 per attacker
-    // So boom builder says they're NOT in range → no boom
+  test("light_euclidean_range: two diagonal Lights produce 2 booms", () => {
+    // Two Lights diagonal (dx=1, dy=1): Euclidean² = 2 ≤ 2, both in range
     const scenario = scenarios[2]; // light_euclidean_range
     const animQueue = buildAnimationQueue(scenario.input);
     const boomQueue = buildBoomQueue(scenario.input, animQueue);
 
-    // THIS WILL FAIL UNTIL THE BUG IS FIXED
     expect(boomQueue.length).toBe(2);
   });
 

@@ -66,7 +66,7 @@ window.__KOMBASS_TEST_API__.setStep(5)   // 5 = combat phase
 ## Playwright E2E Tests
 
 ### Prerequisites
-- Node 20+ required (`nvm use 20`)
+- Node 22+ required (auto-switched via `.nvmrc`)
 - Frontend dev server must be running on port 3000 with `REACT_APP_TEST_MODE=true`
 - OR let Playwright start it automatically (configured in `playwright.config.ts`)
 

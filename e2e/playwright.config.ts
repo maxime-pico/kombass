@@ -7,6 +7,7 @@ const E2E_FRONTEND_PORT = process.env.CI ? 3000 : 3001;
 const LOCAL_DATABASE_URL = "postgresql://kombass@localhost:5432/kombass";
 
 export default defineConfig({
+  globalSetup: "./global-setup.ts",
   testDir: "./tests",
   timeout: 30000,
   retries: process.env.CI ? 1 : 0,
