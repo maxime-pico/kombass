@@ -468,7 +468,7 @@ button {
 }
 
 .main.fight {
-  animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: shake calc(0.82s * var(--anim-speed, 1)) cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   transform: translate3d(0, 0, 0);
   backface-visibility: hidden;
   perspective: 1000px;
@@ -527,6 +527,27 @@ button {
 .fight-button.confirm {
   background-color: #06a12f;
   color: white;
+}
+
+.speed-toggle {
+  margin-top: 1rem;
+  height: 2.5rem;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  padding: 4px 10px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.speed-toggle:hover {
+  border-color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .square-container.has-unit {
@@ -892,7 +913,7 @@ button {
   content: '';
   position: absolute;
   inset: -30px;
-  animation: danger-scan 1s linear 1;
+  animation: danger-scan calc(1s * var(--anim-speed, 1)) linear 1;
 }
 
 .danger-overlay.danger-p0.danger-scanning::before {
@@ -922,7 +943,7 @@ button {
 
 /* Target flash: yellow-orange-yellow on the whole square, above unit sprites */
 .danger-overlay.danger-targeting {
-  animation: danger-target 0.6s ease-in-out;
+  animation: danger-target calc(0.6s * var(--anim-speed, 1)) ease-in-out;
   z-index: 1010;
 }
 
@@ -1120,13 +1141,13 @@ button.active {
 }
 
 .square.boom::after {
-  animation: boom 1s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: boom calc(1s * var(--anim-speed, 1)) cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   opacity: 1;
   transform: scale(3);
 }
 
 .square.boom::before {
-  animation: boom2 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  animation: boom2 calc(0.8s * var(--anim-speed, 1)) cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   opacity: 1;
   transform: translate(1px, 1px);
 }
@@ -1199,7 +1220,7 @@ button.active {
   font-weight: 900;
   color: red;
   pointer-events: none;
-  animation: float-damage 1.5s ease-out forwards;
+  animation: float-damage calc(1.5s * var(--anim-speed, 1)) ease-out forwards;
   left: -50%;
   top: -150%;
 }
@@ -1275,7 +1296,7 @@ button.active {
   justify-content: center;
   overflow: hidden;
   background: rgba(0, 0, 0, 0);
-  animation: embuscade-bg 1600ms ease-in-out forwards;
+  animation: embuscade-bg calc(1600ms * var(--anim-speed, 1)) ease-in-out forwards;
 }
 
 .embuscade-text {
@@ -1286,7 +1307,7 @@ button.active {
     3px 3px 0 rgba(0, 0, 0, 0.5);
   letter-spacing: 6px;
   text-transform: uppercase;
-  animation: embuscade-slide 1600ms ease-in-out forwards;
+  animation: embuscade-slide calc(1600ms * var(--anim-speed, 1)) ease-in-out forwards;
   z-index: 1;
   background: #cc0000;
   padding: 16px 40px;
@@ -1336,7 +1357,7 @@ button.active {
   width: 60px;
   height: 10px;
   background: linear-gradient(to right, transparent, rgba(255, 255, 255, 0.7), transparent);
-  animation: embuscade-rain-fly 400ms linear infinite;
+  animation: embuscade-rain-fly calc(400ms * var(--anim-speed, 1)) linear infinite;
 }
 
 @keyframes embuscade-rain-fly {
@@ -1667,15 +1688,15 @@ button.active {
 /* ── Horse (P2) rear ── */
 .horse.rearing #body {
   transform-origin: 175px 280px;
-  animation: horseRearBody 0.8s ease-in-out forwards;
+  animation: horseRearBody calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 .horse.rearing #front-legs {
   transform-origin: 70px 280px;
-  animation: horseRearFront 0.8s ease-in-out forwards;
+  animation: horseRearFront calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 .horse.rearing #back-legs {
   transform-origin: 260px 280px;
-  animation: horseRearBack 0.8s ease-in-out forwards;
+  animation: horseRearBack calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 
 @keyframes horseRearBody {
@@ -1713,11 +1734,11 @@ button.active {
 /* ── Motorbike (P1) rear ── */
 .bike.rearing #body {
   transform-origin: 175px 240px;
-  animation: bikeRearBody 0.8s ease-in-out forwards;
+  animation: bikeRearBody calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 .bike.rearing #front-wheel {
   transform-origin: 248.5px 269.5px;
-  animation: bikeRearFrontWheel 0.8s ease-in-out forwards;
+  animation: bikeRearFrontWheel calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 
 @keyframes bikeRearBody {
@@ -1746,7 +1767,7 @@ button.active {
 .infantry-p1.raising #weapon-middle,
 .infantry-p1.raising #weapon-front {
   transform-origin: 71px 171px;
-  animation: infantryP1Raise 0.8s ease-in-out forwards;
+  animation: infantryP1Raise calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 .infantry-p1.raising #left-leg,
 .infantry-p1.raising #right-leg {
@@ -1778,7 +1799,7 @@ button.active {
 .infantry-p2.raising #weapon-middle,
 .infantry-p2.raising #weapon-front {
   transform-origin: 294px 256px;
-  animation: infantryP2Raise 0.8s ease-in-out forwards;
+  animation: infantryP2Raise calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 .infantry-p2.raising #left-leg,
 .infantry-p2.raising #right-leg {
@@ -1871,7 +1892,7 @@ button.active {
 }
 .heavy-p1.raising #cannon-idle {
   transform-origin: 226.9px 214.4px;
-  animation: heavyP1Raise 0.8s ease-in-out forwards;
+  animation: heavyP1Raise calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 
 /* ── Heavy P2 marching ── */
@@ -1893,7 +1914,7 @@ button.active {
 }
 .heavy-p2.raising #cannon-idle {
   transform-origin: 184.8px 119.7px;
-  animation: heavyP2Raise 0.8s ease-in-out forwards;
+  animation: heavyP2Raise calc(0.8s * var(--anim-speed, 1)) ease-in-out forwards;
 }
 
 @keyframes heavyP1Raise {

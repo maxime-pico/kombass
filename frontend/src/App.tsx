@@ -108,6 +108,8 @@ interface AppState {
   waitingForMoves: Array<boolean>;
   movementPaths: Array<Array<{ x: number; y: number }> | null>;
   animationPhase: IAnimationPhase;
+  animSpeed: number;
+  toggleAnimSpeed: () => void;
   isSyncing: boolean;
   isTestScenario: boolean;
 }
@@ -195,6 +197,8 @@ class App extends Component<AppProps, AppState> {
         boomQueue: [],
         deadUnits: new Set(),
       },
+      animSpeed: 1,
+      toggleAnimSpeed: this._toggleAnimSpeed,
       isSyncing: false,
       isTestScenario: false,
     };
@@ -618,7 +622,7 @@ class App extends Component<AppProps, AppState> {
     console.log(`Starting animation sequence with ${queue.length} animations`);
 
     // Add delay to allow React to re-render and attach event listeners
-    await new Promise((resolve) => setTimeout(resolve, 50));
+    await this._delay(50);
 
     for (let i = 0; i < queue.length; i++) {
       const animation = queue[i];
@@ -627,7 +631,7 @@ class App extends Component<AppProps, AppState> {
 
       // Pre-move: brief flash of danger zone at origin position
       this._setAnimationSubPhase('pre-move');
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await this._delay(300);
 
       // Moving: hide danger zone during slide
       this._setAnimationSubPhase('moving');
@@ -647,11 +651,11 @@ class App extends Component<AppProps, AppState> {
       const unitType = animation.unit ? (animation.unit.unitType ?? 0) : -1;
       const hasPhaseAnim = unitType === 0 || unitType === 1 || unitType === 2;
       const animDuration = hasPhaseAnim ? 1000 : 500;
-      await new Promise((resolve) => setTimeout(resolve, animDuration));
+      await this._delay(animDuration);
 
       // Post-move: show danger zone at destination + scan animation
       this._setAnimationSubPhase('scanning');
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await this._delay(1000);
 
       // Check if any booms should trigger after this animation
       const boomsToTrigger = boomQueue.filter(
@@ -661,7 +665,7 @@ class App extends Component<AppProps, AppState> {
       if (boomsToTrigger.length > 0) {
         // Targeting: flash enemy squares in range
         this._setAnimationSubPhase('targeting');
-        await new Promise((resolve) => setTimeout(resolve, 600));
+        await this._delay(600);
 
         // Raise animation on units at boom locations before combat
         const boomLocations = boomsToTrigger.map(b => ({ x: b.x, y: b.y }));
@@ -682,11 +686,11 @@ class App extends Component<AppProps, AppState> {
 
         // Show "EMBUSCADE!" text first
         dispatchCustomEvent("embuscade", {});
-        await new Promise((resolve) => setTimeout(resolve, 1600));
+        await this._delay(1600);
 
         // Raise animation on units at boom locations after embuscade message
         dispatchCustomEvent("embuscade_raise", { locations: boomLocations, units: unitsAtBooms });
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await this._delay(800);
 
         console.log(`Triggering ${boomsToTrigger.length} boom(s) after animation ${i}`);
         for (const boom of boomsToTrigger) {
@@ -708,7 +712,7 @@ class App extends Component<AppProps, AppState> {
         }
 
         // Wait for boom animations (1000ms)
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await this._delay(1000);
 
         // After boom, check which units are now dead and mark them
         if (this.combatResultsBuffer) {
@@ -767,6 +771,16 @@ class App extends Component<AppProps, AppState> {
     this._finalizeCombat();
   };
 
+  _animSpeed = 1;
+
+  _toggleAnimSpeed = () => {
+    this._animSpeed = this._animSpeed === 1 ? 0.5 : 1;
+    document.documentElement.style.setProperty('--anim-speed', String(this._animSpeed));
+    this.setState({ animSpeed: this._animSpeed });
+  };
+
+  _delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms * this._animSpeed));
+
   // Store combat results temporarily (instance variable)
   combatResultsBuffer: {
     newFutureUnits: Array<Array<IUnit>>;
@@ -796,6 +810,11 @@ class App extends Component<AppProps, AppState> {
     this.setState(stateUpdate);
 
     this.combatResultsBuffer = null;
+
+    // Reset animation speed
+    this._animSpeed = 1;
+    document.documentElement.style.setProperty('--anim-speed', '1');
+    this.setState({ animSpeed: 1 });
 
     console.log(`=== COMBAT FINALIZED (Player ${this.state.playerIndex}, Round ${this.state.round + 1}) ===`);
   };

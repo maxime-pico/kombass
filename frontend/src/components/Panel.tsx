@@ -13,6 +13,8 @@ interface PanelProps {
 function Panel(props: PanelProps) {
   const {
     animationPhase,
+    animSpeed,
+    toggleAnimSpeed,
     bufferOpponentUnits,
     playerIndex,
     roomId,
@@ -80,39 +82,46 @@ function Panel(props: PanelProps) {
   return (
     <div className="panel">
       {step === unitsCount && waitingForMoves[playerIndex] && (
-        <button
-          className={`fight-button ${
-            animationPhase.isAnimating
-              ? "inactive"
+        <>
+          <button
+            className={`fight-button ${
+              animationPhase.isAnimating
+                ? "inactive"
+                : waitingForMoves[(playerIndex + 1) % 2]
+                ? "active"
+                : "inactive"
+            }`}
+            onClick={() => {
+              if (step === unitsCount && !animationPhase.isAnimating) {
+                applyMoves().then(() => {
+                  document.removeEventListener(
+                    "ready_for_moves",
+                    waitingForMoves
+                  );
+                  console.log("apply moves with buffer being");
+                  console.log(bufferOpponentUnits);
+                  if (
+                    bufferOpponentUnits.filter((unit) => unit !== null).length
+                  ) {
+                    setWaitingForMoves(true, (playerIndex + 1) % 2);
+                  }
+                });
+              }
+            }}
+            disabled={!waitingForMoves[(playerIndex + 1) % 2] || animationPhase.isAnimating}
+          >
+            {animationPhase.isAnimating
+              ? "FIGHTING..."
               : waitingForMoves[(playerIndex + 1) % 2]
-              ? "active"
-              : "inactive"
-          }`}
-          onClick={() => {
-            if (step === unitsCount && !animationPhase.isAnimating) {
-              applyMoves().then(() => {
-                document.removeEventListener(
-                  "ready_for_moves",
-                  waitingForMoves
-                );
-                console.log("apply moves with buffer being");
-                console.log(bufferOpponentUnits);
-                if (
-                  bufferOpponentUnits.filter((unit) => unit !== null).length
-                ) {
-                  setWaitingForMoves(true, (playerIndex + 1) % 2);
-                }
-              });
-            }
-          }}
-          disabled={!waitingForMoves[(playerIndex + 1) % 2] || animationPhase.isAnimating}
-        >
-          {animationPhase.isAnimating
-            ? "FIGHTING..."
-            : waitingForMoves[(playerIndex + 1) % 2]
-            ? "FIGHT!"
-            : "WAITING FOR OPPONENT TO MOVE THEIR ASS"}
-        </button>
+              ? "FIGHT!"
+              : "WAITING FOR OPPONENT TO MOVE THEIR ASS"}
+          </button>
+          {animationPhase.isAnimating && (
+            <button className="speed-toggle" onClick={toggleAnimSpeed}>
+              {animSpeed === 1 ? "2x" : "1x"}
+            </button>
+          )}
+        </>
       )}
       {step === unitsCount && !waitingForMoves[playerIndex] && (
         <button

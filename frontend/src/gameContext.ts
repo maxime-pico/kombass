@@ -83,6 +83,8 @@ export interface IGameContextProps {
   flagStayInPlace: boolean;
   waitingForMoves: Array<boolean>;
   animationPhase: IAnimationPhase;
+  animSpeed: number;
+  toggleAnimSpeed: () => void;
 }
 
 const defaultState: IGameContextProps = {
@@ -161,6 +163,8 @@ const defaultState: IGameContextProps = {
     boomQueue: [],
     deadUnits: new Set(),
   },
+  animSpeed: 1,
+  toggleAnimSpeed: () => {},
 };
 
 export default React.createContext(defaultState);

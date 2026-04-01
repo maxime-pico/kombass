@@ -28,7 +28,7 @@ If E2E fails, surface the errors and stop — do NOT commit. Note: E2E uses a se
 
 ## 2. Bump version
 
-Read the current version from `frontend/package.json`. Bump the patch version (e.g. 0.3.1 → 0.3.2). Also check `frontend/public/index.html` for a `<meta name="app-version">` tag and update it to match.
+Read the current version from `frontend/package.json`. Bump the patch version (e.g. 0.3.1 → 0.3.2). The `<meta name="app-version">` tag is automatically populated from `package.json` at build time via `vite.config.ts`.
 
 ## 3. Stage, commit, push
 

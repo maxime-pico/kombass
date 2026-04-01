@@ -29,7 +29,8 @@ function Embuscade() {
 
   useEffect(() => {
     if (visible) {
-      const timeout = setTimeout(() => setVisible(false), DURATION);
+      const speed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-speed') || '1');
+      const timeout = setTimeout(() => setVisible(false), DURATION * speed);
       return () => clearTimeout(timeout);
     }
   }, [visible]);

@@ -166,13 +166,14 @@ function Square(props: SquareProps) {
         document.head.appendChild(styleEl);
 
         const unitType = unit.unit.unitType ?? 0;
+        const speed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-speed') || '1');
 
         const startSlide = () => {
           setAnimatedUnit({
             player,
             unitIndex,
             transform: finalTransform,
-            animation: `${animName} 0.8s linear forwards`,
+            animation: `${animName} ${0.8 * speed}s linear forwards`,
           });
         };
 
@@ -188,31 +189,31 @@ function Square(props: SquareProps) {
           setTimeout(() => {
             setLightAnimState(null);
             cleanupSlide();
-          }, 800);
+          }, 800 * speed);
         } else if (unitType === 1) {
           setMediumAnimState("marching");
           startSlide();
           setTimeout(() => {
             setMediumAnimState(null);
             cleanupSlide();
-          }, 800);
+          }, 800 * speed);
         } else if (unitType === 2) {
           setHeavyAnimState("marching");
           startSlide();
           setTimeout(() => {
             setHeavyAnimState(null);
             cleanupSlide();
-          }, 800);
+          }, 800 * speed);
         } else {
           setAnimatedUnit({
             player,
             unitIndex,
             transform: finalTransform,
-            animation: `${animName} 0.5s ease-in-out forwards`,
+            animation: `${animName} ${0.5 * speed}s ease-in-out forwards`,
           });
           setTimeout(() => {
             cleanupSlide();
-          }, 500);
+          }, 500 * speed);
         }
       }
     };
@@ -322,10 +323,11 @@ function Square(props: SquareProps) {
   // Reset boom animation after 1 second
   useEffect(() => {
     if (boom) {
+      const speed = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--anim-speed') || '1');
       const timeout = setTimeout(() => {
         setBoom(false);
         setDamage(null);
-      }, 1000);
+      }, 1000 * speed);
 
       return () => clearTimeout(timeout);
     }
